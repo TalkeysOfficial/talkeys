@@ -1,14 +1,14 @@
 const asyncHandler = require("express-async-handler");
-const { sendMail } = require("../../helpers/email.service.js");
+const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
-const { validateEmail, validatePhoneNumber, } = require("../../helpers/validatorHelper");
+const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
 const express = require('express');
-const auth = require('../middleware/auth');
+const auth = require('../middleware/oauth.js');
 const Event = require('../models/events.model.js');
 const Pass = require('../models/passes.model.js');
 const mongoose = require('mongoose');
 
-const bookTicket = async (req, res) => {    
+const bookTicket = async (req, res) => {
     const { name, slotId } = req.body;
     const userId = req.user.id;  // Assuming auth middleware adds user to request
 
@@ -87,8 +87,6 @@ const bookTicket = async (req, res) => {
         session.endSession();
     }
 };
-
-router.post('/book-ticket', auth, bookTicket);
 
 module.exports = {
     bookTicket,
