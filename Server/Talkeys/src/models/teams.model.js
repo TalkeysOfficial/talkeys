@@ -1,12 +1,11 @@
-const mongoose =  require("mongoose");
-const { int } = require("three/examples/jsm/nodes/Nodes.js");
-const TeamSchema= new mongoose.schema({
+const mongoose = require("mongoose");
+const TeamSchema = new mongoose.Schema({
     teamName: {
         type: String,
         required: true,
     },
-    TeamCode: {
-        type: int,
+    teamCode: {
+        type: Number,
         required: true,
     },
     teamMembers: {
@@ -19,13 +18,15 @@ const TeamSchema= new mongoose.schema({
         ref: "User",
         required: true,
     },
-    MaxMembers: {
-        type: int,
-        required
+    maxMembers: {
+        type: Number,
+        required: true,
     },
     dateCreated: {
         type: Date,
         default: Date.now,
     },
 });
+
+module.exports = mongoose.model("Team", TeamSchema);
 

@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
-const { sendMail } = require("../helpers/email.service");
+const { sendMail } = require("../../helpers/email.service.js");
 const TeamSchema = require("../models/teams.model.js");
-const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
+const { validateEmail, validatePhoneNumber, } = require("../../helpers/validatorHelper");
 const createTeam = asyncHandler(async (req, res) => {
     try {
         const { teamName, teamLeader, newPhoneNumber } = req.body;
