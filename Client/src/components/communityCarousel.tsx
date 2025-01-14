@@ -39,7 +39,7 @@ export default function CommunityCarousel() {
         <div className="w-full bg-transparent text-white p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">Featured Communities</h2>
-            <Button variant="outline" onClick={handleShowAllCommunities}>Show All Communities</Button>
+            {/* <Button variant="outline" onClick={handleShowAllCommunities}>Show All Communities</Button> */}
           </div>
           <Swiper
             modules={[Autoplay]}

@@ -16,11 +16,23 @@ export default function Footer() {
 				<div className="flex flex-col lg:flex-row justify-between items-center lg:items-start space-y-8 lg:space-y-0">
 					<div className="w-full lg:w-1/3 text-center lg:text-left">
 						<h3 className="text-lg font-bold mb-2">Team Talkeys</h3>
-						<p className="text-sm">
-							Address: Tikam University, Patalia, Punjab, India
-						</p>
-						<p className="text-sm">Call Us: +91 98765 43210</p>
-						<p className="text-sm">info@tikam.com</p>
+						<p className="text-sm">Address: Patalia, Punjab, India</p>
+						<Link
+							href="tel:+919888230798"
+							className="text-sm"
+						>
+							<p>
+								Call Us:{" "}
+								<span className="underline">+91 9888230798</span>
+							</p>
+						</Link>
+						<Link
+							href="mailto:talkeys11@gmail.com
+"
+							className="text-sm underline"
+						>
+							<p>talkeys11@gmail.com</p>
+						</Link>
 					</div>
 
 					<div className="w-full lg:w-1/3 flex flex-col items-center">
@@ -41,7 +53,7 @@ export default function Footer() {
 								<FaFacebookF size={20} />
 							</Link>
 							<Link
-								href="#"
+								href="https://www.instagram.com/talkeys_?igsh=MWsxZHk0bTQyYmlyag=="
 								className="hover:text-gray-400 transition-colors duration-200"
 								aria-label="Instagram"
 							>
@@ -68,7 +80,7 @@ export default function Footer() {
 						<ul className="space-y-2">
 							<li>
 								<Link
-									href="#"
+									href="/contactUs"
 									className="hover:underline transition-colors duration-200"
 								>
 									Contact us
@@ -76,7 +88,7 @@ export default function Footer() {
 							</li>
 							<li>
 								<Link
-									href="#"
+									href="/aboutUs"
 									className="hover:underline transition-colors duration-200"
 								>
 									About us
@@ -103,7 +115,7 @@ export default function Footer() {
 				</div>
 			</div>
 			<div className="text-center mt-8 text-xs">
-				© 2024 Tikam. All rights reserved.
+				© 2024 Talkeys All rights reserved.
 			</div>
 		</footer>
 	);
