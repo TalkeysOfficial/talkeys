@@ -2,17 +2,13 @@ const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
-
-
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const Event = require('../models/events.model.js');
 const Pass = require('../models/passes.model.js');
 const mongoose = require('mongoose');
 
-// Book ticket endpoint
-router.post('/book-ticket', auth, async (req, res) => {
+const bookTicket = async (req, res) => {
     const { name, slotId } = req.body;
     const userId = req.user.id;  // Assuming auth middleware adds user to request
 
@@ -20,7 +16,7 @@ router.post('/book-ticket', auth, async (req, res) => {
     if (!name) {
         return res.status(400).json({ error: "Event name is required" });
     }
-
+    
     // Start session for transaction
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -74,7 +70,6 @@ router.post('/book-ticket', auth, async (req, res) => {
 
         // Get updated event
         const updatedEvent = await Event.findById(event._id);
-
         return res.status(200).json({
             message: "Ticket booked successfully",
             user: req.user, // Assuming user details are in req.user
@@ -91,6 +86,10 @@ router.post('/book-ticket', auth, async (req, res) => {
     } finally {
         session.endSession();
     }
-});
+};
 
-module.exports = router;
+router.post('/book-ticket', auth, bookTicket);
+
+module.exports = {
+    bookTicket,
+};

@@ -45,3 +45,5 @@ const createEvent = asyncHandler(async (req, res) => {
     }
 }
 );
+
+module.exports.createEvent
