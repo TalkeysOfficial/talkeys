@@ -6,11 +6,7 @@ import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import {
 	NavigationMenu,
-	NavigationMenuContent,
-	NavigationMenuItem,
-	NavigationMenuLink,
 	NavigationMenuList,
-	NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
@@ -34,19 +30,19 @@ const Navbar = () => {
 	return (
 		<div className="fixed top-0 w-full z-[1000]">
 			<div className="flex pt-[10px] justify-between bg-black h-[13.5vh] items-center px-4 md:px-10">
-				<div className="flex items-center">
-					<Link href="/">
+				<Link href="/">
+					<div className="flex items-center">
 						<Image
 							src={image}
 							alt="Logo"
 							width={80}
 							height={80}
 						/>
-					</Link>
-					<span className="font-marykate text-white font-semibold text-3xl">
-						Talkeys
-					</span>
-				</div>
+						<span className="font-marykate text-white font-semibold text-3xl">
+							Talkeys
+						</span>
+					</div>
+				</Link>
 				{isMobile ? (
 					<Button
 						variant="ghost"
@@ -58,24 +54,14 @@ const Navbar = () => {
 					</Button>
 				) : (
 					<NavigationMenu>
-						<NavigationMenuList className="gap-6">
+						<NavigationMenuList className="flex gap-10">
 							{navItems.map((item) => (
-								<NavigationMenuItem
-									className="text-white"
+								<button
 									key={item.name}
+									className="text-white"
 								>
-									<NavigationMenuTrigger className="text-white">
-										{item.name}
-									</NavigationMenuTrigger>
-									<NavigationMenuContent>
-										<NavigationMenuLink
-											className="text-white"
-											href={item.link}
-										>
-											Link
-										</NavigationMenuLink>
-									</NavigationMenuContent>
-								</NavigationMenuItem>
+									{item.name}
+								</button>
 							))}
 							<Button
 								asChild
