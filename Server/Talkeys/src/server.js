@@ -48,7 +48,7 @@ app.use('*', (req, res, next) => {
 
 // Assign Routes
 
-app.use('/', require('./routes/router.js'));
+app.use('/', require('./routes/router'));
 
 
 // Handle errors
