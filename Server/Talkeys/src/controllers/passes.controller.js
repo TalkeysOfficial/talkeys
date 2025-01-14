@@ -16,7 +16,7 @@ const bookTicket = async (req, res) => {
     if (!name) {
         return res.status(400).json({ error: "Event name is required" });
     }
-
+    
     // Start session for transaction
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -70,7 +70,6 @@ const bookTicket = async (req, res) => {
 
         // Get updated event
         const updatedEvent = await Event.findById(event._id);
-
         return res.status(200).json({
             message: "Ticket booked successfully",
             user: req.user, // Assuming user details are in req.user

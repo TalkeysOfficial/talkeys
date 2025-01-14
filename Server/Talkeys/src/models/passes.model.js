@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const passSchema = new mongoose.Schema({
+  Team:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"TeamSchema"
+  },
   isScanned: {
     type: Boolean,
     default: false, 

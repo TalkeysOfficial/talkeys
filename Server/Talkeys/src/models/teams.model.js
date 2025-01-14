@@ -27,6 +27,5 @@ const TeamSchema= new mongoose.schema({
         type: Date,
         default: Date.now,
     },
-
 });
 
