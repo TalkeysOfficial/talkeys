@@ -8,7 +8,7 @@ const Event = require('../models/events.model.js');
 const Pass = require('../models/passes.model.js');
 const mongoose = require('mongoose');
 
-const bookTicket = async (req, res) => {
+const bookTicket = async (req, res) => {    
     const { name, slotId } = req.body;
     const userId = req.user.id;  // Assuming auth middleware adds user to request
 
