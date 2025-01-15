@@ -9,6 +9,9 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Your Google Client ID
 const client = new OAuth2Client(CLIENT_ID);
 exports.verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1]; // Get the token from the 'Authorization' header
+  const tok=req.body.credentialResponse[credential];
+  console.log(tok);
+  console.log(tok);
   console.log('Token:', token);
   if (!token) {
     return res.status(403).json({ message: 'No token provided' });
