@@ -1,4 +1,4 @@
-"use client";
+"use client";// Import the signIn function from NextAuth for authentication.
 
 import React, { useState } from "react";
 import Image from "next/image";
@@ -21,12 +21,13 @@ const navItems = [
 
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 
 	const toggleMenu = () => {
 		setIsMenuOpen(!isMenuOpen);
 	};
-
+	
 	return (
 		<div className="fixed top-0 w-full z-[1000]">
 			<div className="flex pt-[10px] justify-between bg-black h-[13.5vh] items-center px-4 md:px-10">

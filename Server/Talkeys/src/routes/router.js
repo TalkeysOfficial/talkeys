@@ -5,8 +5,8 @@ const Events = require('./../controllers/event.controller.js');
 const Passes = require('./../controllers/passes.controller.js');
 const Team = require('./../controllers/team.controller.js');
 
-router.use(authentication.verifyIdToken);
-
+router.use(authentication.verifyToken);
+router.get('/protected', authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.get('/getEvents', Events.getEvents);  
 router.post('/bookPass', Passes.bookTicket);

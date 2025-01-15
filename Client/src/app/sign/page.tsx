@@ -1,15 +1,21 @@
 "use client";
-import { signIn } from "next-auth/react"; // Import the signIn function from NextAuth for authentication.
+import { signIn, useSession } from "next-auth/react";
+ // Import the signIn function from NextAuth for authentication.
 import React from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import image from "../../public/images/Default.png";
 
+//create the user session
+
 const SignUpPage = () => {
+  // const { data: session } = useSession(); // Get the session object
+
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
-    await signIn("google", { callbackUrl: "/dashboard" }); // Redirect to a page after successful login
+    await signIn("google", { callbackUrl: "/" }); // Redirect to a page after successful login
   };
+  //getting user data using
 
   return (
     <div
