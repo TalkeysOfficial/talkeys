@@ -37,7 +37,8 @@ app.use(express.urlencoded( { extended: true, limit: '10mb' } ));
 app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
-app.use(cors());
+const cors_options = { origin: 'http://localhost:3000', credentials: true };
+app.use(cors(cors_options));
 app.use(helmet());
 
 // This middleware adds the json header to every response
