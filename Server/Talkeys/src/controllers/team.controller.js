@@ -59,7 +59,7 @@ const joinTeam = asyncHandler(async (req, res) => {
             res.status(404);
             throw new Error("User not found");
         }
-        user.phoneNumber = newPhoneNumber;
+        user.phoneNumber = PhoneNumber;
         await user.save();
 
 
