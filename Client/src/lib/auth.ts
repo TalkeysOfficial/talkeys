@@ -1,12 +1,11 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import jwt from "jsonwebtoken"; // For creating a custom JWT (if needed)
 
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: process.env.CLIENT_ID!,
+            clientSecret: process.env.CLIENT_SECRET!,
             // Set the authorization URL to include the callback URL
             authorization: {
                 params: {
