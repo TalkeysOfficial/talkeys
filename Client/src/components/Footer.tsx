@@ -46,7 +46,7 @@ export default function Footer() {
 						</div>
 						<div className="flex space-x-4">
 							<Link
-								href="#"
+								href="/underConstruct"
 								className="hover:text-gray-400 transition-colors duration-200"
 								aria-label="Facebook"
 							>
@@ -60,14 +60,14 @@ export default function Footer() {
 								<FaInstagram size={20} />
 							</Link>
 							<Link
-								href="#"
+								href="/underConstruct"
 								className="hover:text-gray-400 transition-colors duration-200"
 								aria-label="LinkedIn"
 							>
 								<FaLinkedinIn size={20} />
 							</Link>
 							<Link
-								href="#"
+								href="/underConstruct"
 								className="hover:text-gray-400 transition-colors duration-200"
 								aria-label="YouTube"
 							>
@@ -96,7 +96,7 @@ export default function Footer() {
 							</li>
 							<li>
 								<Link
-									href="#"
+									href="/underConstruct"
 									className="hover:underline transition-colors duration-200"
 								>
 									Privacy Policy
@@ -104,7 +104,7 @@ export default function Footer() {
 							</li>
 							<li>
 								<Link
-									href="#"
+									href="/underConstruct"
 									className="hover:underline transition-colors duration-200"
 								>
 									Terms of Service
