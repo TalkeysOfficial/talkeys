@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { NextResponse } from 'next/server'; // Import to use NextResponse
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -14,5 +15,17 @@ export const authOptions: NextAuthOptions = {
             },
         }),
     ],
+    session: {
+        strategy: 'jwt',
+    },
+    callbacks: {
+        async signIn({ account }) {
+            if (account?.id_token) {
+                console.log("Setting cookie on the frontend", account?.id_token);
+                return true;
+            }
+            return false;
+        },
+    },
     secret: process.env.SECRET as string,
 };
