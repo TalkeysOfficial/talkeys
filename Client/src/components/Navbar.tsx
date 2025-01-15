@@ -1,4 +1,4 @@
-"use client";// Import the signIn function from NextAuth for authentication.
+"use client"; // Import the signIn function from NextAuth for authentication.
 
 import React, { useState } from "react";
 import Image from "next/image";
@@ -13,21 +13,21 @@ import { Menu, X } from "lucide-react";
 import image from "../public/images/Logo.png";
 
 const navItems = [
-	{ name: "Home", link: "" },
-	{ name: "Explore", link: "" },
-	{ name: "Events", link: "" },
-	{ name: "Communities", link: "" },
+	{ name: "Home", link: "/underConstruct" },
+	{ name: "Explore", link: "/underConstruct" },
+	{ name: "Events", link: "/underConstruct" },
+	{ name: "Communities", link: "/underConstruct" },
 ];
 
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	
+
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 
 	const toggleMenu = () => {
-		setIsMenuOpen(!isMenuOpen);
+		setIsMenuOpen((prev) => !prev);
 	};
-	
+
 	return (
 		<div className="fixed top-0 w-full z-[1000]">
 			<div className="flex pt-[10px] justify-between bg-black h-[13.5vh] items-center px-4 md:px-10">
@@ -57,12 +57,13 @@ const Navbar = () => {
 					<NavigationMenu>
 						<NavigationMenuList className="flex gap-10">
 							{navItems.map((item) => (
-								<button
+								<Link
 									key={item.name}
+									href={item.link}
 									className="text-white"
 								>
 									{item.name}
-								</button>
+								</Link>
 							))}
 							<Button
 								asChild
@@ -86,6 +87,7 @@ const Navbar = () => {
 							<Link
 								key={item.name}
 								href={item.link}
+								onClick={toggleMenu}
 								className="block text-white py-2 hover:text-gray-300 transition-colors duration-200"
 							>
 								{item.name}
@@ -94,6 +96,7 @@ const Navbar = () => {
 						<Button
 							asChild
 							variant="outline"
+							onClick={toggleMenu}
 							className="w-full mt-4 text-white hover:bg-white hover:text-black duration-300"
 						>
 							<Link href="/sign">Sign Up/Login</Link>
