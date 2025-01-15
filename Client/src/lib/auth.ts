@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { NextResponse } from 'next/server'; // Import to use NextResponse
+import { setCookie } from 'cookies-next';
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -19,9 +20,24 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt',
     },
     callbacks: {
-        async signIn({ account }) {
+        async signIn({ account,profile }) {
+            console.log(account,profile)
             if (account?.id_token) {
-                console.log("Setting cookie on the frontend", account?.id_token);
+
+                setCookie('jwt', account.id_token, { 
+                    httpOnly: true,
+                    sameSite:"strict",
+                    secure: false, 
+                    path: '/' 
+                });
+
+                const response = await fetch('http://localhost:8000/verify',{
+                    credentials:"include",
+                    method:"GET"
+                });
+                const data = await response.json();
+                console.log(data); 
+
                 return true;
             }
             return false;

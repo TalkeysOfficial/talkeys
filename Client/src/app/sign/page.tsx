@@ -1,23 +1,22 @@
 "use client";
-import { signIn, useSession } from "next-auth/react";
- // Import the signIn function from NextAuth for authentication.
-import React from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import image from "../../public/images/Default.png";
-
-//create the user session
+import { useGoogleLogin, GoogleOAuthProvider,useGoogleOneTapLogin,GoogleLogin } from "@react-oauth/google";
+import { json } from "stream/consumers";
 
 const SignUpPage = () => {
-  // const { data: session } = useSession(); // Get the session object
-
-  // Handle Google Sign-In
-  const handleGoogleSignIn = async () => {
-    await signIn("google", { callbackUrl: "/" }); // Redirect to a page after successful login
-  };
-  //getting user data using
+  // const login = useGoogleLogin({
+  //   onSuccess: async (tokenResponse) => {
+  //     console.log("Token Response:", tokenResponse);
+  //   },
+  //   onError: (error) => {
+  //     console.error("Login Failed:", error);
+  //   },
+  // });
 
   return (
+    <GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com" >
     <div
       className="min-h-screen text-white"
       style={{
@@ -39,12 +38,31 @@ const SignUpPage = () => {
             </div>
 
             <div className="space-y-4">
-              {/* Google OAuth Sign-In */}
               <button
-                onClick={handleGoogleSignIn}
+                // onClick={() => login()} // Trigger Google login when button is clicked
                 className="w-full py-3 px-4 border border-gray-600 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors"
               >
-                <span>Continue with Google</span>
+                {/* <span>Continue with Google</span>
+                 */}
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    // console.log(credentialResponse);
+                    const response = await fetch('http://localhost:8000/verify', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(credentialResponse),
+                    });
+                    const data = await response.json();
+                    console.log(data);
+                  }}
+                  onError={() => {
+                    console.log("Login Failed");
+                  }}
+                  useOneTap
+                />
+                ;
               </button>
 
               <div className="relative">
@@ -55,45 +73,6 @@ const SignUpPage = () => {
                   <span className="px-2 bg-gray-900 text-gray-400">or</span>
                 </div>
               </div>
-
-              {/* Commented out the email/password form */}
-              {/* <form action={handleSignUp} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Enter your Email
-                  </label>
-                  <input
-                    type="text"
-                    id="email"
-                    name="email"
-                    placeholder="Your email here"
-                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Enter your Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Your password here"
-                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <button className="w-full py-3 bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors">
-                  Login
-                </button>
-              </form> */}
 
               <p className="text-sm text-gray-400 text-center">
                 By continuing you agree to our{" "}
@@ -116,6 +95,7 @@ const SignUpPage = () => {
         </div>
       </div>
     </div>
+    </GoogleOAuthProvider>
   );
 };
 
