@@ -31,6 +31,7 @@ const passSchema = new mongoose.Schema({
     type: String,
     enum: ["VIP", "General", "Staff"], 
     required: true,
+    default:'General'
   },
   status: {
     type: String,
