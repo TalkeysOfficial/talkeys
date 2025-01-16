@@ -11,6 +11,7 @@ import {
 import { json } from "stream/consumers";
 import { redirect } from "next/dist/server/api-utils";
 import { useRouter } from "next/router";
+const backendURL = process.env.BACKEND_URL;
 
 const SignUpPage = () => {
   const router = useRouter();
@@ -57,7 +58,7 @@ const SignUpPage = () => {
                     onSuccess={async (credentialResponse) => {
                       // console.log(credentialResponse.credential);
                       const response = await fetch(
-                        "http://localhost:8000/verify",
+                        `${backendURL}/verify`,
                         {
                           method: "POST",
                           headers: {
