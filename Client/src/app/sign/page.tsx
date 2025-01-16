@@ -52,7 +52,7 @@ const SignUpPage = () => {
 										onSuccess={async (credentialResponse) => {
 											// console.log(credentialResponse.credential);
 											const response = await fetch(
-												`${backendURL}/verify`,
+												"http://localhost:8000/verify",
 												{
 													method: "POST",
 													headers: {
@@ -71,6 +71,7 @@ const SignUpPage = () => {
 										}}
 										onError={() => {
 											console.log("Login Failed");
+											router.push("/");
 										}}
 									/>
 									;
@@ -90,14 +91,14 @@ const SignUpPage = () => {
 								<p className="text-sm text-gray-400 text-center">
 									By continuing you agree to our{" "}
 									<Link
-										href="http://localhost:3000/terms"
+										href="/terms"
 										className="text-purple-400 hover:text-purple-300"
 									>
 										Terms of Service
 									</Link>{" "}
 									and{" "}
 									<Link
-										href="http://localhost:3000/privacy"
+										href="/privacy"
 										className="text-purple-400 hover:text-purple-300"
 									>
 										Privacy Policy
