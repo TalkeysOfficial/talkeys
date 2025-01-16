@@ -3,6 +3,8 @@ import GoogleProvider from "next-auth/providers/google";
 import { NextResponse } from 'next/server'; // Import to use NextResponse
 import { setCookie } from 'cookies-next';
 
+import { useSearchParams } from 'next/navigation'
+
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({

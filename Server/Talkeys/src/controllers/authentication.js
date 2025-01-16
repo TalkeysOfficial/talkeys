@@ -20,6 +20,7 @@ exports.verifyToken = async (req, res, next) => {
       idToken: idtoken,
       audience: CLIENT_ID, // Verify the token is intended for this client
     });
+    console.log("Ticket:");
     const payload=ticket.getPayload();
     // console.log("Payload:", payload);
     // var user=await User.findOne({email:payload.email});

@@ -9,8 +9,12 @@ import {
   GoogleLogin,
 } from "@react-oauth/google";
 import { json } from "stream/consumers";
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/router";
 
 const SignUpPage = () => {
+  const router = useRouter();
+
   // const login = useGoogleLogin({
   //   onSuccess: async (tokenResponse) => {
   //     console.log("Token Response:", tokenResponse);
@@ -68,7 +72,9 @@ const SignUpPage = () => {
                         "accessToken",
                         accessToken
                       );
+                      router.push("/");
                     }}
+                    
                     onError={() => {
                       console.log("Login Failed");
                     }}
