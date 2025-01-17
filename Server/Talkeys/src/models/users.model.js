@@ -18,6 +18,18 @@ const UserSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: false
+    },
+    accessToken: {
+        type: String,
+        required: true
+    },
+    refreshToken: {
+        type: String,
+        required: true
+    },
+    dateCreated: {
+        type: Date,
+        default: Date.now
     }
 });
 

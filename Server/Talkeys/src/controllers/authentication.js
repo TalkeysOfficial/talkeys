@@ -20,17 +20,18 @@ exports.verifyToken = async (req, res, next) => {
       idToken: idtoken,
       audience: CLIENT_ID, // Verify the token is intended for this client
     });
+    console.log("Ticket:");
     const payload=ticket.getPayload();
-    // console.log("Payload:", payload);
-    // var user=await User.findOne({email:payload.email});
-    // if(!user){
-    //   var user = new User({
-    //     email: payload.email,
-    //     name: payload.name,
-    //     picture: payload.picture
-    //   });
-    //   await user.save();
-    // }
+    console.log("Payload:", payload);
+    var user=await User.findOne({email:payload.email});
+    if(!user){
+      var user = new User({
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture
+      });
+      await user.save();
+    }
     // user.accessToken=jwt.sign({email:payload.email},secret,{expiresIn:86400});
     const accessToken=jwt.sign({email:payload.email},secret,{expiresIn:86400});
     res.json(accessToken);
