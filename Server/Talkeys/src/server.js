@@ -24,6 +24,50 @@ require('mandatoryenv').load([
 const { PORT } = process.env;
 
 
+exports.verifyToken = async (req, res, next) => {
+  try {
+    const data = req.headers.authorization;
+    const idtoken = data.split(" ")[1];
+    // console.log("Token:", idtoken);
+
+    if (!idtoken) {
+      return res.status(403).json({ message: "No token provided" });
+    }
+    const ticket = await client.verifyIdToken({
+      idToken: idtoken,
+      audience: CLIENT_ID, // Verify the token is intended for this client
+    });
+    console.log("Ticket:");
+    const payload=ticket.getPayload();
+    console.log("Payload:", payload);
+    var user=await User.findOne({email:payload.email});
+    console.log("hh")
+    if(!user){
+      var user = new User({
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture
+      });
+      await user.save();
+    }
+    console.log("created successfully")
+    // user.accessToken=jwt.sign({email:payload.email},secret,{expiresIn:86400});
+    const accessToken=jwt.sign({email:payload.email},secret,{expiresIn:86400});
+    res.json(accessToken);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.protected = (req, res) => {
+  res.send("Protected route");
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie("jwt");
+  res.send("Logged out");
+};
+
 // Instantiate an Express Application
 const app = express();
 
@@ -60,6 +104,25 @@ app.use('*', (req, res) => {
     .status(404)
     .json( {status: false, message: 'Endpoint Not Found'} );
 })
+const mongoose = require('mongoose');
+
+const {
+    DB_URL
+} = process.env;
+const connectDB = async () => {
+    try {
+    const conn = await mongoose.connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 15000, // Increase timeout to 15 seconds
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+} catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+}
+};
+connectDB()
 
 // Open Server on selected Port
 app.listen(
