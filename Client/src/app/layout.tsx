@@ -7,21 +7,22 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import titleImage from "@/public/images/final_logo_talkeys.ico";
 import { Analytics } from "@vercel/analytics/react";
+import { urbanist } from "@/components/fonts/fonts";
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+	src: "./fonts/GeistVF.woff",
+	variable: "--font-geist-sans",
+	weight: "100 900",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+	src: "./fonts/GeistMonoVF.woff",
+	variable: "--font-geist-mono",
+	weight: "100 900",
 });
 
 export const metadata: Metadata = {
-  title: "Talkeys",
-  description: "Talkeys",
+	title: "Talkeys",
+	description: "Talkeys",
 };
 
 // export icons: {
@@ -29,27 +30,27 @@ export const metadata: Metadata = {
 // }
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{
-          backgroundImage: `url(${image.src})`,
-          // backgroundSize: "cover",
-          // backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
-          width: "100%",
-        }}
-      >
-        <Navbar />
-        {children}
-        <Analytics />
-        <Footer />
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased ${urbanist.className}`}
+				style={{
+					backgroundImage: `url(${image.src})`,
+					// backgroundSize: "cover",
+					// backgroundRepeat: "no-repeat",
+					backgroundAttachment: "fixed",
+					width: "100%",
+				}}
+			>
+				<Navbar />
+				{children}
+				<Analytics />
+				<Footer />
+			</body>
+		</html>
+	);
 }
