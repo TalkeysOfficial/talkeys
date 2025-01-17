@@ -6,7 +6,7 @@ import image from "../public/images/background.png";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import titleImage from "@/public/images/final_logo_talkeys.ico";
-
+import { Analytics } from "@vercel/analytics/react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,11 +24,9 @@ export const metadata: Metadata = {
   description: "Talkeys",
 };
 
-
 // export icons: {
 //   icon: titleImage.src,
 // }
-
 
 export default function RootLayout({
   children,
@@ -36,7 +34,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -48,11 +45,11 @@ export default function RootLayout({
           width: "100%",
         }}
       >
-          <Navbar />
-          {children}
-          <Footer />
+        <Navbar />
+        {children}
+        <Analytics />
+        <Footer />
       </body>
     </html>
-
   );
 }
