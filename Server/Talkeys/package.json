@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "Talkeys is the ultimate backend solution",
     "main": "src/server.js",
+    "type": "commonjs",
     "scripts": {
         "setup": "npm install && npm update",
         "start": "node src/server.js"

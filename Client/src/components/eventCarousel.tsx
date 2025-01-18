@@ -55,7 +55,7 @@ const eventCards: EventCard[] = [
 	},
 ];
 
-export default function EventCarousel() {
+export default function EventCarousel({ title }: { title?: string }) {
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
 
@@ -82,7 +82,9 @@ export default function EventCarousel() {
 			<div className="event w-full bg-transparent text-white p-10 overflow-hidden">
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
-						<h2 className="text-2xl font-bold">Upcoming Events</h2>
+						<h2 className="text-xl font-bold">
+							{title ?? "Upcoming Events"}
+						</h2>
 						<div>
 							<Button
 								onClick={handlePrev}
