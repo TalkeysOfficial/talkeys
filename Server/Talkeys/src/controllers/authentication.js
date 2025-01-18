@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Your Google Client ID
 const client = new OAuth2Client(CLIENT_ID);
 
 
-exports.verifyToken = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
     const data = req.headers.authorization;
     const idtoken = data.split(" ")[1];
@@ -89,3 +89,4 @@ exports.logout = (req, res) => {
   res.clearCookie("jwt");
   res.send("Logged out");
 };
+
