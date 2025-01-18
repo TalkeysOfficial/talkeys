@@ -6,7 +6,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 import { useRouter } from "next/navigation";
 const backendURL = process.env.BACKEND_URL;
-
+const clientID=process.env.CLIENT_ID;
 const SignUpPage = () => {
 	const router = useRouter();
 
