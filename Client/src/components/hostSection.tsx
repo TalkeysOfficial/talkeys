@@ -1,8 +1,9 @@
 import React from "react";
-import { Button } from "./ui/button";
+// import { Button } from "./ui/button";
+import Link from "next/link";
 import Image from "next/image";
-import image from "../public/images/disco.png";
-import { useMediaQuery } from "react-responsive";
+import image from "@/public/images/disco.png";
+// import { useMediaQuery } from "react-responsive";
 
 export default function HostSection() {
 	// const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
@@ -18,15 +19,18 @@ export default function HostSection() {
 				</h1>
 			</div>
 			<div className="content flex flex-col sm:flex-row gap-8 sm:gap-12 items-center justify-center w-full max-w-6xl">
-        <div className="left text-center space-y-6 order-2 sm:order-1 w-full sm:w-2/3 md:w-1/2">
+				<div className="left text-center space-y-6 order-2 sm:order-1 w-full sm:w-2/3 md:w-1/2">
 					<p className="text-xl sm:text-2xl font-light mb-8">
 						Create an event, invite your community,
 						<br className="hidden sm:inline" /> and manage everything in
 						one place.
 					</p>
-					<Button className="px-6 py-3 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-300">
+					<Link
+						href="/underConstruct"
+						className="rounded-[8px] px-6 py-3 bg-purple-500 text-white  hover:bg-purple-600 transition-colors duration-300"
+					>
 						Create Event
-					</Button>
+					</Link>
 				</div>
 				<div className="right flex justify-center items-center order-1 sm:order-2 w-full sm:w-1/3 md:w-1/2">
 					<Image

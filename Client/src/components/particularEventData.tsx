@@ -21,8 +21,8 @@ export default function EventPage({ event }: { readonly event: Event }) {
 					<div className="relative aspect-[4/3] md:aspect-auto">
 						<Image
 							src={event.photographs?.[0] ?? placeholderImage}
-							alt={`${event.name} banner`}
-							className="rounded-lg object-cover"
+							alt={`${event.name}-banner`}
+							className="rounded-lg object-scale-down object-center"
 							fill
 							priority
 							sizes="(max-width: 768px) 100vw, 50vw"
@@ -61,7 +61,7 @@ export default function EventPage({ event }: { readonly event: Event }) {
 						{/* Cost Section */}
 						<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 							<div className="text-base md:text-lg">
-								Cost: ${event.ticketPrice}
+								Cost: ₹{event.ticketPrice}
 							</div>
 							<Button
 								className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
@@ -102,7 +102,7 @@ export default function EventPage({ event }: { readonly event: Event }) {
 					className="w-full"
 					aria-label="Event information tabs"
 				>
-					<TabsList className="bg-gray-900 border-b border-gray-800 w-full overflow-x-auto flex-nowrap">
+					<TabsList className="bg-gray-900 border-b border-gray-800 w-full overflow-x-auto flex-nowrap overflow-y-hidden">
 						<TabsTrigger
 							value="details"
 							className="text-sm sm:text-base"

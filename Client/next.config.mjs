@@ -9,6 +9,9 @@ const nextConfig = {
 		// Example: CUSTOM_VAR: process.env.CUSTOM_VAR
 		BACKEND_URL: process.env.BACKEND_URL,
 	},
+	images: {
+		domains: ["res.cloudinary.com"],
+	},
 };
 
 export default nextConfig;

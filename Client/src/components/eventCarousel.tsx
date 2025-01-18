@@ -104,13 +104,13 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											className="w-full h-64 object-cover"
+											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">
 											<div className="text-sm text-red-500 mb-2">
 												{new Date(
 													event.startDate,
-												).toLocaleDateString()}{" "}
+												).toDateString()}{" at "}
 												{event.startTime}
 											</div>
 											<h3 className="text-xl font-bold mb-2">

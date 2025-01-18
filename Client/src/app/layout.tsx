@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Image from "next/image";
+// import Image from "next/image";
 import image from "../public/images/background.png";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import titleImage from "@/public/images/final_logo_talkeys.ico";
+// import titleImage from "@/public/images/final_logo_talkeys.ico";
 import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
+
+import { AuthProvider } from "@/lib/authContext";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -46,10 +48,12 @@ export default function RootLayout({
 					width: "100%",
 				}}
 			>
-				<Navbar />
-				{children}
-				<Analytics />
-				<Footer />
+				<AuthProvider>
+					<Navbar />
+					{children}
+					<Analytics />
+					<Footer />
+				</AuthProvider>
 			</body>
 		</html>
 	);

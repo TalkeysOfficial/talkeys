@@ -8,12 +8,15 @@ import {
 	GoogleLogin,
 	googleLogout,
 } from "@react-oauth/google";
+import { useAuth } from "@/lib/authContext";
 
 import { useRouter } from "next/navigation";
 const backendURL = process.env.BACKEND_URL;
-const clientID = process.env.CLIENT_ID;
+// const clientID = process.env.CLIENT_ID;
+
 const SignUpPage = () => {
 	const router = useRouter();
+	const { isSignedIn, setIsSignedIn } = useAuth();
 
 	// const login = useGoogleLogin({
 	//   onSuccess: async (tokenResponse) => {
@@ -23,8 +26,6 @@ const SignUpPage = () => {
 	//     console.error("Login Failed:", error);
 	//   },
 	// });
-
-	const [isSignedIn, setIsSignedIn] = useState(false);
 
 	useEffect(() => {
 		const token = localStorage.getItem("accessToken");
@@ -61,39 +62,41 @@ const SignUpPage = () => {
 
 							<div className="space-y-4">
 								{isSignedIn ? (
-									<button	
+									<button
 										onClick={handleLogout}
 										className="w-full py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
 									>
 										Logout
 									</button>
 								) : (
-									<GoogleLogin
-										onSuccess={async (credentialResponse) => {
-											const response = await fetch(
-												`${backendURL}/verify`,
-												{
-													method: "POST",
-													headers: {
-														"Content-Type": "application/json",
-														Authorization: `Bearer ${credentialResponse.credential}`,
+									<button className="w-full py-3 px-4 border-black rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800/20 transition-colors">
+										<GoogleLogin
+											onSuccess={async (credentialResponse) => {
+												const response = await fetch(
+													`${backendURL}/verify`,
+													{
+														method: "POST",
+														headers: {
+															"Content-Type": "application/json",
+															Authorization: `Bearer ${credentialResponse.credential}`,
+														},
 													},
-												},
-											);
-											const accessToken = await response.json();
-											// console.log(accessToken);
-											localStorage.setItem(
-												"accessToken",
-												accessToken.accessToken,
-											);
-											setIsSignedIn(true);
-											router.push("/");
-										}}
-										onError={() => {
-											console.log("Login Failed");
-											router.push("/");
-										}}
-									/>
+												);
+												const accessToken = await response.json();
+												// console.log(accessToken);
+												localStorage.setItem(
+													"accessToken",
+													accessToken.accessToken,
+												);
+												setIsSignedIn(true);
+												router.push("/");
+											}}
+											onError={() => {
+												console.log("Login Failed");
+												router.push("/");
+											}}
+										/>
+									</button>
 								)}
 
 								<div className="relative">
@@ -110,14 +113,15 @@ const SignUpPage = () => {
 								<p className="text-sm text-gray-400 text-center">
 									By continuing you agree to our{" "}
 									<Link
-										href="/terms"
+										href="https://docs.google.com/document/d/1esA4099ZLWFmrBxo_Cs1KWWRvtLeW6pUzl_7hHLEECI/edit?usp=sharing"
+										target="_blank"
 										className="text-purple-400 hover:text-purple-300"
 									>
 										Terms of Service
 									</Link>{" "}
 									and{" "}
 									<Link
-										href="/privacy"
+										href="/underConstruct"
 										className="text-purple-400 hover:text-purple-300"
 									>
 										Privacy Policy

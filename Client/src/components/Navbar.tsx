@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
-import image from "../public/images/Logo.png";
+import image from "@/public/images/Logo.png";
+import { useAuth } from "@/lib/authContext";
 
 const navItems = [
 	{ name: "Home", link: "/" },
@@ -21,11 +22,17 @@ const navItems = [
 
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const { isSignedIn, setIsSignedIn } = useAuth();
 
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 
 	const toggleMenu = () => {
 		setIsMenuOpen((prev) => !prev);
+	};
+
+	const handleLogout = () => {
+		localStorage.removeItem("accessToken");
+		setIsSignedIn(false);
 	};
 
 	return (
@@ -70,7 +77,11 @@ const Navbar = () => {
 								variant="outline"
 								className="text-white hover:bg-white hover:text-black duration-300"
 							>
-								<Link href="/sign">Sign Up/Login</Link>
+								{isSignedIn ? (
+								<Link href="/" onClick={handleLogout} className="bg-red-600">Logout</Link>
+							) : (
+								<Link href="/sign">Login</Link>
+							)}
 							</Button>
 						</NavigationMenuList>
 					</NavigationMenu>
@@ -99,7 +110,11 @@ const Navbar = () => {
 							onClick={toggleMenu}
 							className="w-full mt-4 text-white hover:bg-white hover:text-black duration-300"
 						>
-							<Link href="/sign">Sign Up/Login</Link>
+							{isSignedIn ? (
+								<Link href="/" onClick={handleLogout}>Logout</Link>
+							) : (
+								<Link href="/sign">Login</Link>
+							)}
 						</Button>
 					</div>
 				</div>
