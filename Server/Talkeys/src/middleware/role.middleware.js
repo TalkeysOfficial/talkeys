@@ -1,4 +1,4 @@
-export function checkRole(req, res, next) {
+exports.checkRole = (req, res, next) => {
     try {
         const role = req.user.role;
 
