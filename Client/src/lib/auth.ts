@@ -32,12 +32,12 @@ export const authOptions: NextAuthOptions = {
 					path: "/",
 				});
 
-                const response = await fetch('http://localhost:8000/verify',{
-                    credentials:"include",
-                    method:"GET"
-                });
-                const data = await response.json();
-                console.log(data); 
+				const response = await fetch(`${process.env.BACKEND_URL}/verify`, {
+					credentials: "include",
+					method: "GET",
+				});
+				const data = await response.json();
+				console.log(data);
 
 				return true;
 			}
