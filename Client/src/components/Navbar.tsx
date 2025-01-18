@@ -13,7 +13,7 @@ import { Menu, X } from "lucide-react";
 import image from "../public/images/Logo.png";
 
 const navItems = [
-	{ name: "Home", link: "/underConstruct" },
+	{ name: "Home", link: "/" },
 	{ name: "Explore", link: "/underConstruct" },
 	{ name: "Events", link: "/underConstruct" },
 	{ name: "Communities", link: "/underConstruct" },
