@@ -1,67 +1,13 @@
-// Patches
 const { inject, errorHandler } = require("express-custom-error");
-inject(); // Patch express in order to use async / await syntax
-
-// Require Dependencies
-
+inject(); 
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const helmet = require("helmet");
-
 const logger = require("./util/logger");
-
-// Load .env Enviroment Variables to process.env
-
 require("mandatoryenv").load(["DB_URL", "PORT", "SECRET"]);
-
 const { PORT } = process.env;
 
-exports.verifyToken = async (req, res, next) => {
-	try {
-		const data = req.headers.authorization;
-		const idtoken = data.split(" ")[1];
-		// console.log("Token:", idtoken);
-
-		if (!idtoken) {
-			return res.status(403).json({ message: "No token provided" });
-		}
-		const ticket = await client.verifyIdToken({
-			idToken: idtoken,
-			audience: CLIENT_ID, // Verify the token is intended for this client
-		});
-		console.log("Ticket:");
-		const payload = ticket.getPayload();
-		console.log("Payload:", payload);
-		var user = await User.findOne({ email: payload.email });
-		console.log("hh");
-		if (!user) {
-			var user = new User({
-				email: payload.email,
-				name: payload.name,
-				picture: payload.picture,
-			});
-			await user.save();
-		}
-		console.log("created successfully");
-		// user.accessToken=jwt.sign({email:payload.email},secret,{expiresIn:86400});
-		const accessToken = jwt.sign({ email: payload.email }, secret, {
-			expiresIn: 86400,
-		});
-		res.json(accessToken);
-	} catch (err) {
-		console.log(err);
-	}
-};
-
-exports.protected = (req, res) => {
-	res.send("Protected route");
-};
-
-exports.logout = (req, res) => {
-	res.clearCookie("jwt");
-	res.send("Logged out");
-};
 
 // Instantiate an Express Application
 const app = express();
@@ -91,7 +37,6 @@ app.use("*", (req, res, next) => {
 	next();
 });
 
-// Assign Routes
 
 app.use("/", require("./routes/router"));
 
