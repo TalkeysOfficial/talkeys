@@ -4,7 +4,9 @@ const authentication = require('./../controllers/authentication');
 const Events = require('./../controllers/event.controller.js');
 const Passes = require('./../controllers/passes.controller.js');
 const Team = require('./../controllers/team.controller.js');
-
+const { verifyToken } = require('../controllers/authentication');
+const {checkRole} = require('../middleware/roleCheck');
+const { isTeamOK } = require('../middleware/Team.middleware');
 router.use(authentication.verifyToken);
 router.get('/protected', authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request

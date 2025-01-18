@@ -4,6 +4,13 @@ const Pass = require("../models/passes.model.js");
 const { validateEmail, validatePhoneNumber } = require("../helpers/validatorHelper");
 
 const createEvent = asyncHandler(async (req, res) => {
+    if (!req.body) {
+        return res.status(400).json({ message: 'Event data is required' });
+    }
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Forbidden: You do not have permission to create events' });
+    }
+    
     try {
         const {
             eventName,
