@@ -8,7 +8,7 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Your Google Client ID
 const client = new OAuth2Client(CLIENT_ID);
 
 
-exports.login = async (req, res, next) => {
+exports.login = async (req, res) => {
   try {
     const data = req.headers.authorization;
     const idtoken = data.split(" ")[1];
@@ -48,7 +48,6 @@ exports.login = async (req, res, next) => {
         refreshToken: refreshToken
       });
 
-      await user.save();
     } else {
       // Update existing user's tokens
       const accessToken = jwt.sign(
@@ -65,12 +64,11 @@ exports.login = async (req, res, next) => {
 
       user.accessToken = accessToken;
       user.refreshToken = refreshToken;
-      await user.save();
     }
+    await user.save();
 
     return res.json({
       accessToken: user.accessToken,
-      refreshToken: user.refreshToken
     });
 
   } catch (err) {
