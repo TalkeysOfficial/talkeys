@@ -46,7 +46,7 @@ jobs:
         run: |
           for i in {1..3}; do
             RESPONSE=$(curl --write-out "%{http_code}" --silent --output /dev/null https://api.talkeys.xyz/getEvents)
-            if [ "$RESPONSE" -eq 200 ]; then
+            if [ "$RESPONSE" -eq 304 ]; then
               echo "API is up and running!"
               exit 0
             else
