@@ -37,7 +37,7 @@ jobs:
 
       - name: SSH into server and git pull
         run: |
-          ssh -o StrictHostKeyChecking=no akars@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/Harsh5840/talkeys.git && sudo docker-compose up --build -d'
+          ssh -o StrictHostKeyChecking=no akars@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/Harsh5840/talkeys.git && sudo docker compose up --build -d'
           echo "Allowing Go Fiber Program to start properly"
           echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
