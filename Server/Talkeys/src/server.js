@@ -21,10 +21,7 @@ app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
 const cors_options = {
-	origin: [
-		"https://www.talkeyz.xyz",
-		"https://talkeyz.xyz",
-		"http://localhost:3000",
+	origin: ["*"
 	],
 	credentials: true,
 };
