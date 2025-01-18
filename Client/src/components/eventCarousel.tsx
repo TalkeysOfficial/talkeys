@@ -7,55 +7,40 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
-import image from "../public/images/events.jpg";
+import placeholderImage from "@/public/images/events.jpg";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import EventPage from "@/components/particularEventData";
+import { Event } from "@/app/eventPage/page";
 
-interface EventCard {
-	date: string;
-	title: string;
-	performer: string;
-	image: any;
-}
-
-const eventCards: EventCard[] = [
+const sampleEvents: Event[] = [
 	{
-		date: "21 MAY",
-		title: "Sunday Salsa",
-		performer: "DEBORAH DE LUCA",
-		image: image,
-	},
-	{
-		date: "22 MAY",
-		title: "Monday Blues",
-		performer: "JOHN DOE",
-		image: image,
-	},
-	{
-		date: "23 MAY",
-		title: "Tuesday Jazz",
-		performer: "JANE SMITH",
-		image: image,
-	},
-	{
-		date: "24 MAY",
-		title: "Wednesday Rock",
-		performer: "ROCK BAND",
-		image: image,
-	},
-	{
-		date: "25 MAY",
-		title: "Thursday Pop",
-		performer: "POP STAR",
-		image: image,
-	},
-	{
-		date: "26 MAY",
-		title: "Friday Funk",
-		performer: "FUNK BAND",
-		image: image,
+		_id: "678b9075f6deb135145b5636",
+		name: "Kick-OFF 2025",
+		category: "Gaming",
+		mode: "offline",
+		location: "Game Box, Patiala, Punjab",
+		duration: "3 hours",
+		ticketPrice: 0,
+		totalSeats: 120,
+		slots: 2,
+		visibility: "public",
+		prizes: "First Prize: $3000, Second Prize: $1500",
+		photographs: [],
+		startDate: new Date("2025-03-15T00:00:00.000Z"),
+		startTime: "10:00 AM",
+		endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
+		eventDescription:
+			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
 	},
 ];
 
-export default function EventCarousel({ title }: { title?: string }) {
+export default function EventCarousel({
+	title,
+	events = sampleEvents,
+}: Readonly<{
+	title?: string;
+	events?: Event[];
+}>) {
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
 
@@ -96,7 +81,7 @@ export default function EventCarousel({ title }: { title?: string }) {
 						</div>
 					</div>
 					<Swiper
-						onSwiper={(swiper) => (swiperRef.current = swiper)} // Capture the Swiper instance
+						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay]}
 						autoplay={{ delay: 3000, disableOnInteraction: false }}
 						loop
@@ -108,33 +93,45 @@ export default function EventCarousel({ title }: { title?: string }) {
 							1024: { slidesPerView: 3 },
 						}}
 					>
-						{eventCards.map((card, index) => (
-							<SwiperSlide key={index}>
+						{events.map((event, index) => (
+							<SwiperSlide key={event.name}>
 								<Card className="bg-gray-950 border-none">
 									<CardContent className="p-0">
 										<Image
-											src={card.image}
-											alt={card.title}
+											src={
+												event.photographs?.[0] ?? placeholderImage
+											}
+											alt={event.name}
 											width={300}
 											height={400}
 											className="w-full h-64 object-cover"
 										/>
 										<div className="p-4">
 											<div className="text-sm text-red-500 mb-2">
-												{card.date}
+												{new Date(
+													event.startDate,
+												).toLocaleDateString()}{" "}
+												{event.startTime}
 											</div>
 											<h3 className="text-xl font-bold mb-2">
-												{card.title}
+												{event.name}
 											</h3>
 											<h4 className="text-lg mb-4">
-												{card.performer}
+												{event.location ?? "Location not specified"}
 											</h4>
-											<Button
-												variant="outline"
-												className="w-full"
-											>
-												More info
-											</Button>
+											<Dialog>
+												<DialogTrigger asChild>
+													<Button
+														variant="outline"
+														className="w-full"
+													>
+														More info
+													</Button>
+												</DialogTrigger>
+												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+													<EventPage event={event} />
+												</DialogContent>
+											</Dialog>
 										</div>
 									</CardContent>
 								</Card>
