@@ -15,7 +15,7 @@ const passSchema = new mongoose.Schema({
     required: true,
   },
   slotID:{
-    type :int,
+    type :Number,
     required: true,
     enum: {
         values: [1, 2, 3, 4, 5],

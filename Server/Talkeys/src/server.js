@@ -80,7 +80,7 @@ app.use(express.urlencoded( { extended: true, limit: '10mb' } ));
 app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
-const cors_options = { origin: 'http://localhost:3000', credentials: true };
+const cors_options = { origin: ["https://www.talkeyz.xyz", "https://talkeyz.xyz"], credentials: true };
 app.use(cors(cors_options));
 app.use(helmet());
 
