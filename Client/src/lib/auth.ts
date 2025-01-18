@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'; // Import to use NextResponse
 import { setCookie } from 'cookies-next';
 
 import { useSearchParams } from 'next/navigation'
-
+const backendURL = process.env.BACKEND_URL;
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
                     path: '/' 
                 });
 
-                const response = await fetch('http://localhost:8000/verify',{
+                const response = await fetch(`${backendURL}/verify`,{
                     credentials:"include",
                     method:"GET"
                 });
