@@ -67,6 +67,9 @@ exports.getEvents = asyncHandler(async (req, res) => {
 
         // Build query
         const query = {};
+        // Add this before the Event.find()
+const allEvents = await Event.find({}).lean();
+console.log('All events in DB:', allEvents);
 
         if (mode) query.mode = mode;
         if (category) query.category = category;
@@ -87,7 +90,7 @@ exports.getEvents = asyncHandler(async (req, res) => {
         }
 
         // Temporarily comment out date filter for debugging
-        query.endRegistrationDate = { $gte: new Date() };
+      //  query.endRegistrationDate = { $gte: new Date() };
 
         console.log('Generated Query:', JSON.stringify(query, null, 2));
 
