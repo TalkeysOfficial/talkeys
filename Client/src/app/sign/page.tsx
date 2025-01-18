@@ -52,7 +52,7 @@ const SignUpPage = () => {
 										onSuccess={async (credentialResponse) => {
 											// console.log(credentialResponse.credential);
 											const response = await fetch(
-												"http://localhost:8000/verify",
+												`${backendURL}/verify`,
 												{
 													method: "POST",
 													headers: {

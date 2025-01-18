@@ -1,0 +1,14 @@
+version: "3.4"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "4890:8000"
+    volumes:
+      - ./server.log:/server.log           # Map server.log to the host
+      - ./Error.log:/Error.log             # Map Error.log to the host
+
+    restart: always
