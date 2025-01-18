@@ -9,6 +9,7 @@ const eventSchema = new mongoose.Schema({
     category: {
     type: String,
     required: true,
+    enum: ["esports", "music", "arts", "food", "tech", "other"],
     },
     mode: {
     type: String,
@@ -34,7 +35,7 @@ const eventSchema = new mongoose.Schema({
     required: true,
     },
     slots:{
-    type :int,
+    type :Number,
     required: true,
     default: 1,
 },

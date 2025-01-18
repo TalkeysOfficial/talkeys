@@ -10,7 +10,7 @@ const createEvent = asyncHandler(async (req, res) => {
     if (req.user.role !== 'admin') {
         return res.status(403).json({ message: 'Forbidden: You do not have permission to create events' });
     }
-    
+
     try {
         const {
             eventName,
@@ -49,10 +49,8 @@ const createEvent = asyncHandler(async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
-);
-
-exports.getEvents =  asyncHandler(async (req, res) => {
+})
+exports.getEvents = asyncHandler(async (req, res) => {
     try {
         const {
             page = 1,
@@ -61,10 +59,10 @@ exports.getEvents =  asyncHandler(async (req, res) => {
             order = 'asc',
             mode,
             category,
-            visibility,
-            search,
-            minPrice,
-            maxPrice
+            visibility='public',
+            search = "",
+            minPrice = 0,
+            maxPrice = 1000000,
         } = req.query;
 
         // Build query
@@ -95,7 +93,7 @@ exports.getEvents =  asyncHandler(async (req, res) => {
         // Add search functionality
         if (search) {
             query.$or = [
-                { name: { $regex: search, $options: 'i' } },
+                { eventName: { $regex: search, $options: 'i' } },
                 { eventDescription: { $regex: search, $options: 'i' } },
                 { category: { $regex: search, $options: 'i' } }
             ];
@@ -154,12 +152,12 @@ exports.getEvents =  asyncHandler(async (req, res) => {
 // Helper function to get a single event
 exports.getEventById = async (req, res) => {
     try {
-        const { eventId } = req.params;
+        const { id } = req.params;
 
-        const event = await Event.findById(eventId)
+        const event = await Event.findById(id)
             .select('-__v')
             .lean();
-
+        console.log(id);
         if (!event) {
             return res.status(404).json({
                 status: 'error',
