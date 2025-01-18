@@ -79,7 +79,6 @@ const cors_options = {
 		"https://www.talkeyz.xyz",
 		"https://talkeyz.xyz",
 		"http://localhost:3000",
-    "*"
 	],
 	credentials: true,
 };
