@@ -59,10 +59,10 @@ exports.getEvents = asyncHandler(async (req, res) => {
             order = 'asc',
             mode,
             category,
-            visibility='public',
+            visibility, // Default removed to allow fetching events regardless of visibility
             search = "",
-            minPrice = 0,
-            maxPrice = 1000000,
+            minPrice,
+            maxPrice,
         } = req.query;
 
         // Build query
@@ -78,12 +78,12 @@ exports.getEvents = asyncHandler(async (req, res) => {
             query.category = category;
         }
 
-        // Add visibility filter
+        // Add visibility filter only if provided
         if (visibility) {
             query.visibility = visibility;
         }
 
-        // Add price range filter
+        // Add price range filter only if provided
         if (minPrice || maxPrice) {
             query.ticketPrice = {};
             if (minPrice) query.ticketPrice.$gte = Number(minPrice);
@@ -148,6 +148,7 @@ exports.getEvents = asyncHandler(async (req, res) => {
         });
     }
 });
+
 
 // Helper function to get a single event
 exports.getEventById = async (req, res) => {
