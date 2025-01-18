@@ -81,10 +81,10 @@ const SignUpPage = () => {
 												},
 											);
 											const accessToken = await response.json();
-											console.log(accessToken);
+											// console.log(accessToken);
 											localStorage.setItem(
 												"accessToken",
-												accessToken,
+												accessToken.accessToken,
 											);
 											setIsSignedIn(true);
 											router.push("/");

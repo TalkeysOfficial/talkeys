@@ -20,7 +20,7 @@ app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
 const cors_options = {
-	origin: "*",
+	origin: ["http://localhost:3000", "https://www.talkeys.xyz"],
 	credentials: true,
 };
 app.use(cors(cors_options));
