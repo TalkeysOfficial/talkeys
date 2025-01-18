@@ -34,8 +34,9 @@ const eventSchema = new mongoose.Schema({
     required: true,
     },
     slots:{
-    type :Number,
+    type :int,
     required: true,
+    default: 1,
 },
     visibility: {
     type: String,
