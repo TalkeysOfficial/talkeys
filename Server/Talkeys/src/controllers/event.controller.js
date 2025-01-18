@@ -59,7 +59,7 @@ exports.getEvents = asyncHandler(async (req, res) => {
             order = 'asc',
             mode,
             category,
-            visibility, // Default removed to allow fetching events regardless of visibility
+            visibility,
             search = "",
             minPrice,
             maxPrice,
@@ -68,86 +68,69 @@ exports.getEvents = asyncHandler(async (req, res) => {
         // Build query
         const query = {};
 
-        // Add mode filter (online/offline)
-        if (mode) {
-            query.mode = mode;
-        }
+        if (mode) query.mode = mode;
+        if (category) query.category = category;
+        if (visibility) query.visibility = visibility;
 
-        // Add category filter
-        if (category) {
-            query.category = category;
-        }
-
-        // Add visibility filter only if provided
-        if (visibility) {
-            query.visibility = visibility;
-        }
-
-        // Add price range filter only if provided
         if (minPrice || maxPrice) {
             query.ticketPrice = {};
             if (minPrice) query.ticketPrice.$gte = Number(minPrice);
             if (maxPrice) query.ticketPrice.$lte = Number(maxPrice);
         }
 
-        // Add search functionality
         if (search) {
             query.$or = [
                 { eventName: { $regex: search, $options: 'i' } },
                 { eventDescription: { $regex: search, $options: 'i' } },
-                { category: { $regex: search, $options: 'i' } }
+                { category: { $regex: search, $options: 'i' } },
             ];
         }
 
-        // Only show upcoming events (where registration hasn't ended)
+        // Temporarily comment out date filter for debugging
         query.endRegistrationDate = { $gte: new Date() };
 
-        // Calculate skip value for pagination
+        console.log('Generated Query:', JSON.stringify(query, null, 2));
+
+        // Pagination
         const skip = (parseInt(page) - 1) * parseInt(limit);
+        const sortOptions = { [sortBy]: order === 'desc' ? -1 : 1 };
 
-        // Build sort object
-        const sortOptions = {};
-        sortOptions[sortBy] = order === 'desc' ? -1 : 1;
+        console.log('Skip:', skip, 'Limit:', limit);
 
-        // Execute query with pagination
         const events = await Event.find(query)
-            .select('-__v')  // Exclude version key
+            .select('-__v')
             .sort(sortOptions)
             .skip(skip)
             .limit(parseInt(limit))
             .lean();
 
-        // Get total count for pagination
         const total = await Event.countDocuments(query);
 
-        // Calculate available seats for each event
-        const eventsWithSeats = events.map(event => ({
-            ...event,
-            availableSeats: event.totalSeats // You'll need to subtract booked seats here when you implement booking
-        }));
+        console.log('Fetched Events:', events);
+        console.log('Total Events:', total);
 
         res.status(200).json({
             status: 'success',
             data: {
-                events: eventsWithSeats,
+                events,
                 pagination: {
                     total,
                     page: parseInt(page),
                     pages: Math.ceil(total / parseInt(limit)),
-                    limit: parseInt(limit)
-                }
-            }
+                    limit: parseInt(limit),
+                },
+            },
         });
-
     } catch (error) {
         console.error('Error in getEvents:', error);
         res.status(500).json({
             status: 'error',
             message: 'Failed to fetch events',
-            error: error.message
+            error: error.message,
         });
     }
 });
+
 
 
 // Helper function to get a single event
