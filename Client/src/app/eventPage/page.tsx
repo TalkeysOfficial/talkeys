@@ -52,6 +52,7 @@ function EventPage() {
 
 	useEffect(() => {
 		async function fetchEvents() {
+			console.log(process.env.BACKEND_URL);
 			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
 			const data: Event[] = await response.json();
 			const grouped = data.reduce((acc: Record<string, Event[]>, ev) => {
@@ -62,6 +63,7 @@ function EventPage() {
 				return acc;
 			}, {});
 			setGroupedEvents(grouped);
+			console.log(grouped);
 		}
 		fetchEvents();
 	}, []);

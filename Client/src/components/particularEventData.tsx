@@ -6,24 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, User, Heart, Send } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
-
-interface Event {
-	name: string;
-	category: string;
-	mode: "offline" | "online";
-	location?: string;
-	duration: string;
-	ticketPrice: number;
-	totalSeats: number;
-	slots: number;
-	visibility: "public" | "private";
-	prizes?: string;
-	photographs?: string[];
-	startDate: Date;
-	startTime: string;
-	endRegistrationDate: Date;
-	eventDescription?: string;
-}
+import { Event } from "@/app/eventPage/page";
 
 export default function EventPage({ event }: { readonly event: Event }) {
 	return (
@@ -84,7 +67,7 @@ export default function EventPage({ event }: { readonly event: Event }) {
 								className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
 								aria-label="Register for event"
 							>
-								Register Now
+								Coming Soon
 							</Button>
 						</div>
 

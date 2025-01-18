@@ -25,6 +25,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cookies-next": "^4.3.0",
+    "dotenv": "^16.4.7",
     "embla-carousel-react": "^8.3.0",
     "lucide-react": "^0.453.0",
     "mongoose": "^8.8.0",
