@@ -3,7 +3,6 @@ inject();
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const helmet = require("helmet");
 const logger = require("./util/logger");
 require("mandatoryenv").load(["DB_URL", "PORT", "SECRET"]);
 const { PORT } = process.env;
@@ -21,12 +20,10 @@ app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
 const cors_options = {
-	origin: ["*"
-	],
+	origin: "*",
 	credentials: true,
 };
 app.use(cors(cors_options));
-app.use(helmet());
 
 // This middleware adds the json header to every response
 app.use("*", (req, res, next) => {
