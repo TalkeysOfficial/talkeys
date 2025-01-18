@@ -15,7 +15,7 @@ import image from "../public/images/Logo.png";
 const navItems = [
 	{ name: "Home", link: "/" },
 	{ name: "Explore", link: "/underConstruct" },
-	{ name: "Events", link: "/underConstruct" },
+	{ name: "Events", link: "/eventPage" },
 	{ name: "Communities", link: "/underConstruct" },
 ];
 
