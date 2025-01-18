@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { int } = require("three/tsl");
+
 
 const eventSchema = new mongoose.Schema({
     name: {
@@ -34,9 +34,8 @@ const eventSchema = new mongoose.Schema({
     required: true,
     },
     slots:{
-    type :int,
+    type :Number,
     required: true,
-    default: 1,
 },
     visibility: {
     type: String,
