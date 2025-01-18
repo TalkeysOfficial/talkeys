@@ -1,12 +1,17 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import image from "@/public/images/Default.png";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import {
+	GoogleOAuthProvider,
+	GoogleLogin,
+	googleLogout,
+} from "@react-oauth/google";
 
 import { useRouter } from "next/navigation";
 const backendURL = process.env.BACKEND_URL;
-const clientID=process.env.CLIENT_ID;
+const clientID = process.env.CLIENT_ID;
 const SignUpPage = () => {
 	const router = useRouter();
 
@@ -18,6 +23,19 @@ const SignUpPage = () => {
 	//     console.error("Login Failed:", error);
 	//   },
 	// });
+
+	const [isSignedIn, setIsSignedIn] = useState(false);
+
+	useEffect(() => {
+		const token = localStorage.getItem("accessToken");
+		setIsSignedIn(!!token);
+	}, []);
+
+	const handleLogout = () => {
+		localStorage.removeItem("accessToken");
+		setIsSignedIn(false);
+		googleLogout();
+	};
 
 	return (
 		<GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
@@ -42,15 +60,16 @@ const SignUpPage = () => {
 							</div>
 
 							<div className="space-y-4">
-								<button
-									// onClick={() => login()} // Trigger Google login when button is clicked
-									className="w-full py-3 px-4 border border-gray-600 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors"
-								>
-									{/* <span>Continue with Google</span>
-									 */}
+								{isSignedIn ? (
+									<button	
+										onClick={handleLogout}
+										className="w-full py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+									>
+										Logout
+									</button>
+								) : (
 									<GoogleLogin
 										onSuccess={async (credentialResponse) => {
-											// console.log(credentialResponse.credential);
 											const response = await fetch(
 												`${backendURL}/verify`,
 												{
@@ -67,6 +86,7 @@ const SignUpPage = () => {
 												"accessToken",
 												accessToken,
 											);
+											setIsSignedIn(true);
 											router.push("/");
 										}}
 										onError={() => {
@@ -74,8 +94,7 @@ const SignUpPage = () => {
 											router.push("/");
 										}}
 									/>
-									;
-								</button>
+								)}
 
 								<div className="relative">
 									<div className="absolute inset-0 flex items-center">
@@ -114,3 +133,41 @@ const SignUpPage = () => {
 };
 
 export default SignUpPage;
+
+{
+	/* <button
+									// onClick={() => login()} // Trigger Google login when button is clicked
+									className="w-full py-3 px-4 border border-gray-600 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800 transition-colors"
+								>
+									{/* <span>Continue with Google</span>
+									 */
+}
+// 	<GoogleLogin
+// 		onSuccess={async (credentialResponse) => {
+// 			// console.log(credentialResponse.credential);
+// 			const response = await fetch(
+// 				`${backendURL}/verify`,
+// 				{
+// 					method: "POST",
+// 					headers: {
+// 						"Content-Type": "application/json",
+// 						Authorization: `Bearer ${credentialResponse.credential}`,
+// 					},
+// 				},
+// 			);
+// 			const accessToken = await response.json();
+// 			console.log(accessToken);
+// 			localStorage.setItem(
+// 				"accessToken",
+// 				accessToken,
+// 			);
+// 			setIsSignedIn(true);
+// 			router.push("/");
+// 		}}
+// 		onError={() => {
+// 			console.log("Login Failed");
+// 			router.push("/");
+// 		}}
+// 	/>
+// 	;
+// </button> */}

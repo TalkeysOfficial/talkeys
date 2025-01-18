@@ -32,7 +32,7 @@ const Hero = () => {
 						>
 							<Button
 								size="lg"
-								className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
+								className="rounded-[8px] w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
 							>
 								Explore Communities
 							</Button>
@@ -43,7 +43,7 @@ const Hero = () => {
 						>
 							<Button
 								size="lg"
-								className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
+								className="rounded-[8px] w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
 							>
 								Explore Events
 							</Button>
