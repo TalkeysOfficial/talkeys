@@ -37,11 +37,9 @@ const sampleEvents: Event[] = [
 export default function EventCarousel({
 	title = "EVENT",
 	events = sampleEvents,
-	preFetched = false,
 }: Readonly<{
 	title?: string;
 	events?: Event[];
-	preFetched?: boolean;
 }>) {
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
@@ -58,21 +56,19 @@ export default function EventCarousel({
 	}, []);
 
 	useEffect(() => {
-			async function fetchEvents() {
-				// console.log(process.env.BACKEND_URL);
-				const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
-				const { data } = (await response.json()) as {
-					data: {
-						events: Event[];
-					};
+		async function fetchEvents() {
+			// console.log(process.env.BACKEND_URL);
+			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
+			const { data } = (await response.json()) as {
+				data: {
+					events: Event[];
 				};
-				const { events } = data;
-				setFetchedEvents(events);
-			}
-
-			preFetched ? setFetchedEvents(events) : fetchEvents();
-		}, []);
-
+			};
+			const { events } = data;
+			setFetchedEvents(events);
+		}
+		fetchEvents();
+	}, []);
 
 	const handleNext = () => {
 		swiperRef.current?.slideNext();
@@ -128,9 +124,8 @@ export default function EventCarousel({
 										/>
 										<div className="p-4">
 											<div className="text-sm text-red-500 mb-2">
-												{new Date(
-													event.startDate,
-												).toDateString()}{" at "}
+												{new Date(event.startDate).toDateString()}
+												{" at "}
 												{event.startTime}
 											</div>
 											<h3 className="text-xl font-bold mb-2">

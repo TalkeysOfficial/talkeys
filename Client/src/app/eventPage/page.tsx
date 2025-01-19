@@ -72,6 +72,7 @@ function EventPage() {
 			// console.log("Grouped", grouped);
 		}
 		fetchEvents();
+		console.log("Fetching events", groupedEvents);
 	}, []);
 
 	return (
@@ -82,7 +83,6 @@ function EventPage() {
 					key={category}
 					title={category}
 					events={events}
-					preFetched={true}
 				/>
 			))}
 		</div>
