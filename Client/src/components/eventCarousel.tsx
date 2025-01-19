@@ -35,14 +35,17 @@ const sampleEvents: Event[] = [
 ];
 
 export default function EventCarousel({
-	title,
+	title = "EVENT",
 	events = sampleEvents,
+	preFetched = false,
 }: Readonly<{
 	title?: string;
 	events?: Event[];
+	preFetched?: boolean;
 }>) {
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
+	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
 
 	useEffect(() => {
 		const timerIntervalId = setInterval(() => {
@@ -53,6 +56,23 @@ export default function EventCarousel({
 			clearInterval(timerIntervalId);
 		};
 	}, []);
+
+	useEffect(() => {
+			async function fetchEvents() {
+				// console.log(process.env.BACKEND_URL);
+				const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
+				const { data } = (await response.json()) as {
+					data: {
+						events: Event[];
+					};
+				};
+				const { events } = data;
+				setFetchedEvents(events);
+			}
+
+			preFetched ? setFetchedEvents(events) : fetchEvents();
+		}, []);
+
 
 	const handleNext = () => {
 		swiperRef.current?.slideNext();
@@ -93,7 +113,7 @@ export default function EventCarousel({
 							1024: { slidesPerView: 3 },
 						}}
 					>
-						{events.map((event, index) => (
+						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
 								<Card className="bg-gray-950 border-none">
 									<CardContent className="p-0">

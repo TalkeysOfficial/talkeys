@@ -82,6 +82,7 @@ function EventPage() {
 					key={category}
 					title={category}
 					events={events}
+					preFetched={true}
 				/>
 			))}
 		</div>
