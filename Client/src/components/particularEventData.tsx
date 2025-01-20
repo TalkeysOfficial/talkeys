@@ -7,8 +7,12 @@ import { MapPin, Calendar, User, Heart, Send } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
 import { Event } from "@/app/eventPage/page";
+import { useState } from "react";
+// import { ToastContainer, toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
 
 export default function EventPage({ event }: { readonly event: Event }) {
+	const [isLiked, setIsLiked] = useState(false);
 	return (
 		<main
 			className="bg-black text-white"
@@ -82,12 +86,24 @@ export default function EventPage({ event }: { readonly event: Event }) {
 								<button
 									aria-label="Like event"
 									className="hover:text-purple-400 transition-colors"
+									onClick={() => {
+										setIsLiked((prev) => !prev);
+										// toast.success("Event Liked!");
+									}}
 								>
-									<Heart className="w-5 h-5 text-gray-400" />
+									<Heart
+										className="w-5 h-5 text-gray-400"
+										color={isLiked ? "red" : "currentColor"}
+									/>
 								</button>
 								<button
 									aria-label="Share event"
 									className="hover:text-purple-400 transition-colors"
+									onClick={() => {
+										navigator.clipboard.writeText(
+											window.location.href,
+										);
+									}}
 								>
 									<Send className="w-5 h-5 text-gray-400" />
 								</button>

@@ -12,12 +12,12 @@ import { urbanist } from "@/components/fonts/fonts";
 import { AuthProvider } from "@/lib/authContext";
 
 const geistSans = localFont({
-	src: "./fonts/GeistVF.woff",
+	src: "./../components/fonts/GeistVF.woff",
 	variable: "--font-geist-sans",
 	weight: "100 900",
 });
 const geistMono = localFont({
-	src: "./fonts/GeistMonoVF.woff",
+	src: "./../components/fonts/GeistMonoVF.woff",
 	variable: "--font-geist-mono",
 	weight: "100 900",
 });

@@ -9,7 +9,8 @@
 
 
 body {
-  overflow: auto; /* Allow scrolling */
+  overflow: auto;
+  /* Allow scrolling */
 }
 
 /* Hide scrollbar in WebKit browsers */
@@ -39,8 +40,8 @@ body {
 
 @font-face {
   font-family: 'Marykate';
-  src: url('./fonts/MaryKate.woff') format('woff2'),
-       url('/fonts/Marykate.woff') format('woff');
+  src: url('./../components/fonts/MaryKate.woff') format('woff2'),
+    url('./../components/fonts/MaryKate.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }

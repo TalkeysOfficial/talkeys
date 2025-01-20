@@ -36,15 +36,15 @@ const Navbar = () => {
 	};
 
 	return (
-		<div className="fixed top-0 w-full z-[1000]">
-			<div className="flex pt-[10px] justify-between bg-black h-[13.5vh] items-center px-4 md:px-10">
+		<div className="fixed top-0 w-full z-[1000] ">
+			<div className="flex pt-[10px] justify-between bg-black h-[10.5vh] items-center px-4 md:px-10">
 				<Link href="/">
 					<div className="flex items-center">
 						<Image
 							src={image}
 							alt="Logo"
-							width={80}
-							height={80}
+							width={60}
+							height={60}
 						/>
 						<span className="font-marykate text-white font-semibold text-3xl">
 							Talkeys

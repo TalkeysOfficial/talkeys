@@ -45,6 +45,7 @@ export default function EventCarousel({
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
 	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 	useEffect(() => {
 		const timerIntervalId = setInterval(() => {
@@ -80,7 +81,7 @@ export default function EventCarousel({
 	};
 
 	return (
-		<div className="mb-[-80px]">
+		<div className={`mb-[-80px] ${isDialogOpen ? "blur-xl" : ""}`}>
 			<div className="event w-full bg-transparent text-white p-10 overflow-hidden">
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
@@ -135,16 +136,20 @@ export default function EventCarousel({
 											<h4 className="text-lg mb-4">
 												{event.location ?? "Location not specified"}
 											</h4>
-											<Dialog>
+											<Dialog
+												onOpenChange={(isOpen) =>
+													setIsDialogOpen(isOpen)
+												}
+											>
 												<DialogTrigger asChild>
 													<Button
 														variant="outline"
-														className="w-full"
+														className="w-full hover:bg-purple-600 duration-500"
 													>
 														More info
 													</Button>
 												</DialogTrigger>
-												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
 													<EventPage event={event} />
 												</DialogContent>
 											</Dialog>
