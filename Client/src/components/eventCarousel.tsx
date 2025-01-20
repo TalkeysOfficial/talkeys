@@ -125,8 +125,13 @@ export default function EventCarousel({
 											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">
-											<div className="text-sm text-red-500 mb-2">
-												{new Date(event.startDate).toDateString()}
+											<div className="text-sm text-purple-400 mb-2">
+												{new Date(event.startDate).toLocaleDateString("en-US", {
+													weekday: "long",
+													year: "numeric",
+													month: "long",
+													day: "numeric",
+												})}
 												{" at "}
 												{event.startTime}
 											</div>
