@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
-import image from "@/public/images/Logo.png";
+import image from "@/public/images/talkeyLogo.png";
 import { useAuth } from "@/lib/authContext";
 
 const navItems = [
@@ -37,19 +37,18 @@ const Navbar = () => {
 
 	return (
 		<div className="fixed top-0 w-full z-[1000] ">
-			<div className="flex pt-[10px] justify-between bg-black h-[10.5vh] items-center px-4 md:px-10">
+			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
 				<Link href="/">
-					<div className="flex items-center">
-						<Image
-							src={image}
-							alt="Logo"
-							width={60}
-							height={60}
-						/>
-						<span className="font-marykate text-white font-semibold text-3xl">
-							Talkeys
-						</span>
-					</div>
+					<Image
+						src={image}
+						alt="Logo"
+						width={180}
+						height={180}
+						quality={100}
+						priority
+						objectPosition="center"
+						className="py-4 sm:py-3"
+					/>
 				</Link>
 				{isMobile ? (
 					<Button
@@ -78,10 +77,16 @@ const Navbar = () => {
 								className="text-white hover:bg-white hover:text-black duration-300"
 							>
 								{isSignedIn ? (
-								<Link href="/" onClick={handleLogout} className="bg-red-600">Logout</Link>
-							) : (
-								<Link href="/sign">Login</Link>
-							)}
+									<Link
+										href="/"
+										onClick={handleLogout}
+										className="bg-red-600"
+									>
+										Logout
+									</Link>
+								) : (
+									<Link href="/sign">Login</Link>
+								)}
 							</Button>
 						</NavigationMenuList>
 					</NavigationMenu>
@@ -111,7 +116,12 @@ const Navbar = () => {
 							className="w-full mt-4 text-white hover:bg-white hover:text-black duration-300"
 						>
 							{isSignedIn ? (
-								<Link href="/" onClick={handleLogout}>Logout</Link>
+								<Link
+									href="/"
+									onClick={handleLogout}
+								>
+									Logout
+								</Link>
 							) : (
 								<Link href="/sign">Login</Link>
 							)}
