@@ -20,6 +20,7 @@ export interface Event {
 	startTime: string;
 	endRegistrationDate: Date;
 	eventDescription?: string;
+	isLive?: boolean;
 }
 
 const sampleData = {
@@ -42,6 +43,7 @@ const sampleData = {
 			endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
 			eventDescription:
 				"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
+			isLive: false,
 		},
 	],
 } as Record<string, Event[]>;

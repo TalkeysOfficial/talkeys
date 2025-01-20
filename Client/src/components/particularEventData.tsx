@@ -67,7 +67,7 @@ export default function EventPage({ event }: { readonly event: Event }) {
 								className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
 								aria-label="Register for event"
 							>
-								Coming Soon
+								{event.isLive ? "Register Now" : "Coming Soon"}
 							</Button>
 						</div>
 
