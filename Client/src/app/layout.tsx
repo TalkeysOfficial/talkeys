@@ -6,7 +6,6 @@ import image from "../public/images/background.png";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import titleImage from "@/public/images/final_logo_talkeys.ico";
-import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
 
 const geistSans = localFont({
@@ -48,7 +47,6 @@ export default function RootLayout({
 			>
 				<Navbar />
 				{children}
-				<Analytics />
 				<Footer />
 			</body>
 		</html>
