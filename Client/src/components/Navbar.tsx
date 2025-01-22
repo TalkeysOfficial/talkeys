@@ -80,7 +80,7 @@ const Navbar = () => {
 									<Link
 										href="/"
 										onClick={handleLogout}
-										className="bg-red-600"
+										className="bg-white text-black hover:bg-red-500 hover:text-white duration-300"
 									>
 										Logout
 									</Link>
@@ -119,6 +119,7 @@ const Navbar = () => {
 								<Link
 									href="/"
 									onClick={handleLogout}
+									className="bg-white text-black hover:bg-red-500 hover:text-white duration-300"
 								>
 									Logout
 								</Link>

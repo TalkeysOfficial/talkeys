@@ -122,11 +122,14 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
+											priority
 											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">
 											<div className="text-sm text-purple-400 mb-2">
-												{new Date(event.startDate).toLocaleDateString("en-US", {
+												{new Date(
+													event.startDate,
+												).toLocaleDateString("en-US", {
 													weekday: "long",
 													year: "numeric",
 													month: "long",
@@ -145,6 +148,7 @@ export default function EventCarousel({
 												onOpenChange={(isOpen) =>
 													setIsDialogOpen(isOpen)
 												}
+
 											>
 												<DialogTrigger asChild>
 													<Button
@@ -155,7 +159,10 @@ export default function EventCarousel({
 													</Button>
 												</DialogTrigger>
 												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
-													<EventPage event={event} onClose={() => setIsDialogOpen(false)} />
+													<EventPage
+														event={event}
+														onClose={() => setIsDialogOpen(false)}
+													/>
 												</DialogContent>
 											</Dialog>
 										</div>
