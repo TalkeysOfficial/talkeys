@@ -10,7 +10,7 @@ import "swiper/swiper-bundle.css";
 import placeholderImage from "@/public/images/events.jpg";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import EventPage from "@/components/particularEventData";
-import { Event } from "@/app/eventPage/page";
+import type { Event } from "@/app/eventPage/page";
 
 const sampleEvents: Event[] = [
 	{
@@ -155,7 +155,7 @@ export default function EventCarousel({
 													</Button>
 												</DialogTrigger>
 												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
-													<EventPage event={event} />
+													<EventPage event={event} onClose={() => setIsDialogOpen(false)} />
 												</DialogContent>
 											</Dialog>
 										</div>
