@@ -18,12 +18,12 @@ interface CommunityCard {
 }
 
 const communityCards: CommunityCard[] = [
-  { date: '21 MAY', title: 'Sunday Salsa', performer: 'DEBORAH DE LUCA', image: image },
-  { date: '22 MAY', title: 'Monday Blues', performer: 'JOHN DOE', image: image },
-  { date: '23 MAY', title: 'Tuesday Jazz', performer: 'JANE SMITH', image: image },
-  { date: '24 MAY', title: 'Wednesday Rock', performer: 'ROCK BAND', image: image },
-  { date: '25 MAY', title: 'Thursday Pop', performer: 'POP STAR', image: image },
-  { date: '26 MAY', title: 'Friday Funk', performer: 'FUNK BAND', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
+  { date: '', title: 'Coming Soon', performer: '', image: image },
 ]
 
 export default function CommunityCarousel() {
@@ -68,7 +68,7 @@ export default function CommunityCarousel() {
                       <div className="text-sm text-red-500 mb-2">{card.date}</div>
                       <h3 className="text-xl font-bold mb-2">{card.title}</h3>
                       <h4 className="text-lg mb-4">{card.performer}</h4>
-                      <Button variant="outline" className="w-full">More info</Button>
+                      <Button variant="outline" className="w-full" disabled>More info</Button>
                     </div>
                   </CardContent>
                 </Card>

@@ -2,19 +2,32 @@ import React from "react";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import bg from "../public/images/Default.png";
+import bg from "@/public/images/Default.png";
+import smallBg from "@/public/images/smallDefault.png";
 
 const Hero = () => {
 	return (
 		<div className="hero relative h-screen flex justify-center items-center">
-			<Image
-				src={bg}
-				alt="Hero background"
-				layout="fill"
-				objectFit="cover"
-				quality={100}
-				priority
-			/>
+			<div className="hidden sm:block">
+				<Image
+					src={bg}
+					alt="Hero background"
+					layout="fill"
+					objectFit="cover"
+					quality={100}
+					priority
+				/>
+			</div>
+			<div className="block sm:hidden">
+				<Image
+					src={smallBg}
+					alt="Hero background"
+					layout="fill"
+					objectFit="cover"
+					quality={100}
+					priority
+				/>
+			</div>
 			<div className="absolute inset-0 bg-black/30" />
 			<div className="relative z-10 w-full max-w-[90%] sm:max-w-[670px] bg-black/80 rounded-[20px] p-6 sm:p-8">
 				<div className="text-center text-white">
@@ -27,7 +40,7 @@ const Hero = () => {
 					</p>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<Link
-							href="/"
+							href="/underConstruct"
 							className="w-full sm:w-auto"
 						>
 							<Button
@@ -38,7 +51,7 @@ const Hero = () => {
 							</Button>
 						</Link>
 						<Link
-							href="/"
+							href="/eventPage"
 							className="w-full sm:w-auto"
 						>
 							<Button

@@ -19,39 +19,39 @@ interface InfluencerCard {
 
 const influencerCards: InfluencerCard[] = [
 	{
-		date: "21 MAY",
-		title: "Sunday Salsa",
-		performer: "DEBORAH DE LUCA",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 	{
-		date: "22 MAY",
-		title: "Monday Blues",
-		performer: "JOHN DOE",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 	{
-		date: "23 MAY",
-		title: "Tuesday Jazz",
-		performer: "JANE SMITH",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 	{
-		date: "24 MAY",
-		title: "Wednesday Rock",
-		performer: "ROCK BAND",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 	{
-		date: "25 MAY",
-		title: "Thursday Pop",
-		performer: "POP STAR",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 	{
-		date: "26 MAY",
-		title: "Friday Funk",
-		performer: "FUNK BAND",
+		date: "",
+		title: "",
+		performer: "Coming Soon",
 		image: image,
 	},
 ];
@@ -85,7 +85,7 @@ export default function InfluencerCarousel() {
 					}}
 				>
 					{influencerCards.map((card, index) => (
-						<SwiperSlide key={index}>
+						<SwiperSlide key={card.date + index}>
 							<Card className="bg-gray-950 border-none">
 								<CardContent className="p-0">
 									<Image
@@ -93,16 +93,16 @@ export default function InfluencerCarousel() {
 										alt={card.title}
 										width={300}
 										height={400}
-										className="w-full h-64 object-cover"
+										className="w-full h-64 object-cover object-center"
 									/>
 									<div className="p-4">
 										<div className="flex justify-between items-center">
 											<h1 className="text-xl font-bold mb-2">
 												{card.performer}
 											</h1>
-											<h4>F1 Racer</h4>
+											<h4>{card.title}</h4>
 										</div>
-										<Button className="w-[100px] bg-[#8A44CB] text-white font-bold rounded-[15px]">
+										<Button className="w-[100px] mt-3 bg-[#8A44CB] text-white font-bold rounded-[15px]" disabled>
 											More Info
 										</Button>
 									</div>

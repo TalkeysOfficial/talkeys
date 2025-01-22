@@ -11,7 +11,11 @@ router.get('/getEvents', Events.getEvents);
 router.get('/getEventById/:id', Events.getEventById);
 router.post('/verify', authentication.login);
 router.get('/logout', authentication.logout);
+
+
 router.use(auth.verifyToken);
+
+
 router.get('/protected', authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post('/bookPass', Passes.bookTicket);

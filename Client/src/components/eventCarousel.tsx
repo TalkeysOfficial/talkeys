@@ -31,11 +31,12 @@ const sampleEvents: Event[] = [
 		endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
 		eventDescription:
 			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
+		isLive: false,
 	},
 ];
 
 export default function EventCarousel({
-	title,
+	title = "EVENT",
 	events = sampleEvents,
 }: Readonly<{
 	title?: string;
@@ -43,6 +44,8 @@ export default function EventCarousel({
 }>) {
 	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
+	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 	useEffect(() => {
 		const timerIntervalId = setInterval(() => {
@@ -54,6 +57,21 @@ export default function EventCarousel({
 		};
 	}, []);
 
+	useEffect(() => {
+		async function fetchEvents() {
+			// console.log(process.env.BACKEND_URL);
+			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
+			const { data } = (await response.json()) as {
+				data: {
+					events: Event[];
+				};
+			};
+			const { events } = data;
+			setFetchedEvents(events);
+		}
+		fetchEvents();
+	}, []);
+
 	const handleNext = () => {
 		swiperRef.current?.slideNext();
 	};
@@ -63,7 +81,7 @@ export default function EventCarousel({
 	};
 
 	return (
-		<div className="mb-[-80px]">
+		<div className={`mb-[-80px] ${isDialogOpen ? "blur-xl" : ""}`}>
 			<div className="event w-full bg-transparent text-white p-10 overflow-hidden">
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
@@ -93,7 +111,7 @@ export default function EventCarousel({
 							1024: { slidesPerView: 3 },
 						}}
 					>
-						{events.map((event, index) => (
+						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
 								<Card className="bg-gray-950 border-none">
 									<CardContent className="p-0">
@@ -104,13 +122,17 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											className="w-full h-64 object-cover"
+											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">
-											<div className="text-sm text-red-500 mb-2">
-												{new Date(
-													event.startDate,
-												).toLocaleDateString()}{" "}
+											<div className="text-sm text-purple-400 mb-2">
+												{new Date(event.startDate).toLocaleDateString("en-US", {
+													weekday: "long",
+													year: "numeric",
+													month: "long",
+													day: "numeric",
+												})}
+												{" at "}
 												{event.startTime}
 											</div>
 											<h3 className="text-xl font-bold mb-2">
@@ -119,16 +141,20 @@ export default function EventCarousel({
 											<h4 className="text-lg mb-4">
 												{event.location ?? "Location not specified"}
 											</h4>
-											<Dialog>
+											<Dialog
+												onOpenChange={(isOpen) =>
+													setIsDialogOpen(isOpen)
+												}
+											>
 												<DialogTrigger asChild>
 													<Button
 														variant="outline"
-														className="w-full"
+														className="w-full hover:bg-purple-600 duration-500"
 													>
 														More info
 													</Button>
 												</DialogTrigger>
-												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
 													<EventPage event={event} />
 												</DialogContent>
 											</Dialog>

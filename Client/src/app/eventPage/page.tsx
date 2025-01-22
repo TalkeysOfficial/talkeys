@@ -20,6 +20,7 @@ export interface Event {
 	startTime: string;
 	endRegistrationDate: Date;
 	eventDescription?: string;
+	isLive?: boolean;
 }
 
 const sampleData = {
@@ -42,6 +43,7 @@ const sampleData = {
 			endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
 			eventDescription:
 				"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
+			isLive: false,
 		},
 	],
 } as Record<string, Event[]>;
@@ -52,10 +54,16 @@ function EventPage() {
 
 	useEffect(() => {
 		async function fetchEvents() {
-			console.log(process.env.BACKEND_URL);
+			// console.log(process.env.BACKEND_URL);
 			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
-			const data: Event[] = await response.json();
-			const grouped = data.reduce((acc: Record<string, Event[]>, ev) => {
+			const { data } = (await response.json()) as {
+				data: {
+					events: Event[];
+				};
+			};
+			const { events } = data;
+			// console.log("Data", events);
+			const grouped = events.reduce((acc: Record<string, Event[]>, ev) => {
 				if (!acc[ev.category]) {
 					acc[ev.category] = [];
 				}
@@ -63,9 +71,10 @@ function EventPage() {
 				return acc;
 			}, {});
 			setGroupedEvents(grouped);
-			console.log(grouped);
+			// console.log("Grouped", grouped);
 		}
 		fetchEvents();
+		console.log("Fetching events", groupedEvents);
 	}, []);
 
 	return (
