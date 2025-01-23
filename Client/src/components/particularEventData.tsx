@@ -58,9 +58,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 	const [teamName, setTeamName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	const [pass, setPass] = useState<{ userId: string; eventId: string } | null>(
-		null,
-	);
+	const [pass, setPass] = useState<string | null>(null);
 	const [createTeamData, setCreateTeamData] = useState<TeamResponse | null>(
 		null,
 	);
@@ -241,8 +239,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
 				body: JSON.stringify({
-					teamcode: teamCode ?? createTeamData?.teamCode,
-					name: event.name,
+					teamCode: teamCode ?? createTeamData?.teamCode,
 					eventId: event._id,
 				}),
 			});
@@ -252,7 +249,9 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			}
 
 			setErrorMessage(data.message);
-		} catch (error) {}
+		} catch (error) {
+			console.log("Failed to create pass", error);
+		}
 
 		async function getPassFunc() {
 			try {
@@ -260,7 +259,9 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
 					},
 					body: JSON.stringify({
 						eventId: event._id,
@@ -269,11 +270,12 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				});
 				const data = await response.json();
 				if (response.ok) {
-					setPass(data);
+					setPass(data._id);
 					setRegistrationState("passCreated");
 				} else {
 					throw new Error(response.status.toString());
 				}
+				setPass(data._id);
 			} catch (error) {
 				console.error("Failed to create pass", error);
 				setErrorMessage("Failed to create pass");
@@ -491,7 +493,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 						<div className="text-green-500">Pass Created</div>
 						{pass && (
 							<div className="flex justify-center">
-								<QRCode value={pass.userId} />
+								<QRCode value={pass} />
 							</div>
 						)}
 					</div>
