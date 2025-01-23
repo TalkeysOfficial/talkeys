@@ -60,21 +60,20 @@ console.log("Debug: Event found")
             eventId: event._id,
         });
 
-        if (existingPasses) {
+        if (existingPasses.length > 0) {
             return res.status(400).json({
                 error: "Some team members already have passes for this event",
             });
         }
-
         // Create pass for entire team
         const teamPasses = team.teamMembers.map((member) => ({
-            eventId: event._id,
             userId: member._id,
-            passType: "Team",
-            status: "active",
+            eventId: event._id,
+            passType: "General",
         }));
-
-        await Pass.create(teamPasses);
+        
+        await Promise.all(teamPasses.map(pass => Pass.create(pass)));
+        console.log("fuck!!!")
 
         // Update event tickets
         const updatedEvent = await Event.findByIdAndUpdate(
@@ -97,15 +96,20 @@ console.log("Debug: Event found")
     }
 };
 
-const getPassByUserAndEvent = async (userId, eventId) => {
+const getPassByUserAndEvent = async (req, res) => {
     try {
-        return await Pass.findOne({ 
-            userId: userId, 
-            eventId: eventId 
+        const pass = await Pass.findOne({ 
+            userId: req.user._id, 
+            eventId: req.body.eventId 
         }, '_id');
+        if (!pass) {
+            return res.status(404).json({ error: "Pass not found" });
+        }
+
+        return res.status(200).json(pass);
     } catch (error) {
         console.error('Get pass error:', error);
-        throw error;
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 

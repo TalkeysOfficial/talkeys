@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/users.model");
 const secret = process.env.SECRET;
 
 exports.verifyToken = (req, res, next) => {
@@ -8,16 +9,15 @@ exports.verifyToken = (req, res, next) => {
         if (!token) {
             return res.status(403).json({ message: "No token provided" });
         }
-        console.log("L")
-        jwt.verify(token, secret, (err, decoded) => {
+        jwt.verify(token, secret, async (err, decoded) => {
             if (err) {
                 return res.status(401).json({ message: "Failed to authenticate token" });
             }
-            req.user = decoded;
-            console.log(decoded)
+            console.log(decoded.email)
+            req.user =await User.findOne({email: decoded.email});
             next();
         });
     } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "User Not Verified" });
     }
 };

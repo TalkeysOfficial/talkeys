@@ -264,7 +264,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					},
 					body: JSON.stringify({
 						eventId: event._id,
-						teamId: createTeamData?.team._id,
+						userId: createTeamData?.team._id,
 					}),
 				});
 				const data = await response.json();
