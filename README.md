@@ -108,3 +108,124 @@ Allows a user to join an existing team using a team code.
 - 500: Server error
 
 
+I'll generate comprehensive documentation for the `bookTicket` function:
+
+# Team Ticket Booking API Documentation
+
+## Overview
+The `bookTicket` function is a critical API endpoint for team ticket booking. It allows team leaders to book event tickets for their entire team, ensuring a streamlined group registration process.
+
+## Endpoint Details
+- **Method**: POST
+- **Authentication**: Required (OAuth middleware)
+- **Access**: Team Leaders Only
+
+## Request Payload
+```json
+{
+    "teamcode": "TEAM123",
+    "name": "Event Name",
+    "slotId": "optional_slot_identifier"
+}
+```
+
+### Request Parameters
+- `teamcode` (String, Required): Unique team code identifying the team
+- `name` (String, Required): Name of the event to book tickets for
+- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation)
+
+## Authentication
+- Requires valid OAuth token
+- User ID is extracted from `req.user.id`
+- Only team leaders can invoke this endpoint
+
+## Business Logic Flow
+1. **Team Validation**
+   - Verify team exists using provided team code
+   - Confirm requesting user is the team leader
+   - Rejects request if team not found or user is not leader
+
+2. **Event Verification**
+   - Locate active and bookable event
+   - Check ticket availability
+   - Reject if event is not found or no tickets remain
+
+3. **Ticket Booking Transaction**
+   - Begins a MongoDB transaction for data integrity
+   - Creates passes for all team members
+   - Updates event ticket count
+   - Tracks booked teams
+
+## Possible Response Scenarios
+
+### Successful Booking
+- **Status Code**: 200 OK
+- **Response Body**:
+```json
+{
+    "message": "Team tickets booked successfully",
+    "teamMembers": 5,
+    "remainingTickets": 45
+}
+```
+
+### Error Scenarios
+1. **Team Not Found**
+   - Status Code: 404
+   - Message: "Team not found"
+
+2. **Unauthorized Booking Attempt**
+   - Status Code: 403
+   - Message: "Only team leader can book tickets"
+
+3. **Event Not Found**
+   - Status Code: 404
+   - Message: "Event not found"
+
+4. **No Tickets Available**
+   - Status Code: 400
+   - Message: "No tickets available"
+
+5. **Server Error**
+   - Status Code: 500
+   - Message: "Internal server error"
+
+## Key Features
+- Atomic transaction ensuring data consistency
+- Team-wide ticket booking
+- Leader-only access control
+- Real-time ticket availability tracking
+
+## Performance Considerations
+- Uses MongoDB transaction for data integrity
+- Efficient database queries
+- Minimal payload requirements
+
+## Potential Improvements
+- Add slot selection logic
+- Implement partial booking capabilities
+- Enhanced error handling for edge cases
+
+## Dependencies
+- MongoDB Mongoose
+- Express.js
+- OAuth Middleware
+- Event Model
+- Team Model
+- Pass Model
+
+## Error Handling
+- Comprehensive error logging
+- Transactional rollback on failures
+- Granular error responses
+
+## Security Considerations
+- Authentication required
+- Team leader verification
+- Transaction-based booking to prevent race conditions
+
+
+## Monitoring & Logging
+- Logs ticket booking attempts
+- Tracks successful and failed bookings
+- Captures detailed error information for debugging
