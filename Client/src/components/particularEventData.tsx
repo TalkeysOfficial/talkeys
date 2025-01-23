@@ -12,7 +12,6 @@ import {
 	Check,
 	X,
 	Copy,
-	QrCodeIcon,
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
