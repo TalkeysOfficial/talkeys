@@ -240,12 +240,12 @@ The `bookTicket` function is a critical API endpoint for team ticket booking. It
 Retrieves the team details for the authenticated user.
 
 ## Endpoint Details
-- **Method**: GET
+- **Method**: post
 - **Authentication**: Required
 
 ## Request
 - Requires OAuth token
-- Uses authenticated user's email to find associated team
+
 
 ## Response Scenarios
 ### Success
