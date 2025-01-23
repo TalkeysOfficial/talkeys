@@ -107,8 +107,4 @@ Allows a user to join an existing team using a team code.
 - 404: Team or user not found
 - 500: Server error
 
-Key Improvements:
-- Uses authenticated user's email
-- Prevents duplicate team joins
-- More robust error handling
-- Consistent error response format
+
