@@ -2,69 +2,83 @@ const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
+const User = require("../models/users.model.js"); // Ensure correct import path
 const createTeam = asyncHandler(async (req, res) => {
     try {
-        const { teamName, teamLeader, newPhoneNumber } = req.body;
+        const { teamName, newPhoneNumber } = req.body;
+        const userEmail = req.user.email;
+        
+        // Debug logging
+        console.log("User Email:", userEmail);
+
+        const user = await User.findOne({ email: userEmail });
+        
+        // More debug checks
+        if (!User) {
+            return res.status(500).json({ message: "User model not defined" });
+        }
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const teamLeader = user._id;
         const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        if (!validatePhoneNumber(newPhoneNumber)) {
+            return res.status(400).json({ message: "Invalid phone number" });
+        }
+
         const team = new TeamSchema({
             teamName,
-            teamLeader,
+            teamLeader: user._id,
             teamCode,
-            teamMembers: [teamLeader]
+            teamMembers: [user._id]
         });
-
-        if (!validatePhoneNumber(newPhoneNumber)) {
-            res.status(400);
-            throw new Error("Invalid phone number");
-        }
-
-        const user = await UserSchema.findById(teamLeader);
-        if (!user) {
-            res.status(404);
-            throw new Error("User not found");
-        }
 
         user.phoneNumber = newPhoneNumber;
         await user.save();
-
         await team.save();
+
         res.status(201).json({ team, teamCode });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
-
-
 const joinTeam = asyncHandler(async (req, res) => {
     try {
-        const { teamCode, userId, PhoneNumber } = req.body;
+        const { teamCode, phoneNumber } = req.body;
+        const userEmail = req.user.email;
+
+        const user = await User.findOne({ email: userEmail });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
         const team = await TeamSchema.findOne({ teamCode });
         if (!team) {
-            res.status(404);
-            throw new Error("Team not found");
+            return res.status(404).json({ message: "Team not found" });
         }
+
         if (team.teamMembers.length >= team.maxMembers) {
-            res.status(400);
-            throw new Error("Team is full");
+            return res.status(400).json({ message: "Team is full" });
         }
         
-        if (!validatePhoneNumber(PhoneNumber)) {
-            res.status(400);
-            throw new Error("Invalid phone number");
+        if (!validatePhoneNumber(phoneNumber)) {
+            return res.status(400).json({ message: "Invalid phone number" });
         }
 
-        const user = await UserSchema.findById(userId);
-        if (!user) {
-            res.status(404);
-            throw new Error("User not found");
+        // Check if user is already in the team
+        if (team.teamMembers.includes(user._id)) {
+            return res.status(400).json({ message: "User already in team" });
         }
-        user.phoneNumber = PhoneNumber;
+
+        user.phoneNumber = phoneNumber;
         await user.save();
 
-
-        team.teamMembers.push(userId);
+        team.teamMembers.push(user._id);
         await team.save();
+
         res.status(200).json(team);
     } catch (error) {
         res.status(500).json({ message: error.message });
