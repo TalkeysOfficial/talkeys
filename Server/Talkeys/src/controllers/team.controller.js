@@ -4,38 +4,33 @@ const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
 const {Event} = require("../models/events.model.js");
 const User = require("../models/users.model.js"); // Ensure correct import path
+const Event = require("../models/events.model.js"); // Capital E for model import
+
 const createTeam = asyncHandler(async (req, res) => {
     try {
-        const { teamName, newPhoneNumber, } = req.body;
+        const { teamName, newPhoneNumber, eventName } = req.body;
         const userEmail = req.user.email;
-        // Debug logging
-        console.log("User Email:", userEmail);
-        const currentEvent = await Event.findOne({
-            name: req.body.eventName
-        });
-        const user = await User.findOne({ email: userEmail });
+
+        // Find the event first
+        const currentEvent = await Event.findOne({ name: eventName });
         
-        // More debug checks
-        if (!User) {
-            return res.status(500).json({ message: "User model not defined" });
+        if (!currentEvent) {
+            return res.status(404).json({ message: "Event not found" });
         }
 
+        const user = await User.findOne({ email: userEmail });
+        
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const teamLeader = user._id;
         const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        if (!validatePhoneNumber(newPhoneNumber)) {
-            return res.status(400).json({ message: "Invalid phone number" });
-        }
-
         const team = new TeamSchema({
             teamName,
             teamLeader: user._id,
             teamCode,
-            eventName: currentEvent._id,
+            eventName: currentEvent._id, // Use the event's ID
             teamMembers: [user._id]
         });
 
