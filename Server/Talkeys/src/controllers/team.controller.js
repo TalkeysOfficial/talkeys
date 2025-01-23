@@ -1,13 +1,12 @@
 const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../helpers/email.service");
-const TeamSchema = require("../models/teams.model.js");
+const Team = require("../models/teams.model.js");
 const {
 	validateEmail,
 	validatePhoneNumber,
 } = require("../helpers/validatorHelper");
 const Event = require("../models/events.model.js");
 const User = require("../models/users.model.js");
-const Team = require("../models/teams.model.js");
 const { model } = require("mongoose");
 
 const createTeam = asyncHandler(async (req, res) => {
@@ -105,26 +104,26 @@ const joinTeam = asyncHandler(async (req, res) => {
 const getTeam = asyncHandler(async (req, res) => {
 	try {
 		const userEmail = req.user.email;
+		const eventId = req.body?.eventId;
 
 		const user = await User.findOne({ email: userEmail });
-		const event = req.body.eventName;
 
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		const team = await TeamSchema.findOne({
-			teamMembers: user._id,
-			eventName: event._id,
-		});
+		const teams = await Team.find({ eventName: eventId });
+		const userTeam = teams.find((team) =>
+			team.teamMembers.some((member) => member.equals(user._id)),
+		);
 
-		if (!team) {
-			return res
-				.status(404)
-				.json({ message: "No team found for this user" });
+		if (!userTeam) {
+			return res.status(404).json({
+				message: "No team found for this user in the specified event",
+			});
 		}
 
-		return res.status(200).json(team);
+		return res.status(200).json(userTeam);
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}

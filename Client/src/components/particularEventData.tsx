@@ -74,7 +74,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 							"accessToken",
 						)}`,
 					},
-					body: JSON.stringify({ eventName: event.name }),
+					body: JSON.stringify({ eventId: event._id }),
 				});
 				const data = await response.json();
 				if (response.ok) {
