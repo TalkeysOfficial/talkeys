@@ -16,12 +16,25 @@ import {
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
 import type { Event } from "@/app/eventPage/page";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 
 interface EventPageProps {
 	readonly event: Event;
 	readonly onClose: () => void;
+}
+
+interface TeamResponse {
+	team: {
+		teamName: string;
+		teamLeader: string;
+		teamCode: string;
+		teamMembers: string[];
+		maxMembers: number;
+		_id: string;
+		__v: number;
+	};
+	teamCode: string;
 }
 
 export default function EventPage({ event, onClose }: EventPageProps) {
@@ -34,11 +47,46 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 		| "createTeamPhone"
 		| "createTeamName"
 		| "createTeamCode"
+		| "teamJoined"
+		| "error"
+		| "booked"
 	>("initial");
 	const [teamCode, setTeamCode] = useState("");
 	const [phoneNumber, setPhoneNumber] = useState("");
 	const [teamName, setTeamName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
+
+	useEffect(() => {
+		async function getTeam() {
+			try {
+				const response = await fetch(`${process.env.BACKEND_URL}/getTeam`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
+					},
+					body: JSON.stringify({ name: event.name }),
+				});
+				const data = await response.json();
+				if (response.ok) {
+					setTeamName(data.team.teamName);
+					setRegistrationState("initial");
+				} else {
+					throw new Error(response.status.toString());
+				}
+			} catch (error) {
+				console.error("Failed to get team", error);
+				if (error.message === "404") {
+					setRegistrationState("initial");
+				} else {
+					setErrorMessage("Server error");
+					setRegistrationState("error");
+				}
+			}
+		}
+	});
 
 	const handleRegisterClick = () => {
 		if (event.isLive) {
@@ -57,7 +105,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 	const handleTeamCodeSubmit = async () => {
 		setIsLoading(true);
 		try {
-			await fetch(`${process.env.BACKEND_URL}/joinTeam`, {
+			const response = await fetch(`${process.env.BACKEND_URL}/joinTeam`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -65,27 +113,27 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				},
 				body: JSON.stringify({ teamCode, phoneNumber }),
 			});
-			console.log("Joining team with code:", teamCode);
-			setRegistrationState("initial");
+			const data = await response.json();
+			if (response.ok) {
+				setTeamName(data.teamName);
+				setRegistrationState("teamJoined");
+			} else {
+				throw new Error(response.status.toString());
+			}
 		} catch (error) {
 			console.error("Failed to join team", error);
+			if (error.message === "400") {
+				setErrorMessage("Team full or invalid phone number");
+			} else if (error.message === "404") {
+				setErrorMessage("Team or user not found");
+			} else {
+				setErrorMessage("Server error");
+			}
+			setRegistrationState("error");
 		} finally {
 			setIsLoading(false);
 		}
 	};
-
-	interface TeamResponse {
-		team: {
-			teamName: string;
-			teamLeader: string;
-			teamCode: string;
-			teamMembers: string[];
-			maxMembers: number;
-			_id: string;
-			__v: number;
-		};
-		teamCode: string;
-	}
 
 	const handleCreateTeamSubmit = async () => {
 		setIsLoading(true);
@@ -98,11 +146,26 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				},
 				body: JSON.stringify({ phoneNumber, teamName, eventId:event._id }),
 			});
-			const data: TeamResponse = await response.json();
-			setTeamCode(data.teamCode);
-			setRegistrationState("createTeamCode");
+			const data = await response.json();
+			if (response.ok) {
+				setTeamCode(data.team.teamCode);
+				setTeamName(data.team.teamName);
+				setRegistrationState("createTeamCode");
+			} else {
+				throw new Error(response.status.toString());
+			}
 		} catch (error) {
 			console.error("Failed to create team", error);
+			if (error.message === "400") {
+				setErrorMessage("Invalid phone number");
+			} else if (error.message === "401") {
+				setErrorMessage("Unauthorized");
+			} else if (error.message === "404") {
+				setErrorMessage("User not found");
+			} else {
+				setErrorMessage("Server error");
+			}
+			setRegistrationState("error");
 		} finally {
 			setIsLoading(false);
 		}
@@ -116,18 +179,58 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 		}
 	};
 
+	const handleBookTickets = async () => {
+		setIsLoading(true);
+		try {
+			const response = await fetch(`${process.env.BACKEND_URL}/bookPass`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				},
+				body: JSON.stringify({ teamCode, name: event.name }),
+			});
+			const data = await response.json();
+			if (response.ok) {
+				setErrorMessage(data.message);
+				setRegistrationState("booked");
+			} else {
+				throw new Error(data.message);
+			}
+		} catch (error) {
+			console.error("Failed to book tickets", error);
+			setErrorMessage(error.message);
+			setRegistrationState("error");
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	const renderRegistrationButton = () => {
 		switch (registrationState) {
 			case "initial":
 				return (
 					<Button
 						className="bg-purple-600 hover:bg-purple-700 w-full"
-						onClick={handleRegisterClick}
+						onClick={
+							registrationState === "teamJoined"
+								? handleBookTickets
+								: handleRegisterClick
+						}
+						disabled={!event.isLive}
 						aria-label={
-							event.isLive ? "Register for event" : "Event coming soon"
+							event.isLive
+								? registrationState === "teamJoined"
+									? "Book Tickets"
+									: "Register for event"
+								: "Event coming soon"
 						}
 					>
-						{event.isLive ? "Register Now" : "Coming Soon"}
+						{event.isLive
+							? registrationState === "teamJoined"
+								? "Book Tickets"
+								: "Register Now"
+							: "Coming Soon"}
 					</Button>
 				);
 			case "teamOptions":
@@ -272,12 +375,48 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 								<Copy className="w-4 h-4" />
 							</Button>
 						</div>
+						<div className="text-green-500">Team Created: {teamName}</div>
 						<Button
 							className="bg-green-600 hover:bg-green-700 w-full"
-							onClick={() => setRegistrationState("initial")}
+							onClick={() => setRegistrationState("teamJoined")}
 						>
 							<Check className="w-4 h-4 mr-2" />
 							Done
+						</Button>
+					</div>
+				);
+			case "teamJoined":
+				return (
+					<div className="w-full max-w-sm mx-auto">
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 w-full"
+							disabled={true}
+						>
+							Team Joined: {teamName}
+						</Button>
+					</div>
+				);
+			case "error":
+				return (
+					<div className="w-full max-w-sm mx-auto space-y-2">
+						<div className="text-red-500">{errorMessage}</div>
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 w-full"
+							onClick={() => setRegistrationState("initial")}
+						>
+							Try Again
+						</Button>
+					</div>
+				);
+			case "booked":
+				return (
+					<div className="w-full max-w-sm mx-auto space-y-2">
+						<div className="text-green-500">{errorMessage}</div>
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 w-full"
+							disabled={true}
+						>
+							Tickets Booked
 						</Button>
 					</div>
 				);
