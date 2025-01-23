@@ -10,16 +10,16 @@ const mongoose = require("mongoose");
 
 const bookTicket = async (req, res) => {
     // Validate input
-    if (!req.user || !req.body.teamcode || !req.body.eventId) {
+    if (!req.user || !req.body.teamCode || !req.body.eventId) {
         return res.status(400).json({ error: "Invalid request parameters" });
     }
 
-    const { teamcode, eventId } = req.body;
+    const { teamCode, eventId } = req.body;
     const userId = req.user._id;
 
     try {
         // Find team and populate team members and team leader
-        const team = await TeamSchema.findOne({ teamCode: teamcode })
+        const team = await TeamSchema.findOne({ teamCode: teamCode })
             .populate('teamMembers')
             .populate('teamLeader');
 
@@ -56,7 +56,7 @@ console.log("Debug: Event found")
 
         // Check if any team member already has a pass
         const existingPasses = await Pass.find({
-            userId: { $in: team.teamMembers.map((m) => m._id) },
+            userId,
             eventId: event._id,
         });
 
@@ -83,7 +83,7 @@ console.log("Debug: Event found")
                 $inc: { availableTickets: -team.teamMembers.length },
                 $push: { bookedTeams: team._id },
             },
-            { new: true }
+            { new: true },
         );
 
         return res.status(200).json({
