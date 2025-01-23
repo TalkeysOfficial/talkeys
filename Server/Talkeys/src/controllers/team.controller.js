@@ -11,7 +11,7 @@ const createTeam = asyncHandler(async (req, res) => {
         // Debug logging
         console.log("User Email:", userEmail);
         const event= await event.findOne({
-    eventName: req.body.eventName
+    name: req.body.eventName
 })
         const user = await User.findOne({ email: userEmail });
         
