@@ -132,7 +132,7 @@ The `bookTicket` function is a critical API endpoint for team ticket booking. It
 ### Request Parameters
 - `teamcode` (String, Required): Unique team code identifying the team
 - `name` (String, Required): Name of the event to book tickets for
-- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation)
+- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation) (dont do this for now, this feature will be after esports)
 
 ## Authentication
 - Requires valid OAuth token
