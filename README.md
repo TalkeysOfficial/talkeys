@@ -132,7 +132,7 @@ The `bookTicket` function is a critical API endpoint for team ticket booking. It
 ### Request Parameters
 - `teamcode` (String, Required): Unique team code identifying the team
 - `name` (String, Required): Name of the event to book tickets for
-- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation)
+- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation) (dont do this for now, this feature will be after esports)
 
 ## Authentication
 - Requires valid OAuth token
@@ -229,3 +229,68 @@ The `bookTicket` function is a critical API endpoint for team ticket booking. It
 - Logs ticket booking attempts
 - Tracks successful and failed bookings
 - Captures detailed error information for debugging
+
+
+
+
+
+# Get Team API Documentation
+
+## Overview
+Retrieves the team details for the authenticated user.
+
+## Endpoint Details
+- **Method**: GET
+- **Authentication**: Required
+
+## Request
+- Requires OAuth token
+- Uses authenticated user's email to find associated team
+
+## Response Scenarios
+### Success
+- **Status**: 200 OK
+- **Payload**: Complete team details
+- **Includes**:
+  - Team information
+  - Team leader details
+  - Team members details
+
+### Error Scenarios
+1. **User Not Found**
+   - Status: 404
+   - Message: "User not found"
+
+2. **No Team Found**
+   - Status: 404
+   - Message: "No team found for this user"
+
+3. **Server Error**
+   - Status: 500
+   - Message: Error details
+
+## Key Improvements
+- Added user existence check
+- Added team existence check
+- Populated leader and member details
+- Provides specific error responses
+
+## Security
+- Authenticates via OAuth
+- Scopes data to authenticated user
+
+## Example Response
+```json
+{
+    "teamName": "Tech Innovators",
+    "teamCode": "ABC123",
+    "teamLeader": {
+        "name": "John Doe",
+        "email": "john@example.com"
+    },
+    "teamMembers": [
+        {"name": "Jane Smith", "email": "jane@example.com"},
+        // More members...
+    ]
+}
+```
