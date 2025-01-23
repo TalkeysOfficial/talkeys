@@ -111,5 +111,6 @@ const getTeam = asyncHandler(async (req, res) => {
 module.exports={
     createTeam,
     joinTeam,
+    getTeam
 
 }
