@@ -10,90 +10,76 @@ const mongoose = require('mongoose');
 
 const bookTicket = async (req, res) => {
     const { teamcode, name, slotId } = req.body;
-    const userId = req.user.id;  // Assuming auth middleware adds user to request
-    if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-    const team = await Team.findOne({ teamCode: teamcode });
-    if (!team) {
-        return res.status(404).json({ error: "Team not found" });
-    }
-    if(userId !== team.teamLeader) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-    // Validate required fields
-    if (!name) {
-        return res.status(400).json({ error: "Event name is required" });
-    }
-    
-    // Start session for transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const userId = req.user.id;
 
     try {
+        // Validate team and leadership
+        const team = await TeamSchema.findOne({ teamCode: teamcode });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+        if (userId.toString() !== team.teamLeader.toString()) {
+            return res.status(403).json({ error: "Only team leader can book tickets" });
+        }
+
         // Find event
         const event = await Event.findOne({
             name: name,
             isLive: true,
-        }).session(session);
+        });
 
         if (!event) {
-            await session.abortTransaction();
             return res.status(404).json({ error: "Event not found" });
         }
 
-        // Check if user already has a ticket
-        const existingPass = await Pass.findOne({
-            eventId: event._id,
-            userId: userId
-        }).session(session);
-
-        if (existingPass) {
-            await session.abortTransaction();
-            return res.status(400).json({ error: "User already has a booked ticket" });
-        }
-
         // Check ticket availability
-        if (event.totalSeats <= 0 || !event.isBooking) {
-            await session.abortTransaction();
-            return res.status(400).json({ error: "No tickets available for this event" });
+        if (event.availableTickets <= 0 || !event.isBooking) {
+            return res.status(400).json({ error: "No tickets available" });
         }
 
-        // Create new pass
-        const newPass = await Pass.create([{
-            eventId: event._id,
-            userId: userId,
-            passType: 'General', // Adjust based on your requirements
-            status: 'active'
-        }], { session });
+        // Start mongoose session for transaction
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        // Update available tickets
-        await Event.findByIdAndUpdate(
-            event._id,
-            { $inc: { availableTickets: -1 } },
-            { session, new: true }
-        );
+        try {
+            // Create pass for entire team
+            const teamPasses = team.teamMembers.map(memberId => ({
+                eventId: event._id,
+                userId: memberId,
+                passType: 'Team',
+                status: 'active'
+            }));
 
-        // Commit transaction
-        await session.commitTransaction();
+            await Pass.create(teamPasses, { session });
 
-        // Get updated event
-        const updatedEvent = await Event.findById(event._id);
-        return res.status(200).json({
-            message: "Ticket booked successfully",
-            user: req.user, // Assuming user details are in req.user
-            event: {
-                name: updatedEvent.name,
-                availableTickets: updatedEvent.availableTickets
-            }
-        });
+            // Update event tickets
+            await Event.findByIdAndUpdate(
+                event._id,
+                { 
+                    $inc: { availableTickets: -team.teamMembers.length },
+                    $push: { bookedTeams: team._id }
+                },
+                { session, new: true }
+            );
+
+            await session.commitTransaction();
+
+            return res.status(200).json({
+                message: "Team tickets booked successfully",
+                teamMembers: team.teamMembers.length,
+                remainingTickets: event.availableTickets - team.teamMembers.length
+            });
+
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
 
     } catch (error) {
-        await session.abortTransaction();
-        console.error('Error booking ticket:', error);
+        console.error('Ticket booking error:', error);
         return res.status(500).json({ error: "Internal server error" });
-    } finally {
-        session.endSession();
     }
 };
 
