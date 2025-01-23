@@ -6,6 +6,8 @@ const auth = require("../middleware/oauth.js");
 const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
 const mongoose = require("mongoose");
+
+
 const bookTicket = async (req, res) => {
     // Validate input
     if (!req.user || !req.body.teamcode || !req.body.eventId) {
@@ -13,10 +15,10 @@ const bookTicket = async (req, res) => {
     }
 
     const { teamcode, eventId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     try {
-        // Validate team and leadership
+        // Find team and populate team members and team leader
         const team = await TeamSchema.findOne({ teamCode: teamcode })
             .populate('teamMembers')
             .populate('teamLeader');
@@ -25,6 +27,12 @@ const bookTicket = async (req, res) => {
             return res.status(404).json({ error: "Team not found" });
         }
 
+        // Check if teamLeader is populated and is a valid ObjectId
+        if (!team.teamLeader || !mongoose.Types.ObjectId.isValid(team.teamLeader._id)) {
+            return res.status(404).json({ error: "Team leader not found or invalid" });
+        }
+
+        // Check if the user is the team leader
         if (userId.toString() !== team.teamLeader._id.toString()) {
             return res.status(403).json({ error: "Only team leader can book tickets" });
         }
@@ -86,6 +94,7 @@ const bookTicket = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
 const getPassByUserAndEvent = async (userId, eventId) => {
     try {
         return await Pass.findOne({ 

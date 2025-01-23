@@ -241,7 +241,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
 				body: JSON.stringify({
-					teamcode: createTeamData?.teamCode,
+					teamcode: teamCode ?? createTeamData?.teamCode,
 					name: event.name,
 					eventId: event._id,
 				}),
@@ -260,9 +260,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
+						Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 					},
 					body: JSON.stringify({
 						eventId: event._id,
