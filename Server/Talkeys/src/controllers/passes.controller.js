@@ -14,11 +14,15 @@ const bookTicket = async (req, res) => {
 
     try {
         // Validate team and leadership
-        const team = await TeamSchema.findOne({ teamCode: teamcode });
+        const team = await TeamSchema.findOne({ teamCode: teamcode })
+            .populate('teamMembers')
+            .populate('teamLeader');
+
         if (!team) {
             return res.status(404).json({ error: "Team not found" });
         }
-        if (userId.toString() !== team.teamLeader.toString()) {
+
+        if (userId.toString() !== team.teamLeader._id.toString()) {
             return res.status(403).json({ error: "Only team leader can book tickets" });
         }
 
@@ -33,8 +37,8 @@ const bookTicket = async (req, res) => {
         }
 
         // Check ticket availability
-        if (event.availableTickets <= 0 || !event.isBooking) {
-            return res.status(400).json({ error: "No tickets available" });
+        if (event.availableTickets < team.teamMembers.length || !event.isBooking) {
+            return res.status(400).json({ error: "Insufficient tickets available" });
         }
 
         // Start mongoose session for transaction
@@ -42,10 +46,23 @@ const bookTicket = async (req, res) => {
         session.startTransaction();
 
         try {
+            // Check if any team member already has a pass
+            const existingPasses = await Pass.find({
+                userId: { $in: team.teamMembers.map(m => m._id) },
+                eventId: event._id
+            });
+
+            if (existingPasses.length > 0) {
+                await session.abortTransaction();
+                return res.status(400).json({ 
+                    error: "Some team members already have passes for this event" 
+                });
+            }
+
             // Create pass for entire team
-            const teamPasses = team.teamMembers.map(memberId => ({
+            const teamPasses = team.teamMembers.map(member => ({
                 eventId: event._id,
-                userId: memberId,
+                userId: member._id,
                 passType: 'Team',
                 status: 'active'
             }));
@@ -53,7 +70,7 @@ const bookTicket = async (req, res) => {
             await Pass.create(teamPasses, { session });
 
             // Update event tickets
-            await Event.findByIdAndUpdate(
+            const updatedEvent = await Event.findByIdAndUpdate(
                 event._id,
                 { 
                     $inc: { availableTickets: -team.teamMembers.length },
@@ -67,7 +84,7 @@ const bookTicket = async (req, res) => {
             return res.status(200).json({
                 message: "Team tickets booked successfully",
                 teamMembers: team.teamMembers.length,
-                remainingTickets: event.availableTickets - team.teamMembers.length
+                remainingTickets: updatedEvent.availableTickets
             });
 
         } catch (error) {
@@ -83,22 +100,17 @@ const bookTicket = async (req, res) => {
     }
 };
 
-const Pass = require('../models/passes.model.js');
-
 const getPassByUserAndEvent = async (userId, eventId) => {
     try {
-        const pass = await Pass.findOne({ 
-            userId: userId, 
+        return await Pass.findOne({ 
+            userId: user._id, 
             eventId: eventId 
-        }, '_id');  // Explicitly select only the _id field
-
-        return pass ? pass._id : null;
+        }, '_id');
     } catch (error) {
         console.error('Get pass error:', error);
         throw error;
     }
 };
-
 module.exports = {
     getPassByUserAndEvent,
     bookTicket
