@@ -9,7 +9,7 @@ const Pass = require('../models/passes.model.js');
 const mongoose = require('mongoose');
 
 const bookTicket = async (req, res) => {
-    const { teamcode, name, slotId } = req.body;
+    const { teamcode, name } = req.body;
     const userId = req.user.id;
 
     try {
