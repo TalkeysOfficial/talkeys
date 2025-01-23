@@ -472,7 +472,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			case "passCreated":
 				return (
 					<div className="space-y-2 w-full max-w-sm mx-auto">
-						<div className="text-green-500">Pass Created</div>
+						<div className="text-green-500">Pass Created: Reload to Get Pass</div>
 						{pass && (
 							<div className="flex justify-center">
 								<QRCode value={pass} />
