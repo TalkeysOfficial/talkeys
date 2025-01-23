@@ -50,7 +50,7 @@ const bookTicket = async (req, res) => {
             eventId: event._id,
         });
 
-        if (existingPasses.length > 0) {
+        if (existingPasses) {
             return res.status(400).json({
                 error: "Some team members already have passes for this event",
             });
