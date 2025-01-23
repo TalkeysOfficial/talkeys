@@ -96,7 +96,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
-				body: JSON.stringify({ newPhoneNumber: phoneNumber, teamName }),
+				body: JSON.stringify({ newPhoneNumber: phoneNumber, teamName, eventName:event.name }),
 			});
 			const data: TeamResponse = await response.json();
 			setTeamCode(data.teamCode);
