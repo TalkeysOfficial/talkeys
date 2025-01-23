@@ -33,6 +33,7 @@ const createTeam = asyncHandler(async (req, res) => {
             teamName,
             teamLeader: user._id,
             teamCode,
+            eventName: event._id,
             teamMembers: [user._id]
         });
 
