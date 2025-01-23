@@ -31,11 +31,13 @@ const bookTicket = async (req, res) => {
         if (!team.teamLeader || !mongoose.Types.ObjectId.isValid(team.teamLeader._id)) {
             return res.status(404).json({ error: "Team leader not found or invalid" });
         }
+        console.log("===================")
+        console.log(team)
 
         // Check if the user is the team leader
-        if (userId.toString() !== team.teamLeader._id.toString()) {
-            return res.status(403).json({ error: "Only team leader can book tickets" });
-        }
+        // if (userId != team.teamLeader) {
+        //     return res.status(403).json({ error: "Only team leader can book tickets" });
+        // }
 
         // Find event
         const event = await Event.findOne({
@@ -46,9 +48,9 @@ const bookTicket = async (req, res) => {
         if (!event) {
             return res.status(404).json({ error: "Event not found" });
         }
-
+console.log("Debug: Event found")
         // Check ticket availability
-        if (event.availableTickets < team.teamMembers.length || !event.isBooking) {
+        if (event.totalSeats < 0) {
             return res.status(400).json({ error: "Insufficient tickets available" });
         }
 
