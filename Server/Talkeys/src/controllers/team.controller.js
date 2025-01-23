@@ -4,6 +4,7 @@ const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
 const {Event} = require("../models/events.model.js");
 const User = require("../models/users.model.js"); 
+const Team = require("../models/teams.model.js");
 
 const createTeam = asyncHandler(async (req, res) => {
     try {
