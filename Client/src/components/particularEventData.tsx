@@ -483,12 +483,12 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 								<QRCode value={pass} />
 							</div>
 						)}
-						<Button
+						{/* <Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={() => window.location.reload()}
 						>
 							Show Pass
-						</Button>
+						</Button> */}
 					</div>
 				);
 		}
