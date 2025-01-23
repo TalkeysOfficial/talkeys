@@ -12,6 +12,7 @@ import {
 	Check,
 	X,
 	Copy,
+	QrCodeIcon,
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
@@ -58,13 +59,10 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 	const [teamName, setTeamName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	const [pass, setPass] = useState<string | null>(null);
-	const [createTeamData, setCreateTeamData] = useState<TeamResponse | null>(
-		null,
-	);
+	const [pass, setPass] = useState<{ _id: string } | null>(null);
 
 	useEffect(() => {
-		async function getTeam() {
+		async function getTeamAndPass() {
 			try {
 				const response = await fetch(`${process.env.BACKEND_URL}/getTeam`, {
 					method: "POST",
@@ -78,19 +76,43 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				});
 				const data = await response.json();
 				if (response.ok) {
-					setTeamName(data.team.teamName);
-					setRegistrationState("teamJoined");
+					setTeamName(data.teamName);
+					setTeamCode(data.teamCode);
+					// Fetch pass after confirming team exists
+					const passResponse = await fetch(
+						`${process.env.BACKEND_URL}/getPass`,
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem(
+									"accessToken",
+								)}`,
+							},
+							body: JSON.stringify({
+								eventId: event._id,
+								userId: data._id,
+							}),
+						},
+					);
+					const passData = await passResponse.json();
+					if (passResponse.ok) {
+						setPass(passData._id);
+						setRegistrationState("passCreated");
+					} else {
+						setRegistrationState("teamJoined");
+					}
 				} else {
 					setRegistrationState("initial");
 				}
 			} catch (error) {
-				console.error("Failed to get team", error);
+				console.error("Failed to get team or pass", error);
 				setRegistrationState("initial");
 			}
 		}
 
-		getTeam();
-	}, [event.name]);
+		getTeamAndPass();
+	}, [event._id]);
 
 	const handleRegisterClick = () => {
 		if (event.isLive) {
@@ -124,18 +146,14 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			} else {
 				throw new Error(response.status.toString());
 			}
-		} catch (error: any) {
+		} catch (error) {
 			console.error("Failed to join team", error);
-			if (error instanceof Error) {
-				if (error.message === "400") {
-					setErrorMessage("Team full or invalid phone number");
-				} else if (error.message === "404") {
-					setErrorMessage("Team or user not found");
-				} else {
-					setErrorMessage("Server error");
-				}
+			if (error.message === "400") {
+				setErrorMessage("Team full or invalid phone number");
+			} else if (error.message === "404") {
+				setErrorMessage("Team or user not found");
 			} else {
-				setErrorMessage("Unknown error");
+				setErrorMessage("Server error");
 			}
 			setRegistrationState("error");
 		} finally {
@@ -158,30 +176,24 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					eventId: event._id,
 				}),
 			});
-			const data = (await response.json()) as TeamResponse;
-
+			const data = await response.json();
 			if (response.ok) {
 				setTeamCode(data.team.teamCode);
 				setTeamName(data.team.teamName);
 				setRegistrationState("createTeamCode");
-				setCreateTeamData(data);
 			} else {
 				throw new Error(response.status.toString());
 			}
 		} catch (error) {
 			console.error("Failed to create team", error);
-			if (error instanceof Error) {
-				if (error.message === "400") {
-					setErrorMessage("Invalid phone number");
-				} else if (error.message === "401") {
-					setErrorMessage("Unauthorized");
-				} else if (error.message === "404") {
-					setErrorMessage("User not found");
-				} else {
-					setErrorMessage("Server error");
-				}
+			if (error.message === "400") {
+				setErrorMessage("Invalid phone number");
+			} else if (error.message === "401") {
+				setErrorMessage("Unauthorized");
+			} else if (error.message === "404") {
+				setErrorMessage("User not found");
 			} else {
-				setErrorMessage("Unknown error");
+				setErrorMessage("Server error");
 			}
 			setRegistrationState("error");
 		} finally {
@@ -217,13 +229,8 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			}
 		} catch (error) {
 			console.error("Failed to book tickets", error);
-			if (error instanceof Error) {
-				setErrorMessage(error.message);
-				setRegistrationState("error");
-			} else {
-				setErrorMessage("Unknown error");
-				setRegistrationState("error");
-			}
+			setErrorMessage(error.message);
+			setRegistrationState("error");
 		} finally {
 			setIsLoading(false);
 		}
@@ -239,50 +246,25 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
 				body: JSON.stringify({
-					teamCode: teamCode ?? createTeamData?.teamCode,
+					teamCode: teamCode,
 					eventId: event._id,
 				}),
 			});
 			const data = await response.json();
-			if (response.status == 400 || response.status == 200) {
-				getPassFunc();
-			}
-
-			setErrorMessage(data.message);
-		} catch (error) {
-			console.log("Failed to create pass", error);
-		}
-
-		async function getPassFunc() {
-			try {
-				const response = await fetch(`${process.env.BACKEND_URL}/getPass`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
-					},
-					body: JSON.stringify({
-						eventId: event._id,
-						userId: createTeamData?.team._id,
-					}),
-				});
-				const data = await response.json();
-				if (response.ok) {
-					setPass(data._id);
-					setRegistrationState("passCreated");
-				} else {
-					throw new Error(response.status.toString());
-				}
+			if (response.ok) {
 				setPass(data._id);
-			} catch (error) {
-				console.error("Failed to create pass", error);
-				setErrorMessage("Failed to create pass");
-				setRegistrationState("error");
-			} finally {
-				setIsLoading(false);
+				setRegistrationState("passCreated");
+			} else {
+				throw new Error(data.message);
 			}
+		} catch (error) {
+			console.error("Failed to book pass", error);
+			setErrorMessage(
+				error instanceof Error ? error.message : "Failed to book pass",
+			);
+			setRegistrationState("error");
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
@@ -459,7 +441,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={handleCreatePass}
 						>
-							Book Now
+							Book Pass
 						</Button>
 					</div>
 				);

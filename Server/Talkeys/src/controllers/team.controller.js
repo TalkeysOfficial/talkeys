@@ -32,14 +32,14 @@ const createTeam = asyncHandler(async (req, res) => {
 
 		const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-		const team = new TeamSchema({
+		const team = new Team({
 			teamName,
 			teamLeader: user._id,
 			teamCode,
 			eventName: currentEvent._id,
 			teamMembers: [user._id],
 		});
-
+		console.log("Debug: Team created");
 		user.phoneNumber = newPhoneNumber;
 		await user.save();
 		await team.save();
