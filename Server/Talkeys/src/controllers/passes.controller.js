@@ -13,7 +13,7 @@ const bookTicket = async (req, res) => {
     }
 
     const { teamcode, eventId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     try {
         // Validate team and leadership
