@@ -127,5 +127,4 @@ module.exports={
     createTeam,
     joinTeam,
     getTeam
-
 }
