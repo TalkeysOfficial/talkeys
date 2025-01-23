@@ -235,7 +235,7 @@ The `bookTicket` function is a critical API endpoint for team ticket booking. It
 
 
 # Get Team API Documentation
-
+**post('/getTeam', Passes.getTeam);**
 ## Overview
 Retrieves the team details for the authenticated user.
 
