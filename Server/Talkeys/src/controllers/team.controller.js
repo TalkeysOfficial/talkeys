@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
-const {event} = require("../models/events.model.js");
+const {Event} = require("../models/events.model.js");
 const User = require("../models/users.model.js"); // Ensure correct import path
 const createTeam = asyncHandler(async (req, res) => {
     try {
@@ -10,9 +10,9 @@ const createTeam = asyncHandler(async (req, res) => {
         const userEmail = req.user.email;
         // Debug logging
         console.log("User Email:", userEmail);
-        const event= await event.findOne({
-    name: req.body.eventName
-})
+        const currentEvent = await Event.findOne({
+            name: req.body.eventName
+        });
         const user = await User.findOne({ email: userEmail });
         
         // More debug checks
@@ -35,7 +35,7 @@ const createTeam = asyncHandler(async (req, res) => {
             teamName,
             teamLeader: user._id,
             teamCode,
-            eventName: event._id,
+            eventName: currentEvent._id,
             teamMembers: [user._id]
         });
 
