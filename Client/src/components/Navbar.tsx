@@ -74,18 +74,18 @@ const Navbar = () => {
 							<Button
 								asChild
 								variant="outline"
-								className="text-white hover:bg-white hover:text-black duration-300"
+								className="duration-300"
 							>
 								{isSignedIn ? (
 									<Link
 										href="/"
 										onClick={handleLogout}
-										className="bg-white text-black hover:bg-red-500 hover:text-white duration-300"
+										className="bg-white text-black hover:bg-red-600 hover:text-white "
 									>
 										Logout
 									</Link>
 								) : (
-									<Link href="/sign">Login</Link>
+									<Link href="/sign" className="text-white hover:text-black hover:bg-white">Login</Link>
 								)}
 							</Button>
 						</NavigationMenuList>
