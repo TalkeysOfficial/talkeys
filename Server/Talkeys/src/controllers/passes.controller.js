@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 
 const bookTicket = async (req, res) => {
     // Validate input
-    if (!req.user || !req.body.teamCode || !req.body.eventId) {
+    if (!req.body.teamCode || !req.body.eventId) {
         return res.status(400).json({ error: "Invalid request parameters" });
     }
 
