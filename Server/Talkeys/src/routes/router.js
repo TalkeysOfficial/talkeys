@@ -22,5 +22,5 @@ router.post('/bookPass', Passes.bookTicket);
 router.post('/joinTeam', Team.joinTeam);
 router.post('/createTeam', Team.createTeam);
 router.post('/getPass', Passes.getPassByUserAndEvent);
-router.post('/getTeam', Passes.getTeam);
+router.post('/getTeam', Team.getTeam);
 module.exports = router;

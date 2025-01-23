@@ -88,15 +88,15 @@ const getTeam = asyncHandler(async (req, res) => {
     try {
         const userEmail = req.user.email;
         const user = await User.findOne({ email: userEmail });
-        
+        const event= req.body.eventName;
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         const team = await TeamSchema
-            .findOne({ teamMembers: user._id })
-            .populate('teamLeader', 'name email')
-            .populate('teamMembers', 'name email');
+            .findOne({ teamMembers: user._id ,
+                eventName: event._id
+            })
         
         if (!team) {
             return res.status(404).json({ message: "No team found for this user" });

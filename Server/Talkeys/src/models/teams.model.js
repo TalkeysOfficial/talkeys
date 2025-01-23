@@ -1,6 +1,7 @@
 const mongoose =  require("mongoose");
 const TeamSchema = new mongoose.Schema({
     teamName: { type: String, required: true },
+    eventName:{ type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
     teamLeader: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     teamCode: { 
         type: String, 
