@@ -63,7 +63,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
-				body: JSON.stringify({ teamCode, PhoneNumber: phoneNumber }),
+				body: JSON.stringify({ teamCode, phoneNumber }),
 			});
 			console.log("Joining team with code:", teamCode);
 			setRegistrationState("initial");
@@ -74,6 +74,19 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 		}
 	};
 
+	interface TeamResponse {
+		team: {
+			teamName: string;
+			teamLeader: string;
+			teamCode: string;
+			teamMembers: string[];
+			maxMembers: number;
+			_id: string;
+			__v: number;
+		};
+		teamCode: string;
+	}
+
 	const handleCreateTeamSubmit = async () => {
 		setIsLoading(true);
 		try {
@@ -83,9 +96,9 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
-				body: JSON.stringify({ PhoneNumber: phoneNumber, teamName }),
+				body: JSON.stringify({ newPhoneNumber: phoneNumber, teamName }),
 			});
-			const data = await response.json();
+			const data: TeamResponse = await response.json();
 			setTeamCode(data.teamCode);
 			setRegistrationState("createTeamCode");
 		} catch (error) {
