@@ -8,10 +8,9 @@ const createTeam = asyncHandler(async (req, res) => {
     try {
         const { teamName, newPhoneNumber, } = req.body;
         const userEmail = req.user.email;
-        const event= req.body.eventName;
         // Debug logging
         console.log("User Email:", userEmail);
-event= await event.findOne({
+        const event= await event.findOne({
     eventName: req.body.eventName
 })
         const user = await User.findOne({ email: userEmail });
