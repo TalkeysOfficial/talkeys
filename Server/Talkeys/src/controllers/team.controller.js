@@ -7,7 +7,7 @@ const createTeam = asyncHandler(async (req, res) => {
     try {
         const { teamName, newPhoneNumber } = req.body;
         const userEmail = req.user.email;
-        
+        const event= req.body.eventName;
         // Debug logging
         console.log("User Email:", userEmail);
 
@@ -49,6 +49,8 @@ const joinTeam = asyncHandler(async (req, res) => {
     try {
         const { teamCode, phoneNumber } = req.body;
         const userEmail = req.user.email;
+        const event= req.body.eventName;
+        // Debug logging
 
         const user = await User.findOne({ email: userEmail });
         if (!user) {
@@ -89,6 +91,7 @@ const getTeam = asyncHandler(async (req, res) => {
         const userEmail = req.user.email;
         const user = await User.findOne({ email: userEmail });
         const event= req.body.eventName;
+        
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
