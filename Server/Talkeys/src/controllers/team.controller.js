@@ -101,18 +101,28 @@ const joinTeam = asyncHandler(async (req, res) => {
 const getTeam = asyncHandler(async (req, res) => {
     try {
         const userEmail = req.user.email;
+
         const user = await User.findOne({ email: userEmail });
-        const event= req.body.eventName;
-        
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const team = await TeamSchema
-            .findOne({ teamMembers: user._id ,
-                eventName: event._id
-            })
-        
+        // Fetch the event by name to get its _id
+        const event = await Event.findOne({ name: req.body.eventName });
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        console.log("Debug: User found", user._id);
+        console.log("Debug: Event found", event._id);
+
+        // Find the team with the user as a member and the event
+        const team = await Team.findOne({
+            teamMembers: user._id,
+            eventName: event._id,
+        });
+
         if (!team) {
             return res.status(404).json({ message: "No team found for this user" });
         }
@@ -122,6 +132,7 @@ const getTeam = asyncHandler(async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports={
     createTeam,
