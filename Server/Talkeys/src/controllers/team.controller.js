@@ -3,8 +3,7 @@ const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
 const { validateEmail, validatePhoneNumber, } = require("../helpers/validatorHelper");
 const {Event} = require("../models/events.model.js");
-const User = require("../models/users.model.js"); // Ensure correct import path
-const Event = require("../models/events.model.js"); // Capital E for model import
+const User = require("../models/users.model.js"); 
 
 const createTeam = asyncHandler(async (req, res) => {
     try {
@@ -30,7 +29,7 @@ const createTeam = asyncHandler(async (req, res) => {
             teamName,
             teamLeader: user._id,
             teamCode,
-            eventName: currentEvent._id, // Use the event's ID
+            eventName: currentEvent._id, 
             teamMembers: [user._id]
         });
 
