@@ -83,6 +83,23 @@ const bookTicket = async (req, res) => {
     }
 };
 
+const Pass = require('../models/passes.model.js');
+
+const getPassByUserAndEvent = async (userId, eventId) => {
+    try {
+        const pass = await Pass.findOne({ 
+            userId: userId, 
+            eventId: eventId 
+        }, '_id');  // Explicitly select only the _id field
+
+        return pass ? pass._id : null;
+    } catch (error) {
+        console.error('Get pass error:', error);
+        throw error;
+    }
+};
+
 module.exports = {
-    bookTicket,
+    getPassByUserAndEvent,
+    bookTicket
 };

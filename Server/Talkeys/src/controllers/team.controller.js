@@ -84,6 +84,30 @@ const joinTeam = asyncHandler(async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+const getTeam = asyncHandler(async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+        const user = await User.findOne({ email: userEmail });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const team = await TeamSchema
+            .findOne({ teamMembers: user._id })
+            .populate('teamLeader', 'name email')
+            .populate('teamMembers', 'name email');
+        
+        if (!team) {
+            return res.status(404).json({ message: "No team found for this user" });
+        }
+
+        return res.status(200).json(team);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports={
     createTeam,
     joinTeam,

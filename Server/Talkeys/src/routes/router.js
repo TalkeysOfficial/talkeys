@@ -21,6 +21,6 @@ router.get('/protected', authentication.protected);
 router.post('/bookPass', Passes.bookTicket);
 router.post('/joinTeam', Team.joinTeam);
 router.post('/createTeam', Team.createTeam);
-
-
+router.post('/getPass', Passes.getPassByUserAndEvent);
+router.post('/getTeam', Passes.getTeam);
 module.exports = router;
