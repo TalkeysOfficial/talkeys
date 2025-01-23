@@ -66,7 +66,7 @@ const joinTeam = asyncHandler(async (req, res) => {
 		}
 
 		// Fetch the team using teamCode
-		const team = await TeamSchema.findOne({ teamCode }).populate(
+		const team = await Team.findOne({ teamCode }).populate(
 			"teamMembers",
 		);
 		if (!team) {
