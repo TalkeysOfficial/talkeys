@@ -59,7 +59,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 	const [teamName, setTeamName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	const [pass, setPass] = useState<{ _id: string } | null>(null);
+	const [pass, setPass] = useState<string | null>(null);
 
 	useEffect(() => {
 		async function getTeamAndPass() {
@@ -148,12 +148,14 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			}
 		} catch (error) {
 			console.error("Failed to join team", error);
-			if (error.message === "400") {
-				setErrorMessage("Team full or invalid phone number");
-			} else if (error.message === "404") {
-				setErrorMessage("Team or user not found");
-			} else {
-				setErrorMessage("Server error");
+			if (error instanceof Error) {
+				if (error.message === "400") {
+					setErrorMessage("Team full or invalid phone number");
+				} else if (error.message === "404") {
+					setErrorMessage("Team or user not found");
+				} else {
+					setErrorMessage("Server error");
+				}
 			}
 			setRegistrationState("error");
 		} finally {
@@ -186,14 +188,16 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			}
 		} catch (error) {
 			console.error("Failed to create team", error);
-			if (error.message === "400") {
-				setErrorMessage("Invalid phone number");
-			} else if (error.message === "401") {
-				setErrorMessage("Unauthorized");
-			} else if (error.message === "404") {
-				setErrorMessage("User not found");
-			} else {
-				setErrorMessage("Server error");
+			if (error instanceof Error) {
+				if (error.message === "400") {
+					setErrorMessage("Invalid phone number");
+				} else if (error.message === "401") {
+					setErrorMessage("Unauthorized");
+				} else if (error.message === "404") {
+					setErrorMessage("User not found");
+				} else {
+					setErrorMessage("Server error");
+				}
 			}
 			setRegistrationState("error");
 		} finally {
@@ -229,7 +233,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			}
 		} catch (error) {
 			console.error("Failed to book tickets", error);
-			setErrorMessage(error.message);
+			if (error instanceof Error) setErrorMessage(error.message);
 			setRegistrationState("error");
 		} finally {
 			setIsLoading(false);
@@ -472,7 +476,9 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			case "passCreated":
 				return (
 					<div className="space-y-2 w-full max-w-sm mx-auto">
-						<div className="text-green-500">Pass Created: Reload to Get Pass</div>
+						<div className="text-green-500">
+							Pass Created: Reload to Get Pass
+						</div>
 						{pass && (
 							<div className="flex justify-center">
 								<QRCode value={pass} />
