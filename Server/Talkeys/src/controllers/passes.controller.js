@@ -15,7 +15,7 @@ const bookTicket = async (req, res) => {
     }
 
     const { teamcode, eventId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     try {
         // Find team and populate team members and team leader
