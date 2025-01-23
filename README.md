@@ -57,3 +57,58 @@ Creates a new team with a unique team code and adds the current user as the team
 - 401: Unauthorized
 - 404: User not found
 - 500: Server error
+
+# Team Join API Endpoint
+
+## Endpoint Description
+Allows a user to join an existing team using a team code.
+
+## Request Payload
+```json
+{
+    "teamCode": "AL7IKK",
+    "phoneNumber": "9814956560"
+}
+```
+
+### Request Parameters
+- `teamCode` (String, Required): Unique team invitation code
+- `phoneNumber` (String, Required): User's phone number
+
+## Response
+```json
+{
+    "teamName": "HelloHimanish",
+    "teamLeader": "678a933d0b89cdf0e2dcba3f",
+    "teamCode": "AL7IKK",
+    "teamMembers": [
+        "678a933d0b89cdf0e2dcba3f",
+        "new_user_id"
+    ],
+    "maxMembers": 2,
+    "_id": "6791e3a8e87260f8190fd962"
+}
+```
+
+## Authentication
+- Requires user authentication
+- Uses user's email from JWT token
+
+## Validation Checks
+- Verifies user exists
+- Confirms team exists
+- Checks team is not full
+- Validates phone number
+- Prevents duplicate team membership
+
+## Potential Status Codes
+- 200: Successfully joined team
+- 400: Team full or invalid phone number
+- 404: Team or user not found
+- 500: Server error
+
+Key Improvements:
+- Uses authenticated user's email
+- Prevents duplicate team joins
+- More robust error handling
+- Consistent error response format
