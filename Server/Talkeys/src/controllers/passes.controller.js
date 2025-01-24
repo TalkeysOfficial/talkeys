@@ -112,8 +112,9 @@ const getPassByUserAndEvent = async (req, res) => {
     }
 };
 const getPlayerByPassId= async (req, res) => {
-    const passId= req.body.passId;
+    var passId= req.body.passId;
     try {
+        passId = mongoose.Types.ObjectId(passId);
         const pass = await Pass.findById(passId);
         
         if (!pass) {
