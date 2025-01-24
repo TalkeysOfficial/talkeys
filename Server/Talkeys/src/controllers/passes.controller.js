@@ -5,7 +5,9 @@ const express = require("express");
 const auth = require("../middleware/oauth.js");
 const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
+const User = require("../models/users.model.js");
 const mongoose = require("mongoose");
+
 
 
 const bookTicket = async (req, res) => {
@@ -114,12 +116,13 @@ const getPassByUserAndEvent = async (req, res) => {
 const getPlayerByPassId= async (req, res) => {
     var passId= req.body.passId;
     try {
-        passId = mongoose.Types.ObjectId(passId);
-        const pass = await Pass.findById(passId);
-        
+        // passId = mongoose.Types.ObjectId(passId);
+        const pass = await Pass.findById(req.body.passId);
+        console.log(pass)
         if (!pass) {
             return res.status(404).json({ error: "Pass not found" });
         }
+        console.log("fuck i am here",passId)
         const user = await User.findById(pass.userId);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
