@@ -191,7 +191,7 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				if (error.message === "400") {
 					setErrorMessage("Invalid phone number");
 				} else if (error.message === "401") {
-					setErrorMessage("Unauthorized");
+					setErrorMessage("Login Before Creating Team");
 				} else if (error.message === "404") {
 					setErrorMessage("User not found");
 				} else {
@@ -212,32 +212,32 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 		}
 	};
 
-	const handleBookTickets = async () => {
-		setIsLoading(true);
-		try {
-			const response = await fetch(`${process.env.BACKEND_URL}/bookTicket`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-				},
-				body: JSON.stringify({ teamCode, name: event.name }),
-			});
-			const data = await response.json();
-			if (response.ok) {
-				setErrorMessage(data.message);
-				setRegistrationState("booked");
-			} else {
-				throw new Error(data.message);
-			}
-		} catch (error) {
-			console.error("Failed to book tickets", error);
-			if (error instanceof Error) setErrorMessage(error.message);
-			setRegistrationState("error");
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	// const handleBookTickets = async () => {
+	// 	setIsLoading(true);
+	// 	try {
+	// 		const response = await fetch(`${process.env.BACKEND_URL}/bookTicket`, {
+	// 			method: "POST",
+	// 			headers: {
+	// 				"Content-Type": "application/json",
+	// 				Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+	// 			},
+	// 			body: JSON.stringify({ teamCode, name: event.name }),
+	// 		});
+	// 		const data = await response.json();
+	// 		if (response.ok) {
+	// 			setErrorMessage(data.message);
+	// 			setRegistrationState("booked");
+	// 		} else {
+	// 			throw new Error(data.message);
+	// 		}
+	// 	} catch (error) {
+	// 		console.error("Failed to book tickets", error);
+	// 		if (error instanceof Error) setErrorMessage(error.message);
+	// 		setRegistrationState("error");
+	// 	} finally {
+	// 		setIsLoading(false);
+	// 	}
+	// };
 
 	const handleCreatePass = async () => {
 		setIsLoading(true);
