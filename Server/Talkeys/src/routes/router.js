@@ -4,6 +4,7 @@ const authentication = require('./../controllers/authentication.js');
 const Events = require('./../controllers/event.controller.js');
 const Passes = require('./../controllers/passes.controller.js');
 const Team = require('./../controllers/team.controller.js');
+
 const {checkRole} = require('../middleware/role.middleware.js');
 const { isTeamOK } = require('../middleware/Team.middleware');
 router.get('/getEvents', Events.getEvents);  
@@ -23,4 +24,9 @@ router.post('/joinTeam', Team.joinTeam);
 router.post('/createTeam', Team.createTeam);
 router.post('/getPass', Passes.getPassByUserAndEvent);
 router.post('/getTeam', Team.getTeam);
+
+router.use(checkRole('admin'));
+router.post('getPass',Pass.getPlayerByPassId)
+router.post('/reject',Pass.Reject )
+router.post('/accept',Pass.Accept)
 module.exports = router;

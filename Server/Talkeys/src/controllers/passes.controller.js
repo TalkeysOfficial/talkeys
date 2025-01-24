@@ -111,8 +111,63 @@ const getPassByUserAndEvent = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+const getPlayerByPassId= async (req, res) => {
+    const passId= req.body.passId;
+    try {
+        const pass = await Pass.findById(passId);
+        
+        if (!pass) {
+            return res.status(404).json({ error: "Pass not found" });
+        }
+        const user = await User.findById(pass.userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        return res.status(200).json(user);
+    } catch (error) {
+        console.error('Get pass error:', error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+const Accept= async(req, res) => {
+    const passId= req.body.passId;
+    try {
+        const pass = await Pass.findById(passId);
+        if (!pass) {
+            return res.status(404).json({ error: "Pass not found" });
+        }
+        pass.isScanned = true;
+        await pass.save();
+        return res.status(200).json({ message: "Pass scanned successfully" });
+    }
+    catch (error) {
+        console.error('Get pass error:', error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+const Reject = async(req,res) => {
+    const passId= req.body.passId;
+    try {
+        const pass = await Pass.findById(passId);
+        if (!pass) {
+            return res.status(404).json({ error: "Pass not found" });
+        }
+        pass.isScanned = false;
+        await pass.save();
+        return res.status(200).json({ message: "Pass rejected successfully" });
+    }
+    catch (error) {
+        console.error('Get pass error:', error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
 
 module.exports = {
     getPassByUserAndEvent,
     bookTicket,
+    getPlayerByPassId,
+    Accept,
+    Reject,
 };
