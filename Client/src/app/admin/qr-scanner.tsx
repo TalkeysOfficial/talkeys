@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { QrReader } from "react-qr-reader";
+import React, { useState, useRef, useEffect } from "react";
+import QrScanner from "qr-scanner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 	DialogFooter,
 } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
 
 interface PassInfo {
@@ -20,7 +21,6 @@ interface PassInfo {
 
 export default function AdminQRScanner() {
 	const [isScanning, setIsScanning] = useState(false);
-
 	const [verificationStatus, setVerificationStatus] = useState<string | null>(
 		null,
 	);
@@ -28,14 +28,49 @@ export default function AdminQRScanner() {
 	const [passInfo, setPassInfo] = useState<PassInfo | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [currentPassId, setCurrentPassId] = useState<string | null>(null);
+	const [isPending, setIsPending] = useState(false);
+	const videoRef = useRef<HTMLVideoElement | null>(null);
+	const scannerRef = useRef<QrScanner | null>(null);
 
-	let oldresult: string = "";
-	const handleScan = async (result: string | null) => {
-		if (result && oldresult !== result) {
-			oldresult = result;
-			setIsScanning(false);
-			await getPassInfo(result);
+	useEffect(() => {
+		if (isScanning && videoRef.current) {
+			scannerRef.current = new QrScanner(
+				videoRef.current,
+				(result) => {
+					if (result) {
+						handleScan(result.data);
+						if (scannerRef.current) {
+							scannerRef.current.stop();
+						}
+					}
+				},
+				{
+					returnDetailedScanResult: true,
+					highlightScanRegion: true,
+					highlightCodeOutline: true,
+				},
+			);
+
+			scannerRef.current.start().catch((err) => {
+				console.error("Failed to start scanner:", err);
+				setError(
+					"Failed to access camera. Please check permissions and try again.",
+				);
+			});
 		}
+
+		return () => {
+			if (scannerRef.current) {
+				scannerRef.current.destroy();
+			}
+		};
+	}, [isScanning]);
+
+	const handleScan = async (result: string) => {
+		setIsScanning(false);
+		setIsPending(true);
+		await getPassInfo(result);
+		setIsPending(false);
 	};
 
 	const getPassInfo = async (passId: string): Promise<void> => {
@@ -57,14 +92,13 @@ export default function AdminQRScanner() {
 			} else if (response.status === 404) {
 				setVerificationStatus("Invalid Pass");
 				setError("Invalid pass ID provided.");
-				return;
 			} else {
 				throw new Error(
 					`Verification failed with status ${response.status}`,
 				);
 			}
 		} catch (error) {
-			console.error("Error verifying pass:", error);
+			console.error("Error checking pass:", error);
 			setError("Failed to verify pass. Please try again.");
 		}
 	};
@@ -99,8 +133,7 @@ export default function AdminQRScanner() {
 	};
 
 	const resetScanner = () => {
-		oldresult = "";
-		setIsScanning(false);
+		setIsScanning(true);
 		setPassInfo(null);
 		setCurrentPassId(null);
 		setError(null);
@@ -108,50 +141,41 @@ export default function AdminQRScanner() {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-			<h1 className="text-2xl font-bold mb-4 text-gray-800">
+		<div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+			<h1 className="text-3xl font-bold mb-6 text-foreground">
 				Admin QR Scanner
 			</h1>
-			{isScanning ? (
-				<div className="w-full max-w-sm">
-					<QrReader
-						onResult={(result, error) => {
-							if (!!result) {
-								handleScan(result?.getText());
-							}
-						}}
-						constraints={{ facingMode: "environment" }}
-						className="w-full rounded-lg overflow-hidden"
-					/>
-				</div>
-			) : (
+
+			<div className={`w-full max-w-md ${isPending ? "opacity-40" : ""}`}>
+				{isScanning ? (
+					<Card className="relative overflow-hidden">
+						<CardContent className="p-0">
+							<div className="relative aspect-square">
+								<video
+									ref={videoRef}
+									className="w-full h-full object-cover rounded-lg"
+								/>
+								<div className="absolute inset-0 border-4 border-primary rounded-lg pointer-events-none" />
+							</div>
+						</CardContent>
+					</Card>
+				) : (
+					<Button
+						onClick={() => setIsScanning(true)}
+						className="w-full"
+					>
+						{verificationStatus ? "Scan More" : "Start Scanning"}
+					</Button>
+				)}
+			</div>
+
+			{error && <p className="mt-4 text-destructive text-center">{error}</p>}
+
+			{(verificationStatus || error) && (
 				<Button
-					onClick={() => setIsScanning(true)}
-					className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
-				>
-					{verificationStatus ? "Scan More" : "Start Scanning"}
-				</Button>
-			)}
-			{verificationStatus && (
-				<div
-					className={`mt-4 p-2 rounded-lg ${
-						verificationStatus.includes("Accepted")
-							? "bg-green-500"
-							: "bg-red-500"
-					} text-white font-semibold text-center w-full max-w-sm`}
-				>
-					{verificationStatus}
-				</div>
-			)}
-			{error && (
-				<div className="mt-4 p-2 rounded-lg bg-red-500 text-white font-semibold text-center w-full max-w-sm">
-					{error}
-				</div>
-			)}
-			{(verificationStatus === "Invalid Pass" || error) && (
-				<Button
+					variant="outline"
 					onClick={resetScanner}
-					className="mt-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out"
+					className="mt-4"
 				>
 					Scan Again
 				</Button>
@@ -160,13 +184,13 @@ export default function AdminQRScanner() {
 			<Dialog
 				open={isDialogOpen}
 				onOpenChange={setIsDialogOpen}
-				
 			>
-				<DialogContent className="bg-white rounded-lg">
+				<DialogContent className="bg-black text-white">
 					<DialogHeader>
 						<DialogTitle>Pass Information</DialogTitle>
 						<Button
-							className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+							className="absolute right-4 top-4"
+							variant="ghost"
 							onClick={() => setIsDialogOpen(false)}
 						>
 							<X className="h-4 w-4" />
@@ -188,14 +212,16 @@ export default function AdminQRScanner() {
 					)}
 					<DialogFooter>
 						<Button
+							variant="outline"
 							onClick={() => handleAcceptReject("reject")}
-							className="bg-red-500 hover:bg-red-600"
+							className="bg-red-500 text-white"
 						>
 							Reject
 						</Button>
 						<Button
+							variant="outline"
 							onClick={() => handleAcceptReject("accept")}
-							className="bg-green-500 hover:bg-green-600"
+							className="bg-green-500 text-white"
 						>
 							Accept
 						</Button>
