@@ -1,0 +1,11 @@
+{
+    "builds": [
+        {
+            "src": "next.config.js",
+            "use": "@vercel/next"
+        }
+    ],
+    "engines": {
+        "node": "16.x"
+    }
+}
