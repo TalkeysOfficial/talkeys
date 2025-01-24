@@ -79,8 +79,7 @@ console.log("Debug: Event found")
         const updatedEvent = await Event.findByIdAndUpdate(
             event._id,
             {
-                $inc: { availableTickets: -team.teamMembers.length },
-                $push: { bookedTeams: team._id },
+                $inc: { totalSeats: -team.teamMembers.length },
             },
             { new: true },
         );
@@ -88,7 +87,7 @@ console.log("Debug: Event found")
         return res.status(200).json({
             message: "Team tickets booked successfully",
             teamMembers: team.teamMembers.length,
-            remainingTickets: updatedEvent.availableTickets,
+            remainingTickets: updatedEvent.totalSeats,
         });
     } catch (error) {
         console.error("Ticket booking error:", error);
