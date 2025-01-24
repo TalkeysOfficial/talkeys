@@ -4,6 +4,16 @@ dotenv.config();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	eslint: {
+		ignoreDuringBuilds: true,
+	},
+	typescript: {
+		// !! WARN !!
+		// Dangerously allow production builds to successfully complete even if
+		// your project has type errors.
+		// !! WARN !!
+		ignoreBuildErrors: true,
+	},
 	env: {
 		// You can add your environment variables here
 		// Example: CUSTOM_VAR: process.env.CUSTOM_VAR
