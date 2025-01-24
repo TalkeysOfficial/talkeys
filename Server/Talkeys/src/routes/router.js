@@ -25,8 +25,9 @@ router.post('/createTeam', Team.createTeam);
 router.post('/getPass', Passes.getPassByUserAndEvent);
 router.post('/getTeam', Team.getTeam);
 
-// router.use(checkRole('admin'));
-router.post('getPass',Passes.getPlayerByPassId)
-router.post('/reject',Passes.Reject )
-router.post('/accept',Passes.Accept)
+router.use(checkRole(['admin']));
+router.get('/CanScan',Passes.canScan);
+router.post('/getPass', Passes.getPlayerByPassId);
+router.post('/reject', Passes.Reject);
+router.post('/accept', Passes.Accept);
 module.exports = router;

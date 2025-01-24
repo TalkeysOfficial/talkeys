@@ -123,7 +123,9 @@ const getPlayerByPassId= async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        return res.status(200).json(user);
+        const { name, email, phoneNumber } = user;
+        
+        return res.status(200).json({ name, email, phoneNumber });
     } catch (error) {
         console.error('Get pass error:', error);
         return res.status(500).json({ error: "Internal server error" });
@@ -162,12 +164,26 @@ const Reject = async(req,res) => {
     }
 };
 
+const canScan = async(req, res) => {
+    const user = req.user;
+    try {
+        if (user.role !== 'admin') {
+            return res.status(403).json({ error: "Forbidden: Invalid role" });
+        }
+        return res.status(200).json({ message: "User can scan passes" });
 
+}
+    catch (error) {
+        console.error('Get pass error:', error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+}
 
 module.exports = {
     getPassByUserAndEvent,
     bookTicket,
     getPlayerByPassId,
+    canScan,
     Accept,
     Reject,
 };
