@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import image from "@/public/images/Default.png";
 import {
@@ -11,21 +11,10 @@ import {
 import { useAuth } from "@/lib/authContext";
 
 import { useRouter } from "next/navigation";
-const backendURL = process.env.BACKEND_URL;
-// const clientID = process.env.CLIENT_ID;
 
 const SignUpPage = () => {
 	const router = useRouter();
 	const { isSignedIn, setIsSignedIn } = useAuth();
-
-	// const login = useGoogleLogin({
-	//   onSuccess: async (tokenResponse) => {
-	//     console.log("Token Response:", tokenResponse);
-	//   },
-	//   onError: (error) => {
-	//     console.error("Login Failed:", error);
-	//   },
-	// });
 
 	useEffect(() => {
 		const token = localStorage.getItem("accessToken");
@@ -50,10 +39,8 @@ const SignUpPage = () => {
 			>
 				<Navbar />
 
-				{/* Main Content */}
 				<div className="flex justify-center items-center min-h-[calc(100vh)]">
 					<div className="relative w-full max-w-6xl px-4">
-						{/* Signup Card */}
 						<div className="relative bg-[#202020] bg-opacity-80 rounded-2xl p-8 max-w-md mx-auto">
 							<div className="text-center mb-10">
 								<h2 className="text-2xl font-bold mb-2">Sign Up Now</h2>
@@ -73,7 +60,7 @@ const SignUpPage = () => {
 										<GoogleLogin
 											onSuccess={async (credentialResponse) => {
 												const response = await fetch(
-													`${backendURL}/verify`,
+													`${process.env.BACKEND_URL}/verify`,
 													{
 														method: "POST",
 														headers: {
@@ -83,7 +70,6 @@ const SignUpPage = () => {
 													},
 												);
 												const accessToken = await response.json();
-												// console.log(accessToken);
 												localStorage.setItem(
 													"accessToken",
 													accessToken.accessToken,

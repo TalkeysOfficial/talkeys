@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import image from "../../public/images/Finding.png";
+import image from "@/public/images/Finding.png";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 

@@ -1,16 +1,9 @@
 import React from "react";
-// import { Button } from "./ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import image from "@/public/images/disco.png";
-// import { useMediaQuery } from "react-responsive";
 
 export default function HostSection() {
-	// const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
-	// const isTablet = useMediaQuery({
-	// 	query: "(min-width: 641px) and (max-width: 1024px)",
-	// });
-
 	return (
 		<div className="bg-transparent w-full text-white min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 overflow-hidden">
 			<div className="header bg-transparent text-center mb-8 sm:mb-12">

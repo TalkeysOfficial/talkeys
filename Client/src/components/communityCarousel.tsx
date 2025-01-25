@@ -1,14 +1,13 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
 import 'swiper/swiper-bundle.css'
 import Image from 'next/image'
-import image from "../public/images/community.png"
-import { useRouter } from 'next/navigation'
+import image from "@/public/images/community.png"
 
 interface CommunityCard {
   date: string
@@ -27,11 +26,6 @@ const communityCards: CommunityCard[] = [
 ]
 
 export default function CommunityCarousel() {
-  const router = useRouter()
-
-  const handleShowAllCommunities = () => {
-    router.push('/communities')
-  }
 
   return (
     <div className='mb-[-80px]'>
@@ -54,7 +48,7 @@ export default function CommunityCarousel() {
             }}
           >
             {communityCards.map((card, index) => (
-              <SwiperSlide key={index}>
+              <SwiperSlide key={card.title + index}>
                 <Card className="bg-gray-950 border-none">
                   <CardContent className="p-0">
                     <Image

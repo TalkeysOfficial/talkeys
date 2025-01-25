@@ -1,27 +1,8 @@
 "use client";
 
-import EventCarousel from "@/components/eventCarousel";
+import EventCarousel from "@/app/eventPage/EventCarousel";
 import React, { useEffect, useState } from "react";
-
-export interface Event {
-	_id: string;
-	name: string;
-	category: string;
-	mode: "offline" | "online";
-	location?: string;
-	duration: string;
-	ticketPrice: number;
-	totalSeats: number;
-	slots: number;
-	visibility: "public" | "private";
-	prizes?: string;
-	photographs?: string[];
-	startDate: Date;
-	startTime: string;
-	endRegistrationDate: Date;
-	eventDescription?: string;
-	isLive?: boolean;
-}
+import type { Event } from "@/types/types";
 
 const sampleData = {
 	Gaming: [
@@ -54,7 +35,6 @@ function EventPage() {
 
 	useEffect(() => {
 		async function fetchEvents() {
-			// console.log(process.env.BACKEND_URL);
 			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
 			const { data } = (await response.json()) as {
 				data: {
@@ -62,7 +42,6 @@ function EventPage() {
 				};
 			};
 			const { events } = data;
-			// console.log("Data", events);
 			const grouped = events.reduce((acc: Record<string, Event[]>, ev) => {
 				if (!acc[ev.category]) {
 					acc[ev.category] = [];
@@ -71,7 +50,6 @@ function EventPage() {
 				return acc;
 			}, {});
 			setGroupedEvents(grouped);
-			// console.log("Grouped", grouped);
 		}
 		fetchEvents();
 		console.log("Fetching events", groupedEvents);

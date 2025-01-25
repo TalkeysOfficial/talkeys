@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-// import Image from "next/image";
-import image from "../public/images/background.png";
+import image from "@/public/images/background.png";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-// import titleImage from "@/public/images/final_logo_talkeys.ico";
 import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
 
@@ -26,10 +24,6 @@ export const metadata: Metadata = {
 	title: "Talkeys",
 	description: "Talkeys",
 };
-
-// export icons: {
-//   icon: titleImage.src,
-// }
 
 export default function RootLayout({
 	children,

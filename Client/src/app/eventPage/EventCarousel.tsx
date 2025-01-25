@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import placeholderImage from "@/public/images/events.jpg";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import EventPage from "@/components/particularEventData";
-import type { Event } from "@/app/eventPage/page";
+import ParticularEventPage from "@/app/eventPage/ParticularEventPage";
+import type { Event } from "@/types/types";
 
 const sampleEvents: Event[] = [
 	{
@@ -42,24 +42,12 @@ export default function EventCarousel({
 	title?: string;
 	events?: Event[];
 }>) {
-	const [timer, setTimer] = useState(120);
 	const swiperRef = useRef<any>(null);
 	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 	useEffect(() => {
-		const timerIntervalId = setInterval(() => {
-			setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 120));
-		}, 1000);
-
-		return () => {
-			clearInterval(timerIntervalId);
-		};
-	}, []);
-
-	useEffect(() => {
 		async function fetchEvents() {
-			// console.log(process.env.BACKEND_URL);
 			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
 			const { data } = (await response.json()) as {
 				data: {
@@ -148,7 +136,6 @@ export default function EventCarousel({
 												onOpenChange={(isOpen) =>
 													setIsDialogOpen(isOpen)
 												}
-
 											>
 												<DialogTrigger asChild>
 													<Button
@@ -159,7 +146,7 @@ export default function EventCarousel({
 													</Button>
 												</DialogTrigger>
 												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
-													<EventPage
+													<ParticularEventPage
 														event={event}
 														onClose={() => setIsDialogOpen(false)}
 													/>

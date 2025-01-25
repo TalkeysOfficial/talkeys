@@ -15,44 +15,18 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
-import type { Event } from "@/app/eventPage/page";
+import type { EventPageProps, RegistrationState } from "@/types/types";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
 
-interface EventPageProps {
-	readonly event: Event;
-	readonly onClose: () => void;
-}
-
-interface TeamResponse {
-	team: {
-		teamName: string;
-		teamLeader: string;
-		teamCode: string;
-		teamMembers: string[];
-		maxMembers: number;
-		_id: string;
-		__v: number;
-	};
-	teamCode: string;
-}
-
-export default function EventPage({ event, onClose }: EventPageProps) {
+export default function ParticularEventPage({
+	event,
+	onClose,
+}: Readonly<EventPageProps>) {
 	const [isLiked, setIsLiked] = useState(false);
-	const [registrationState, setRegistrationState] = useState<
-		| "initial"
-		| "teamOptions"
-		| "joinTeamPhone"
-		| "joinTeamCode"
-		| "createTeamPhone"
-		| "createTeamName"
-		| "createTeamCode"
-		| "teamJoined"
-		| "error"
-		| "booked"
-		| "passCreated"
-	>("initial");
+	const [registrationState, setRegistrationState] =
+		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
 	const [phoneNumber, setPhoneNumber] = useState("");
 	const [teamName, setTeamName] = useState("");
@@ -77,7 +51,6 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 				if (response.ok) {
 					setTeamName(data.teamName);
 					setTeamCode(data.teamCode);
-					// Fetch pass after confirming team exists
 					const passResponse = await fetch(
 						`${process.env.BACKEND_URL}/getPass`,
 						{
@@ -211,33 +184,6 @@ export default function EventPage({ event, onClose }: EventPageProps) {
 			setRegistrationState("createTeamName");
 		}
 	};
-
-	// const handleBookTickets = async () => {
-	// 	setIsLoading(true);
-	// 	try {
-	// 		const response = await fetch(`${process.env.BACKEND_URL}/bookTicket`, {
-	// 			method: "POST",
-	// 			headers: {
-	// 				"Content-Type": "application/json",
-	// 				Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-	// 			},
-	// 			body: JSON.stringify({ teamCode, name: event.name }),
-	// 		});
-	// 		const data = await response.json();
-	// 		if (response.ok) {
-	// 			setErrorMessage(data.message);
-	// 			setRegistrationState("booked");
-	// 		} else {
-	// 			throw new Error(data.message);
-	// 		}
-	// 	} catch (error) {
-	// 		console.error("Failed to book tickets", error);
-	// 		if (error instanceof Error) setErrorMessage(error.message);
-	// 		setRegistrationState("error");
-	// 	} finally {
-	// 		setIsLoading(false);
-	// 	}
-	// };
 
 	const handleCreatePass = async () => {
 		setIsLoading(true);
