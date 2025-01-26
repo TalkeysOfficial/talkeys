@@ -1,6 +1,6 @@
 import EventCarousel from "@/components/EventCarousel";
 import Hero from "@/components/Hero";
-import CommunityCarousel from "@/components/CommunityCarousel";
+import CommunityCarousel from "@/components/CommunityCarousal";
 import InfluencerCarousel from "@/components/InfluencerCarousel";
 import HostSection from "@/components/HostSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
