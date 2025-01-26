@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import placeholderImage from "@/public/images/events.jpg";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import ParticularEventPage from "@/app/eventPage/ParticularEventPage";
+import ParticularEventPage from "@/components/ParticularEventPage";
 import type { Event } from "@/types/types";
 
 const sampleEvents: Event[] = [

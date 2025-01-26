@@ -1,4 +1,4 @@
-import EventCarousel from "@/app/eventPage/EventCarousel";
+import EventCarousel from "@/components/EventCarousel";
 import Hero from "@/components/Hero";
 import CommunityCarousel from "@/components/CommunityCarousel";
 import InfluencerCarousel from "@/components/InfluencerCarousel";

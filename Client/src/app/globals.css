@@ -31,7 +31,7 @@ body {
 }
 
 .hero {
-  background-image: url("/images/Default.png");
+  background-image: url("../public/images/Default.png");
   background-size: 140% 100%;
   background-repeat: no-repeat;
   background-attachment: fixed;

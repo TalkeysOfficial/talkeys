@@ -1,6 +1,6 @@
 "use client";
 
-import EventCarousel from "@/app/eventPage/EventCarousel";
+import EventCarousel from "@/components/EventCarousel";
 import React, { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
 import { motion, AnimatePresence } from "framer-motion";
