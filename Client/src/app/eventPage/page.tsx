@@ -3,6 +3,7 @@
 import EventCarousel from "@/app/eventPage/EventCarousel";
 import React, { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
+import { motion, AnimatePresence } from "framer-motion";
 
 const sampleData = {
 	Gaming: [
@@ -56,16 +57,24 @@ function EventPage() {
 	}, []);
 
 	return (
-		<div className="py-36">
-			<h1 className="text-white text-4xl px-10">Explore Events</h1>
-			{Object.entries(groupedEvents).map(([category, events]) => (
-				<EventCarousel
-					key={category}
-					title={category}
-					events={events}
-				/>
-			))}
-		</div>
+		<AnimatePresence>
+			<motion.div
+				className="py-36"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0 }}
+				transition={{ duration: 1.05 }}
+			>
+				<h1 className="text-white text-4xl px-10">Explore Events</h1>
+				{Object.entries(groupedEvents).map(([category, events]) => (
+					<EventCarousel
+						key={category}
+						title={category}
+						events={events}
+					/>
+				))}
+			</motion.div>
+		</AnimatePresence>
 	);
 }
 

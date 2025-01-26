@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import image from "@/public/images/Default.png";
@@ -29,13 +30,16 @@ const SignUpPage = () => {
 
 	return (
 		<GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
-			<div
+			<motion.div
 				className="min-h-screen text-white"
 				style={{
 					backgroundImage: `url(${image.src})`,
 					backgroundSize: "cover",
 					backgroundRepeat: "no-repeat",
 				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 1.05 }}
 			>
 				<Navbar />
 
@@ -117,7 +121,7 @@ const SignUpPage = () => {
 						</div>
 					</div>
 				</div>
-			</div>
+			</motion.div>
 		</GoogleOAuthProvider>
 	);
 };

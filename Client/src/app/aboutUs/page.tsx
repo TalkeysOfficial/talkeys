@@ -1,12 +1,17 @@
+"use client";
 import React from "react";
 import Image from "next/image";
 import aboutUsImage from "@/public/images/aboutUs.png";
 import { urbanist, volkhov } from "@/components/fonts/fonts";
+import { motion } from "framer-motion";
 
 function AboutPage() {
 	return (
-		<div
+		<motion.div
 			className={`min-h-screen flex flex-col text-white p-6 sm:p-24 max-sm:pt-32 lg:p-40 ${urbanist.className} text-justify`}
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 1.05 }}
 		>
 			<h1 className="font-bold text-3xl sm:text-4xl text-center mb-6">
 				About Us
@@ -69,7 +74,7 @@ function AboutPage() {
 					</p>
 				</section>
 			</div>
-		</div>
+		</motion.div>
 	);
 }
 

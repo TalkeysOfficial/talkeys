@@ -1,11 +1,18 @@
+"use client";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import image from "@/public/images/404.png";
 import Image from "next/image";
+import {motion} from "framer-motion";
 
 export default function Component() {
 	return (
-		<div className="flex h-[88.2vh] bg-transparent text-white p-8">
+		<motion.div
+			className="flex h-[88.2vh] bg-transparent text-white p-8"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 1.05 }}
+		>
 			<div className="flex-1 flex flex-col justify-center items-center">
 				<h1 className="text-6xl font-bold mb-4">oops...</h1>
 				<p className="text-4xl mb-8">page not found</p>
@@ -27,6 +34,6 @@ export default function Component() {
 					/>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

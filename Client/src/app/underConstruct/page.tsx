@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import image from "@/public/images/Finding.png";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export default function UnderConstruction() {
 	const [windowWidth, setWindowWidth] = useState(
@@ -20,7 +21,12 @@ export default function UnderConstruction() {
 	const isMobile = windowWidth <= 648;
 
 	return (
-		<div className="relative min-h-screen bg-transparent text-white p-4 sm:p-8 flex flex-row md:flex-row items-center justify-center">
+		<motion.div
+			className="relative min-h-screen bg-transparent text-white p-4 sm:p-8 flex flex-row md:flex-row items-center justify-center"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 1.05 }}
+		>
 			<div
 				className={`z-10 flex flex-col justify-center items-center text-center ${
 					isMobile ? "w-full" : "md:w-1/2"
@@ -52,6 +58,6 @@ export default function UnderConstruction() {
 					/>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

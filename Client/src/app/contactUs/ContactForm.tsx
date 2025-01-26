@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import image from "@/public/images/contact.png";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 const formSchema = z.object({
 	name: z.string().min(2, {
@@ -45,7 +46,12 @@ export default function ContactForm() {
 	}
 
 	return (
-		<div className="min-h-screen bg-transparent text-white p-8 flex flex-col items-center justify-center">
+		<motion.div
+			className="min-h-screen bg-transparent text-white p-8 flex flex-col items-center justify-center"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 1 }}
+		>
 			<div className="w-full max-w-md space-y-8">
 				<div className="flex items-center justify-between">
 					<h2 className="text-3xl font-bold">Contact Us</h2>
@@ -126,6 +132,6 @@ export default function ContactForm() {
 					</form>
 				</Form>
 			</div>
-		</div>
+		</motion.div>
 	);
 }
