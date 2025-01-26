@@ -1,8 +1,8 @@
 import EventCarousel from "@/components/EventCarousel";
 import Hero from "@/components/Hero";
 import CommunityCarousel from "@/components/CommunityCarousal";
-import InfluencerCarousel from "@/components/InfluencerCarousel";
-import HostSection from "@/components/HostSection";
+import InfluencerCarousal from "@/components/InfluencerCarousal";
+import HostEventSection from "@/components/HostEventSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export default function Home() {
@@ -11,8 +11,8 @@ export default function Home() {
 			<Hero />
 			<EventCarousel />
 			<CommunityCarousel />
-			<InfluencerCarousel />
-			<HostSection />
+			<InfluencerCarousal />
+			<HostEventSection />
 		</GoogleOAuthProvider>
 	);
 }

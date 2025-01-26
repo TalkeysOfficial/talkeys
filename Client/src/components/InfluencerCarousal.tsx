@@ -7,8 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import image from "../public/images/influencer.png";
+import image from "@/public/images/influencer.png";
 
 interface InfluencerCard {
 	date: string;
@@ -57,12 +56,6 @@ const influencerCards: InfluencerCard[] = [
 ];
 
 export default function InfluencerCarousel() {
-	const router = useRouter();
-
-	const handleShowAllInfluencers = () => {
-		router.push("/influencers"); // Adjust the route as needed
-	};
-
 	return (
 		<div className="influencer w-full bg-transparent text-white p-10">
 			<div className="w-full bg-transparent text-white p-4">
@@ -102,7 +95,10 @@ export default function InfluencerCarousel() {
 											</h1>
 											<h4>{card.title}</h4>
 										</div>
-										<Button className="w-[100px] mt-3 bg-[#8A44CB] text-white font-bold rounded-[15px]" disabled>
+										<Button
+											className="w-[100px] mt-3 bg-[#8A44CB] text-white font-bold rounded-[15px]"
+											disabled
+										>
 											More Info
 										</Button>
 									</div>

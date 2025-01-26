@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import image from "@/public/images/disco.png";
 
-export default function HostSection() {
+export default function HostEventSection() {
 	return (
 		<div className="bg-transparent w-full text-white min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 overflow-hidden">
 			<div className="header bg-transparent text-center mb-8 sm:mb-12">
