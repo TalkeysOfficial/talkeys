@@ -1,4 +1,4 @@
-import AdminQRScanner from "@/app/admin/QR-Scanner";
+import AdminQRScanner from "@/app/admin/QRScanner";
 import ProtectedRoute from "@/app/admin/ProtectedRoute";
 
 export default function AdminPage() {
