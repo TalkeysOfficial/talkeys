@@ -1,6 +1,6 @@
-"use client"; // Import the signIn function from NextAuth for authentication.
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
@@ -8,10 +8,18 @@ import {
 	NavigationMenu,
 	NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { Button } from "./ui/button";
-import { Menu, X } from "lucide-react";
-import image from "@/public/images/talkeyLogo.png";
+import { Button } from "@/components/ui/button";
+import { Menu, X, User } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import talkey_logo from "@/public/images/talkeyLogo.png";
 
 const navItems = [
 	{ name: "Home", link: "/" },
@@ -23,24 +31,79 @@ const navItems = [
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const { isSignedIn, setIsSignedIn } = useAuth();
-
+	const [name, setName] = useState("");
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 
-	const toggleMenu = () => {
-		setIsMenuOpen((prev) => !prev);
-	};
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			setName(localStorage.getItem("name") ?? "");
+		}
+	}, [isSignedIn]);
+
+	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
 	const handleLogout = () => {
 		localStorage.removeItem("accessToken");
+		localStorage.removeItem("name");
 		setIsSignedIn(false);
+		setName("");
 	};
 
+	const NavLinks = () => (
+		<>
+			{navItems.map((item) => (
+				<Link
+					key={item.name}
+					href={item.link}
+					className="text-white hover:text-gray-300 transition-colors duration-200"
+					onClick={() => setIsMenuOpen(false)}
+				>
+					{item.name}
+				</Link>
+			))}
+		</>
+	);
+
+	const AuthButton = () =>
+		isSignedIn ? (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="default"
+						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300"
+					>
+						<Avatar className="w-max underline">
+							<AvatarFallback>
+								{name}
+							</AvatarFallback>
+						</Avatar>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="z-[2000] text-white bg-black w-max">
+					<DropdownMenuItem className="font-bold underline">
+						Logged in as {name}
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:text-black hover:bg-white hover:underline">
+						Logout
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		) : (
+			<Button
+				asChild
+				variant="outline"
+				className="text-white hover:text-black hover:bg-white"
+			>
+				<Link href="/sign">Login</Link>
+			</Button>
+		);
+
 	return (
-		<div className="fixed top-0 w-full z-[1000] ">
+		<div className="fixed top-0 w-full z-[1000]">
 			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
 				<Link href="/">
 					<Image
-						src={image}
+						src={talkey_logo}
 						alt="Logo"
 						width={180}
 						height={180}
@@ -61,38 +124,9 @@ const Navbar = () => {
 					</Button>
 				) : (
 					<NavigationMenu>
-						<NavigationMenuList className="flex gap-10">
-							{navItems.map((item) => (
-								<Link
-									key={item.name}
-									href={item.link}
-									className="text-white"
-								>
-									{item.name}
-								</Link>
-							))}
-							<Button
-								asChild
-								variant="outline"
-								className="duration-300"
-							>
-								{isSignedIn ? (
-									<Link
-										href="/"
-										onClick={handleLogout}
-										className="bg-white text-black hover:bg-red-600 hover:text-white "
-									>
-										Logout
-									</Link>
-								) : (
-									<Link
-										href="/sign"
-										className="text-white hover:text-black hover:bg-white"
-									>
-										Login
-									</Link>
-								)}
-							</Button>
+						<NavigationMenuList className="flex items-center gap-10">
+							<NavLinks />
+							<AuthButton />
 						</NavigationMenuList>
 					</NavigationMenu>
 				)}
@@ -103,44 +137,13 @@ const Navbar = () => {
 						isMenuOpen ? "max-h-[400px]" : "max-h-0"
 					}`}
 				>
-					<div className="p-4">
-						{navItems.map((item) => (
-							<Link
-								key={item.name}
-								href={item.link}
-								onClick={toggleMenu}
-								className="block text-white py-2 hover:text-gray-300 transition-colors duration-200"
-							>
-								{item.name}
-							</Link>
-						))}
-						<Button
-							asChild
-							variant="outline"
-							onClick={toggleMenu}
-							className="w-full mt-4 duration-300"
-						>
-							{isSignedIn ? (
-								<Link
-									href="/"
-									onClick={handleLogout}
-									className="bg-white text-black hover:bg-red-600 hover:text-white "
-								>
-									Logout
-								</Link>
-							) : (
-								<Link
-									href="/sign"
-									className="text-white hover:text-black hover:bg-white"
-								>
-									Login
-								</Link>
-							)}
-						</Button>
+					<div className="p-4 flex flex-col gap-4">
+						<NavLinks />
+						<AuthButton />
 					</div>
 				</div>
 			)}
-			<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none"></div>
+			<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
 		</div>
 	);
 };

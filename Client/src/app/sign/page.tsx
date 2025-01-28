@@ -24,6 +24,7 @@ const SignUpPage = () => {
 
 	const handleLogout = () => {
 		localStorage.removeItem("accessToken");
+		localStorage.removeItem("name");
 		setIsSignedIn(false);
 		googleLogout();
 	};
@@ -73,11 +74,12 @@ const SignUpPage = () => {
 														},
 													},
 												);
-												const accessToken = await response.json();
+												const data = await response.json();
 												localStorage.setItem(
 													"accessToken",
-													accessToken.accessToken,
+													data.accessToken,
 												);
+												localStorage.setItem("name", data.name);
 												setIsSignedIn(true);
 												router.push("/");
 											}}

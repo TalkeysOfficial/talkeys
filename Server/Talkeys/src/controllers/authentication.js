@@ -69,6 +69,7 @@ exports.login = async (req, res) => {
 
     return res.json({
       accessToken: user.accessToken,
+      name: user.name
     });
 
   } catch (err) {

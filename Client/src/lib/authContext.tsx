@@ -37,3 +37,77 @@ export const useAuth = () => {
 	}
 	return context;
 };
+
+//! Using map 
+
+// interface DataContextType {
+// 	data: Map<string, any>;
+// 	setData: (key: string, value: any) => void;
+// }
+
+// const DataContext = createContext<DataContextType | undefined>(undefined);
+
+// export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
+// 	children,
+// }) => {
+// 	const [dataState, setDataState] = useState<Map<string, any>>(new Map());
+
+// 	const setData = (key: string, value: any) => {
+// 		setDataState((prevData) => {
+// 			const newData = new Map(prevData);
+// 			newData.set(key, value);
+// 			return newData;
+// 		});
+// 	};
+
+// 	const value = React.useMemo(() => ({ data: dataState, setData }), [dataState]);
+
+// 	return (
+// 		<DataContext.Provider value={value}>
+// 			{children}
+// 		</DataContext.Provider>
+// 	);
+// };
+
+// export const useData = () => {
+// 	const context = useContext(DataContext);
+// 	if (context === undefined) {
+// 		throw new Error("useData must be used within a DataProvider");
+// 	}
+// 	return context;
+// };
+
+//! Using Object instead of Map
+
+// interface DataContextType {
+// 	data: Record<string, any>;
+// 	setData: (key: string, value: any) => void;
+// }
+
+// const DataContext = createContext<DataContextType | undefined>(undefined);
+
+// export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
+// 	children,
+// }) => {
+// 	const [dataState, setDataState] = useState<Record<string, any>>({});
+
+// 	const setData = (key: string, value: any) => {
+// 		setDataState((prevData) => ({ ...prevData, [key]: value }));
+// 	};
+
+// 	const value = React.useMemo(() => ({ data: dataState, setData }), [dataState]);
+
+// 	return (
+// 		<DataContext.Provider value={value}>
+// 			{children}
+// 		</DataContext.Provider>
+// 	);
+// };
+
+// export const useData = () => {
+// 	const context = useContext(DataContext);
+// 	if (context === undefined) {
+// 		throw new Error("useData must be used within a DataProvider");
+// 	}
+// 	return context;
+// };
