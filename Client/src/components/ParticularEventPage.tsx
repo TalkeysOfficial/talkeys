@@ -217,21 +217,46 @@ export default function ParticularEventPage({
 		}
 	};
 
+	function isTimePassed(dateString: Date) {
+		const date = new Date(dateString);
+		const currentTime = new Date();
+		return date <= currentTime;
+	}
+
 	const renderRegistrationButton = () => {
 		switch (registrationState) {
-			case "initial":
+			case "initial": {
+				const isEventLive = event.isLive;
+				const isRegistrationClosed = isTimePassed(
+					event.startDate,
+				);
+
+				let buttonText;
+				let ariaLabel;
+
+				if (!isEventLive) {
+					buttonText = "Coming Soon";
+					ariaLabel = "Event coming soon";
+				} else if (isRegistrationClosed) {
+					buttonText = "Registrations Closed";
+					ariaLabel = "Registrations closed";
+				} else {
+					buttonText = "Register Now";
+					ariaLabel = "Register for event";
+				}
+
 				return (
 					<Button
 						className="bg-purple-600 hover:bg-purple-700 w-full"
 						onClick={handleRegisterClick}
-						disabled={!event.isLive}
-						aria-label={
-							event.isLive ? "Register for event" : "Event coming soon"
-						}
+						disabled={!isEventLive || isRegistrationClosed}
+						aria-label={ariaLabel}
 					>
-						{event.isLive ? "Register Now" : "Coming Soon"}
+						{buttonText}
 					</Button>
 				);
+			}
+
 			case "teamOptions":
 				return (
 					<div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm mx-auto">
