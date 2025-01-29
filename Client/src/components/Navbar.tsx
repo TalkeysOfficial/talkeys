@@ -115,7 +115,7 @@ const Navbar = () => {
 				</Link>
 				{isMobile ? (
 					<Button
-						variant="ghost"
+						variant="default"
 						size="icon"
 						className="text-white"
 						onClick={toggleMenu}
