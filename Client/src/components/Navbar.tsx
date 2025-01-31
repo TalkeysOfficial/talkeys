@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMediaQuery } from "react-responsive";
 import {
 	NavigationMenu,
 	NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -33,12 +34,13 @@ const Navbar = () => {
 	const { isSignedIn, setIsSignedIn } = useAuth();
 	const [name, setName] = useState("");
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
+	const pathname = usePathname();
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
 			setName(localStorage.getItem("name") ?? "");
 		}
-	}, [isSignedIn]);
+	}, []); //Removed isSignedIn from dependencies
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
@@ -55,7 +57,9 @@ const Navbar = () => {
 				<Link
 					key={item.name}
 					href={item.link}
-					className="text-white hover:text-gray-300 transition-colors duration-200"
+					className={`text-white hover:text-gray-300 transition-colors hover:underline duration-200 ${
+						pathname === item.link ? "font-bold" : ""
+					}`}
 					onClick={() => setIsMenuOpen(false)}
 				>
 					{item.name}
@@ -73,17 +77,21 @@ const Navbar = () => {
 						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300"
 					>
 						<Avatar className="w-max underline">
-							<AvatarFallback>
-								{name}
-							</AvatarFallback>
+							<AvatarFallback>{name}</AvatarFallback>
 						</Avatar>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="z-[2000] text-white bg-black w-max">
+				<DropdownMenuContent
+					align="end"
+					className="z-[2000] text-white bg-black w-max"
+				>
 					<DropdownMenuItem className="font-bold underline">
 						Logged in as {name}
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:text-black hover:bg-white hover:underline">
+					<DropdownMenuItem
+						onClick={handleLogout}
+						className="cursor-pointer hover:text-black hover:bg-white hover:underline"
+					>
 						Logout
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -103,7 +111,7 @@ const Navbar = () => {
 			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
 				<Link href="/">
 					<Image
-						src={talkey_logo}
+						src={talkey_logo || "/placeholder.svg"}
 						alt="Logo"
 						width={180}
 						height={180}

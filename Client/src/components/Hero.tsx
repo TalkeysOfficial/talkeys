@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import bg from "@/public/images/Default.png";
 import smallBg from "@/public/images/smallDefault.png";
+// import new_bg from "@/public/images/new_bg.png";
 
 const Hero = () => {
 	return (
