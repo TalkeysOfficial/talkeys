@@ -74,10 +74,10 @@ const Navbar = () => {
 				<DropdownMenuTrigger asChild>
 					<Button
 						variant="default"
-						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300"
+						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300 rounded-xl"
 					>
-						<Avatar className="w-max underline">
-							<AvatarFallback>{name}</AvatarFallback>
+						<Avatar className="w-max hover:underline rounded-xl">
+							<AvatarFallback>Hi {name}!</AvatarFallback>
 						</Avatar>
 					</Button>
 				</DropdownMenuTrigger>

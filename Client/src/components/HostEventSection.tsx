@@ -5,7 +5,7 @@ import image from "@/public/images/disco.png";
 
 export default function HostEventSection() {
 	return (
-		<div className="bg-transparent w-full text-white min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 overflow-hidden">
+		<div className="bg-transparent w-full text-white flex flex-col justify-start items-center px-4 sm:px-6 lg:px-8 pb-12 overflow-hidden">
 			<div className="header bg-transparent text-center mb-8 sm:mb-12">
 				<h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
 					Host your own EVENT!!!

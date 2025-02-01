@@ -57,7 +57,7 @@ const influencerCards: InfluencerCard[] = [
 
 export default function InfluencerCarousel() {
 	return (
-		<div className="influencer w-full bg-transparent text-white p-10">
+		<div className="influencer w-full bg-transparent text-white p-10 pb-3">
 			<div className="w-full bg-transparent text-white p-4">
 				<div className="flex justify-between items-center mb-4">
 					<h2 className="text-2xl font-bold">
