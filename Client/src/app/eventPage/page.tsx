@@ -26,6 +26,7 @@ const sampleData = {
 			eventDescription:
 				"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
 			isLive: false,
+			isLiked: false,
 		},
 	],
 } as Record<string, Event[]>;
