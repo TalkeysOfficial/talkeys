@@ -37,10 +37,12 @@ const Navbar = () => {
 	const pathname = usePathname();
 
 	useEffect(() => {
-		if (typeof window !== "undefined") {
+		if (typeof window !== "undefined" && isSignedIn) {
 			setName(localStorage.getItem("name") ?? "");
+		} else {
+			setName("");
 		}
-	}, []); //Removed isSignedIn from dependencies
+	}, [isSignedIn]); 
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
