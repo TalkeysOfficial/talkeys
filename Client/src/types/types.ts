@@ -34,6 +34,7 @@ export interface Event {
 	endRegistrationDate: Date;
 	eventDescription?: string;
 	isLive?: boolean;
+	isLiked: boolean | null;
 }
 
 export type RegistrationState =

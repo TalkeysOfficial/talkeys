@@ -32,6 +32,7 @@ const sampleEvents: Event[] = [
 		eventDescription:
 			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
 		isLive: false,
+		isLiked: false,
 	},
 ];
 
@@ -55,6 +56,34 @@ export default function EventCarousel({
 				};
 			};
 			const { events } = data;
+
+			events.forEach(event => {
+                event.isLiked = false;
+            });
+
+			const res = await fetch(
+				`${process.env.BACKEND_URL}/getAllLikedEvents`,
+				{
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
+					},
+				},
+			);
+			if (res.status === 404) {
+				setFetchedEvents(events);
+				console.log("Log in to get liked events!");
+				return;
+			}
+			const resData = await res.json();
+			console.log(resData);
+			events.forEach((event) => {
+				if (resData.likedEvents?.includes(event._id)) {
+					event.isLiked = true;
+				}
+			});
 			setFetchedEvents(events);
 		}
 		fetchEvents();

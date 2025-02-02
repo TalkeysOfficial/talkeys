@@ -24,7 +24,6 @@ export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
-	const [isLiked, setIsLiked] = useState(false);
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
@@ -33,6 +32,7 @@ export default function ParticularEventPage({
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pass, setPass] = useState<string | null>(null);
+	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
 
 	useEffect(() => {
 		async function getTeamAndPass() {
@@ -217,6 +217,20 @@ export default function ParticularEventPage({
 		}
 	};
 
+	async function handleLikeUnlikeEvent(eventId: string) {
+		await fetch(
+			`${process.env.BACKEND_URL}/${
+				isLike ? "unlikeEvent" : "likeEvent"
+			}/${eventId}`,
+			{
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				},
+			},
+		);
+	}
+
 	function isTimePassed(dateString: Date) {
 		const date = new Date(dateString);
 		const currentTime = new Date();
@@ -227,9 +241,7 @@ export default function ParticularEventPage({
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				const isRegistrationClosed = isTimePassed(
-					event.startDate,
-				);
+				const isRegistrationClosed = isTimePassed(event.startDate);
 
 				let buttonText;
 				let ariaLabel;
@@ -538,12 +550,14 @@ export default function ParticularEventPage({
 									aria-label="Like event"
 									className="hover:text-purple-400 transition-colors"
 									onClick={() => {
-										setIsLiked((prev) => !prev);
+										handleLikeUnlikeEvent(event._id);
+										event.isLiked = !event.isLiked;
+										setIsLike(event.isLiked);
 									}}
 								>
 									<Heart
 										className="w-5 h-5 text-gray-400"
-										color={isLiked ? "red" : "currentColor"}
+										color={isLike ? "red" : "currentColor"}
 									/>
 								</button>
 								<button
