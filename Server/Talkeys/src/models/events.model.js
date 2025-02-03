@@ -68,6 +68,14 @@ const eventSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
+	paymentQRcode: {
+		type: String,
+		default: "",
+	},
+	registrationLink: {
+		type: String,
+		default: "",
+	},
 });
 
 const Event = mongoose.model("Event", eventSchema);

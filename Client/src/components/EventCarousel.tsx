@@ -119,7 +119,7 @@ export default function EventCarousel({
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay]}
 						autoplay={{ delay: 3000, disableOnInteraction: false }}
-						loop
+						loop = {fetchedEvents.length > 2}
 						spaceBetween={30}
 						slidesPerView={1}
 						breakpoints={{

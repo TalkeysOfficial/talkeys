@@ -24,6 +24,7 @@ export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
+	console.log(event);
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
@@ -87,6 +88,10 @@ export default function ParticularEventPage({
 	}, [event._id]);
 
 	const handleRegisterClick = () => {
+		if (event.registrationLink) {
+			window.open(event.registrationLink, "_blank");
+			return;
+		}
 		if (event.isLive) {
 			setRegistrationState("teamOptions");
 		}
@@ -601,6 +606,14 @@ export default function ParticularEventPage({
 						>
 							Prizes
 						</TabsTrigger>
+						{event.paymentQRcode && (
+							<TabsTrigger
+								value="Payment QR Code"
+								className="text-sm"
+							>
+								Payment QR Code
+							</TabsTrigger>
+						)}
 					</TabsList>
 
 					<TabsContent
@@ -649,6 +662,17 @@ export default function ParticularEventPage({
 								{event.prizes ?? "No prize information available."}
 							</p>
 						</div>
+					</TabsContent>
+					<TabsContent
+						value="Payment QR Code"
+						className="py-4 flex justify-center items-center"
+					>
+						<Image
+							src={event.paymentQRcode ?? ""}
+							alt="paymentQRcode"
+							height={300}
+							width={300}
+						/>
 					</TabsContent>
 				</Tabs>
 			</div>
