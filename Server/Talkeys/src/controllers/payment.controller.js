@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const base64 = require("base-64");
 const axios = require("axios");
 const { verifyToken } = require("../middleware/oauth.js");
-
+const bookTicket = require("../controllers/passes.controller.js");
 const router = express.Router();
 router.use(bodyParser.json());
 
@@ -22,15 +22,115 @@ const env = process.env.ENV;
 const phonePeCallbackUrl = process.env.PHONEPE_CALLBACK_URL;
 const phonePeReturnUrl = process.env.PHONEPE_RETURN_URL;
 
+
+
+
+// const bookTicket = async (req, res) => {
+//     // Validate input
+//     if (!req.body.teamCode || !req.body.eventId) {
+//         return res.status(400).json({ error: "Invalid request parameters" });
+//     }
+
+//     const { teamCode, eventId } = req.body;
+//     const userId = req.user._id;
+
+//     try {
+//         // Find team and populate team members and team leader
+//         const team = await TeamSchema.findOne({ teamCode: teamCode })
+//             .populate('teamMembers')
+//             .populate('teamLeader');
+
+//         if (!team) {
+//             return res.status(404).json({ error: "Team not found" });
+//         }
+
+//         // Check if teamLeader is populated and is a valid ObjectId
+//         if (!team.teamLeader || !mongoose.Types.ObjectId.isValid(team.teamLeader._id)) {
+//             return res.status(404).json({ error: "Team leader not found or invalid" });
+//         }
+//         console.log("===================")
+//         console.log(team)
+
+//         // Check if the user is the team leader
+//         // if (userId != team.teamLeader) {
+//         //     return res.status(403).json({ error: "Only team leader can book tickets" });
+//         // }
+
+//         // Find event
+//         const event = await Event.findOne({
+//             _id: eventId,
+//             isLive: true,
+//         });
+
+//         if (!event) {
+//             return res.status(404).json({ error: "Event not found" });
+//         }
+// console.log("Debug: Event found")
+//         // Check ticket availability
+//         if (event.totalSeats < 0) {
+//             return res.status(400).json({ error: "Insufficient tickets available" });
+//         }
+
+//         // Check if any team member already has a pass
+//         const existingPasses = await Pass.find({
+//             userId,
+//             eventId: event._id,
+//         });
+
+//         if (existingPasses.length > 0) {
+//             return res.status(400).json({
+//                 error: "Some team members already have passes for this event",
+//             });
+//         }
+//         // Create pass for entire team
+//         const teamPasses = team.teamMembers.map((member) => ({
+//             userId: member._id,
+//             eventId: event._id,
+//             passType: "General",
+//         }));
+        
+//         await Promise.all(teamPasses.map(pass => Pass.create(pass)));
+//         console.log("fuck!!!")
+
+//         // Update event tickets
+//         const updatedEvent = await Event.findByIdAndUpdate(
+//             event._id,
+//             {
+//                 $inc: { totalSeats: -team.teamMembers.length },
+//             },
+//             { new: true },
+//         );
+
+//         return res.status(200).json({
+//             message: "Team tickets booked successfully",
+//             teamMembers: team.teamMembers.length,
+//             remainingTickets: updatedEvent.totalSeats,
+//         });
+//     } catch (error) {
+//         console.error("Ticket booking error:", error);
+//         return res.status(500).json({ error: "Internal server error" });
+//     }
+// };
+
+
+
+
+
+
 const initiatePayment = async (req, res) => {
 	const userId = req.user.id;
 	const { bookingId } = req.params;
 
 	try {
+		/* The line `const booking = await bookTicket.findOne()` is attempting to find a single booking
+		record using the `findOne()` method from the `bookTicket` model or collection. This operation is
+		typically used to retrieve a specific document from a database based on certain criteria specified
+		in the query. */
+		// const booking= await bookTicket.findOne({userId: userId,eventId: eventId});
 		const booking = await PassBooking.findOne({
 			where: { id: bookingId, userId },
 			include: [{ model: Pass }],
-		});
+		});		
 		if (!booking)
 			return res.status(404).json({ detail: "Booking not found." });
 
@@ -110,10 +210,10 @@ const verifyPayment = async (req, res) => {
 		const { merchantTransactionId, transactionId, state, code } =
 			payload.data;
 		const payment = await Payment.findOne({
-			where: { transactionId: merchantTransactionId },
+			where: { transactionId: merchantTransactionId,userId: req.user.id },
 			include: [{ model: PassBooking, include: [Pass] }],
 		});
-
+		
 		payment.status = code;
 		payment.paymentId = transactionId;
 		payment.reason = state;
@@ -182,5 +282,5 @@ module.exports = {
 	initiatePayment,
 	verifyPayment,
 	getPaymentResult,
-	router,
+	
 };

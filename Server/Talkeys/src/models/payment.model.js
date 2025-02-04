@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const PaymentSchema = new Schema({
+	userId: {
+		type: Schema.Types.ObjectId,
+		ref: "User",
+		required: true,
+	},
 	order: {
 		type: Schema.Types.ObjectId,
 		ref: "Order",
