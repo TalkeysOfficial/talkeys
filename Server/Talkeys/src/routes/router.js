@@ -7,6 +7,7 @@ const Team = require("./../controllers/team.controller.js");
 
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
+const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
 router.get("/getEvents", Events.getEvents);
 
 router.get("/getEventById/:id", Events.getEventById);
@@ -32,3 +33,6 @@ router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 module.exports = router;
+router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
+router.post("/payment/verify", verifyPayment);
+router.post("/payment/result", auth.verifyToken, getPaymentResult);

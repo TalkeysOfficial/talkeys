@@ -22,7 +22,7 @@ const env = process.env.ENV;
 const phonePeCallbackUrl = process.env.PHONEPE_CALLBACK_URL;
 const phonePeReturnUrl = process.env.PHONEPE_RETURN_URL;
 
-router.post("/payment/:bookingId", verifyToken, async (req, res) => {
+const initiatePayment = async (req, res) => {
 	const userId = req.user.id;
 	const { bookingId } = req.params;
 
@@ -60,7 +60,7 @@ router.post("/payment/:bookingId", verifyToken, async (req, res) => {
 		const headers = {
 			"Content-Type": "application/json",
 			"X-VERIFY": xVerify,
-            "X-MERCHANT-ID": merchantId,
+			"X-MERCHANT-ID": merchantId,
 		};
 		const baseUrl = BASE_URLS[env];
 
@@ -98,9 +98,9 @@ router.post("/payment/:bookingId", verifyToken, async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ detail: "Server error.", error: error.message });
 	}
-});
+};
 
-router.post("/payment/verify", async (req, res) => {
+const verifyPayment = async (req, res) => {
 	const b64Payload = req.body.response;
 	const payload = JSON.parse(base64.decode(b64Payload));
 
@@ -151,9 +151,9 @@ router.post("/payment/verify", async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ detail: "Server error.", error: error.message });
 	}
-});
+};
 
-router.post("/payment/result", verifyToken, async (req, res) => {
+const getPaymentResult = async (req, res) => {
 	const txnId = req.body.txnid;
 	const userId = req.user.id;
 
@@ -175,6 +175,12 @@ router.post("/payment/result", verifyToken, async (req, res) => {
 	} catch (error) {
 		res.status(404).json({ detail: "Payment record not found." });
 	}
-});
+};
 
-module.exports = router;
+
+module.exports = {
+	initiatePayment,
+	verifyPayment,
+	getPaymentResult,
+	router,
+};
