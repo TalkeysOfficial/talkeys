@@ -9,6 +9,15 @@ const config: Config = {
 	],
 	theme: {
 		extend: {
+			scrollbar: {
+				hide: {
+					"&::-webkit-scrollbar": {
+						display: "none",
+					},
+					"-ms-overflow-style": "none",
+					"scrollbar-width": "none",
+				},
+			},
 			fontFamily: {
 				marykate: ["Marykate", "sans-serif"],
 			},

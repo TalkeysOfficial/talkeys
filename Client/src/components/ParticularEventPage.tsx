@@ -484,7 +484,7 @@ export default function ParticularEventPage({
 
 	return (
 		<div
-			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto"
+			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
 			aria-modal="true"
 		>
 			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto">

@@ -57,9 +57,15 @@ export default function EventCarousel({
 			};
 			const { events } = data;
 
-			events.forEach(event => {
-                event.isLiked = false;
-            });
+			events.sort(
+				(a, b) =>
+					new Date(a.startDate).getTime() -
+					new Date(b.startDate).getTime(),
+			);
+
+			events.forEach((event) => {
+				event.isLiked = false;
+			});
 
 			const res = await fetch(
 				`${process.env.BACKEND_URL}/getAllLikedEvents`,
@@ -72,7 +78,7 @@ export default function EventCarousel({
 					},
 				},
 			);
-			if (res.status === 404) {
+			if (res.status === 404 || res.status === 401) {
 				setFetchedEvents(events);
 				console.log("Log in to get liked events!");
 				return;
@@ -84,6 +90,7 @@ export default function EventCarousel({
 					event.isLiked = true;
 				}
 			});
+
 			setFetchedEvents(events);
 		}
 		fetchEvents();
@@ -119,7 +126,7 @@ export default function EventCarousel({
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay]}
 						autoplay={{ delay: 3000, disableOnInteraction: false }}
-						loop = {fetchedEvents.length > 2}
+						loop={fetchedEvents.length > 2}
 						spaceBetween={30}
 						slidesPerView={1}
 						breakpoints={{
@@ -174,7 +181,7 @@ export default function EventCarousel({
 														More info
 													</Button>
 												</DialogTrigger>
-												<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none">
+												<DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar">
 													<ParticularEventPage
 														event={event}
 														onClose={() => setIsDialogOpen(false)}
