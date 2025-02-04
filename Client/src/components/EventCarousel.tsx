@@ -57,13 +57,19 @@ export default function EventCarousel({
 			};
 			const { events } = data;
 
-			events.sort(
-				(a, b) =>
-					new Date(a.startDate).getTime() -
-					new Date(b.startDate).getTime(),
+			const now = new Date();
+			const upcomingEvents = events.filter(
+				(event) => new Date(event.startDate) >= now,
 			);
 
-			events.forEach((event) => {
+			console.log(upcomingEvents);
+			const pastEvents = events.filter(
+				(event) => new Date(event.startDate) < now,
+			);
+
+			const sortedEvents = [...upcomingEvents, ...pastEvents];
+
+			sortedEvents.forEach((event) => {
 				event.isLiked = false;
 			});
 
@@ -79,19 +85,19 @@ export default function EventCarousel({
 				},
 			);
 			if (res.status === 404 || res.status === 401) {
-				setFetchedEvents(events);
+				setFetchedEvents(sortedEvents);
 				console.log("Log in to get liked events!");
 				return;
 			}
 			const resData = await res.json();
 			console.log(resData);
-			events.forEach((event) => {
+			sortedEvents.forEach((event) => {
 				if (resData.likedEvents?.includes(event._id)) {
 					event.isLiked = true;
 				}
 			});
 
-			setFetchedEvents(events);
+			setFetchedEvents(sortedEvents);
 		}
 		fetchEvents();
 	}, []);
