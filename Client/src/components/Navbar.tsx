@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,18 +29,31 @@ const navItems = [
 	{ name: "Communities", link: "/underConstruct" },
 ];
 
+const generateAvatarSeed = (username : string) : string => {
+	return username.toLowerCase().replace(/[^a-z0-9]/g,'');
+};
+
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const { isSignedIn, setIsSignedIn } = useAuth();
 	const [name, setName] = useState("");
+	const [avatarUrl, setAvatarUrl] = useState("");
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 	const pathname = usePathname();
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && isSignedIn) {
-			setName(localStorage.getItem("name") ?? "");
+			const storedName = localStorage.getItem("name") ?? "";
+			setName(storedName);
+
+
+			const seed = generateAvatarSeed(storedName);
+			const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4`;
+			setAvatarUrl(newAvatarUrl);
+
 		} else {
 			setName("");
+			setAvatarUrl("");
 		}
 	}, [isSignedIn]); 
 
@@ -51,6 +64,7 @@ const Navbar = () => {
 		localStorage.removeItem("name");
 		setIsSignedIn(false);
 		setName("");
+		setAvatarUrl("");	
 	};
 
 	const NavLinks = () => (
@@ -78,9 +92,11 @@ const Navbar = () => {
 						variant="default"
 						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300 rounded-xl"
 					>
-						<Avatar className="w-max hover:underline rounded-xl">
-							<AvatarFallback>Hi {name}!</AvatarFallback>
-						</Avatar>
+						<Avatar className="h-8 w-8">
+              				<AvatarImage src={avatarUrl} alt={name} />
+              					<AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span>{name}</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
