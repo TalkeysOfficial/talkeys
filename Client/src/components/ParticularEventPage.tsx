@@ -236,27 +236,31 @@ export default function ParticularEventPage({
 		);
 	}
 
-	function isTimePassed(dateString: Date) {
-		const date = new Date(dateString);
-		const currentTime = new Date();
-		return date <= currentTime;
-	}
+	// function isTimePassed(dateString: Date) {
+	// 	const date = new Date(dateString).getTime();
+	// 	const currentTime = new Date().getTime();
+	// 	console.log(date, currentTime);
+	// 	if
+	// 	return date <= currentTime;
+	// }
 
 	const renderRegistrationButton = () => {
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				const isRegistrationClosed = isTimePassed(event.startDate);
+				// const isRegistrationClosed = isTimePassed(event.startDate);
 
 				let buttonText;
 				let ariaLabel;
 
+				/*else if (isRegistrationClosed) {
+					buttonText = "Registrations Closed";
+					ariaLabel = "Registrations closed";
+				}*/
+
 				if (!isEventLive) {
 					buttonText = "Coming Soon";
 					ariaLabel = "Event coming soon";
-				} else if (isRegistrationClosed) {
-					buttonText = "Registrations Closed";
-					ariaLabel = "Registrations closed";
 				} else {
 					buttonText = "Register Now";
 					ariaLabel = "Register for event";
@@ -266,7 +270,7 @@ export default function ParticularEventPage({
 					<Button
 						className="bg-purple-600 hover:bg-purple-700 w-full"
 						onClick={handleRegisterClick}
-						disabled={!isEventLive || isRegistrationClosed}
+						disabled={!isEventLive} // || isRegistrationClosed}
 						aria-label={ariaLabel}
 					>
 						{buttonText}
