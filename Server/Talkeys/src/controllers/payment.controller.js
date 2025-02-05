@@ -1,14 +1,11 @@
 const express = require("express");
 const crypto = require("crypto");
-const base64 = require("base-64");
-const axios = require("axios");
 const { verifyToken } = require("../middleware/oauth.js");
 const bookTicket = require("../controllers/passes.controller.js");
 const router = express.Router();
-router.use(bodyParser.json());
 
-const { Payment } = require("../");
-const { generatePassQR, sendPassConfirmationEmail } = require("./utils");
+const { Payment } = require("../models/payment.model.js");
+// const { generatePassQR, sendPassConfirmationEmail } = require("../util/");
 
 const BASE_URLS = {
 	production: "https://api.phonepe.com",
@@ -120,7 +117,6 @@ const phonePeReturnUrl = process.env.PHONEPE_RETURN_URL;
 const initiatePayment = async (req, res) => {
 	const userId = req.user.id;
 	const { bookingId } = req.params;
-
 	try {
 		/* The line `const booking = await bookTicket.findOne()` is attempting to find a single booking
 		record using the `findOne()` method from the `bookTicket` model or collection. This operation is
@@ -166,11 +162,11 @@ const initiatePayment = async (req, res) => {
 
 		for (let attempt = 0; attempt < 5; attempt++) {
 			try {
-				const response = await axios.post(
-					`${baseUrl}/pg/v1/pay`,
-					{ request: base64Payload },
-					{ headers },
-				);
+				const response = await fetch(`${baseUrl}/pg/v1/pay`, {
+					method: "POST",
+					headers,
+					body: JSON.stringify({ request: base64Payload }),
+				});
 
 				if (response.status === 200) {
 					const payPageUrl =
@@ -224,23 +220,23 @@ const verifyPayment = async (req, res) => {
 			payment.booking.activatedAt = new Date();
 			await payment.booking.save();
 
-			const qrData = await generatePassQR({
-				bookingId: payment.booking.id,
-				passType: payment.booking.pass.type,
-				validUntil: payment.booking.validUntil,
-			});
+			// const qrData = await generatePassQR({
+			// 	bookingId: payment.booking.id,
+			// 	passType: payment.booking.pass.type,
+			// 	validUntil: payment.booking.validUntil,
+			// });
 
-			await sendPassConfirmationEmail({
-				transactionId: payment.transactionId,
-				amount: payment.paidAmount,
-				passDetails: {
-					type: payment.booking.pass.type,
-					validUntil: payment.booking.validUntil,
-				},
-				userName: payment.booking.user.name,
-				qrCode: qrData,
-				userEmail: payment.booking.user.email,
-			});
+			// await sendPassConfirmationEmail({
+			// 	transactionId: payment.transactionId,
+			// 	amount: payment.paidAmount,
+			// 	passDetails: {
+			// 		type: payment.booking.pass.type,
+			// 		validUntil: payment.booking.validUntil,
+			// 	},
+			// 	userName: payment.booking.user.name,
+			// 	qrCode: qrData,
+			// 	userEmail: payment.booking.user.email,
+			// });
 
 			return res.status(200).json({ detail: "Payment successful." });
 		} else {

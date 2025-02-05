@@ -56,3 +56,7 @@ jobs:
           done
           echo "API failed to start after multiple attempts"
           exit 1
+      
+      - name: cleanUP
+        run: |
+          docker system prune -a

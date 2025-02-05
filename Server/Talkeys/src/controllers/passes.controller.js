@@ -50,7 +50,7 @@ const bookTicket = async (req, res) => {
         if (!event) {
             return res.status(404).json({ error: "Event not found" });
         }
-console.log("Debug: Event found")
+        console.log("Debug: Event found")
         // Check ticket availability
         if (event.totalSeats < 0) {
             return res.status(400).json({ error: "Insufficient tickets available" });
