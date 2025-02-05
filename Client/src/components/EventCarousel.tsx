@@ -76,7 +76,15 @@ export default function EventCarousel({
 				(event) => new Date(event.startDate) < now,
 			);
 
-			const sortedEvents = [...upcomingEvents, ...pastEvents];
+			let sortedEvents = [...upcomingEvents, ...pastEvents];
+			sortedEvents = [
+				...sortedEvents.filter(
+					(event) => event._id == "67a35f2b6c6da8d1a909fb48",
+				),
+				...sortedEvents.filter(
+					(event) => event._id != "67a35f2b6c6da8d1a909fb48",
+				),
+			];
 
 			sortedEvents.forEach((event) => {
 				event.isLiked = false;

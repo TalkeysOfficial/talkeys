@@ -67,7 +67,7 @@ function EventPage() {
 				transition={{ duration: 1.05 }}
 			>
 				<h1 className="text-white text-4xl px-10">Explore Events</h1>
-				{Object.entries(groupedEvents).map(([category, events]) => (
+				{Object.entries(groupedEvents).map(([category, _]) => (
 					<EventCarousel
 						key={category}
 						title={category}
