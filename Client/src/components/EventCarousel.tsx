@@ -37,7 +37,7 @@ const sampleEvents: Event[] = [
 ];
 
 export default function EventCarousel({
-	title = "EVENT",
+	title = "ALL Events",
 	events = sampleEvents,
 }: Readonly<{
 	title?: string;
@@ -57,9 +57,10 @@ export default function EventCarousel({
 			};
 			const { events } = data;
 
-			const categorisedEvents = events.filter(
-				(event) => event.category === title,
-			);
+			const categorisedEvents =
+				title == "ALL Events"
+					? events
+					: events.filter((event) => event.category === title);
 
 			const now = new Date();
 			const upcomingEvents = categorisedEvents.filter(
