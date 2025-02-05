@@ -71,7 +71,6 @@ function EventPage() {
 					<EventCarousel
 						key={category}
 						title={category}
-						events={events}
 					/>
 				))}
 			</motion.div>

@@ -57,13 +57,21 @@ export default function EventCarousel({
 			};
 			const { events } = data;
 
+			const categorisedEvents = events.filter(
+				(event) => event.category === title,
+			);
+
 			const now = new Date();
-			const upcomingEvents = events.filter(
+			const upcomingEvents = categorisedEvents.filter(
 				(event) => new Date(event.startDate) >= now,
 			);
 
-			console.log(upcomingEvents);
-			const pastEvents = events.filter(
+			// upcomingEvents.sort((a, b) => {
+			// 	return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+			// });
+
+			// console.log(upcomingEvents);
+			const pastEvents = categorisedEvents.filter(
 				(event) => new Date(event.startDate) < now,
 			);
 
