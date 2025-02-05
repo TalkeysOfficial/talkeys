@@ -23,7 +23,7 @@ export interface Event {
 	mode: "offline" | "online";
 	location?: string;
 	duration: string;
-	ticketPrice: number;
+	ticketPrice: string;
 	totalSeats: number;
 	slots: number;
 	visibility: "public" | "private";

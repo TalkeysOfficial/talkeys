@@ -482,6 +482,10 @@ export default function ParticularEventPage({
 		}
 	};
 
+	const removeNewLines = (text: string) => {
+		return text.replace(/\n/g, " ").trim();
+	};
+
 	return (
 		<div
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
@@ -624,7 +628,19 @@ export default function ParticularEventPage({
 							<h3 className="text-lg font-semibold mb-2">
 								Details for the Event
 							</h3>
-							<p className="text-gray-400">{event.eventDescription}</p>
+							<div className="text-gray-400 space-y-2">
+								{event.eventDescription
+									?.split("lineBRK")
+									.filter((line) => line.trim() !== "")
+									.map((line, index) => {
+										console.log("line", line);
+										return (
+											<p key={`${event._id}-desc-${index}`}>
+												{line.replace(/lineBRK/g, " ").trim()}
+											</p>
+										);
+									})}
+							</div>
 						</div>
 					</TabsContent>
 

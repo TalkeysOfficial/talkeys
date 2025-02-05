@@ -14,7 +14,7 @@ const sampleData = {
 			mode: "offline",
 			location: "Game Box, Patiala, Punjab",
 			duration: "3 hours",
-			ticketPrice: 0,
+			ticketPrice: "0",
 			totalSeats: 120,
 			slots: 2,
 			visibility: "public",
