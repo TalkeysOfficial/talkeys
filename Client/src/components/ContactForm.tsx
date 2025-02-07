@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import image from "@/public/images/contact.png";
+import image from "@/public/images/contact.png";	
 import Image from "next/image";
 import { motion } from "framer-motion";
 

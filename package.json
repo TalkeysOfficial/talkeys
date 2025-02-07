@@ -1,0 +1,11 @@
+{
+  "name": "talkeys",
+  "version": "1.0.0",
+  "description": "Creates a new team with a unique team code and adds the current user as the team leader.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
