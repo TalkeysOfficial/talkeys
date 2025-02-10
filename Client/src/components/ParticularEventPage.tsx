@@ -261,6 +261,7 @@ export default function ParticularEventPage({
 				},
 			);
 			const bookingdata = await response.json();
+			window.open(bookingdata.pay_page_url);
 			console.log("sendBookingID", bookingdata);
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
