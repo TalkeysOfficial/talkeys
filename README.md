@@ -1,7 +1,6 @@
 # Team Creation API Endpoint
 ## Endpoint Description
-Creates a new team with a unique team code and adds the current user as the team leader.
-
+Creates a new team with a unique team code and adds the current user as the team leader
 ## Request Payload
 ```json
 {
