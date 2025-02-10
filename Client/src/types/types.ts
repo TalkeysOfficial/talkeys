@@ -37,6 +37,7 @@ export interface Event {
 	isLiked: boolean | null;
 	paymentQRcode?: string;
 	registrationLink?: string;
+	isPaid: boolean;
 }
 
 export type RegistrationState =

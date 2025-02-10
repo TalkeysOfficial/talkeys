@@ -33,6 +33,7 @@ const sampleEvents: Event[] = [
 			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
 		isLive: false,
 		isLiked: false,
+		isPaid: true,
 	},
 ];
 
@@ -147,7 +148,11 @@ export default function EventCarousel({
 					<Swiper
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay, EffectFade]}
-						autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+						autoplay={{
+							delay: 2500,
+							disableOnInteraction: false,
+							pauseOnMouseEnter: true,
+						}}
 						effect="slide"
 						speed={300}
 						spaceBetween={30}
@@ -157,7 +162,6 @@ export default function EventCarousel({
 							768: { slidesPerView: 2 },
 							1024: { slidesPerView: 3 },
 						}}
-						
 					>
 						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
