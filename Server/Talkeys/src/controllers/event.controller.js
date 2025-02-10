@@ -75,7 +75,7 @@ const getEvents = asyncHandler(async (req, res) => {
 		// Build query
 		const query = {};
 		// Add this before the Event.find()
-		const allEvents = await Event.find({}).lean();
+		const allEvents = await Event.find({isLive:true}).lean();
 		console.log("All events in DB:", allEvents);
 
 		if (mode) query.mode = mode;
