@@ -8,6 +8,7 @@ Creates a new team with a unique team code and adds the current user as the team
 }
 ```
 
+
 ### Request Parameters
 - `teamName` (String, Required): Name of the team
 - `newPhoneNumber` (String, Required): User's phone number
