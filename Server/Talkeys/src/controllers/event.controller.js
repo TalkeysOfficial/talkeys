@@ -56,7 +56,6 @@ const createEvent = asyncHandler(async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 });
-
 const getEvents = asyncHandler(async (req, res) => {
 	try {
 		const {
@@ -73,10 +72,7 @@ const getEvents = asyncHandler(async (req, res) => {
 		} = req.query;
 
 		// Build query
-		const query = {};
-		// Add this before the Event.find()
-		const allEvents = await Event.find({isLive:true}).lean();
-		console.log("All events in DB:", allEvents);
+		const query = { isLive: true }; // Only fetch events where isLive is true
 
 		if (mode) query.mode = mode;
 		if (category) query.category = category;
@@ -95,9 +91,6 @@ const getEvents = asyncHandler(async (req, res) => {
 				{ category: { $regex: search, $options: "i" } },
 			];
 		}
-
-		// Temporarily comment out date filter for debugging
-		//  query.endRegistrationDate = { $gte: new Date() };
 
 		console.log("Generated Query:", JSON.stringify(query, null, 2));
 
