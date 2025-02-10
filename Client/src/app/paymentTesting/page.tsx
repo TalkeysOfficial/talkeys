@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 const startPayment = async (bookingId: string) => {
     try {
-        const response = await fetch(`${process.env.BACKEND_URL}/payment/${bookingId}`, {
+        const response = await fetch(`${process.env.BACKEND_URL}/payment?eventId=${bookingId}`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${localStorage.getItem(
