@@ -186,7 +186,7 @@ const likeEvent = asyncHandler(async (req, res) => {
 				message: "Event not found",
 			});
 		}
-		const user = await User.findById(req.user._id).select("likedEvents");
+		const user = req.user;
 		if (!user) {
 			return res.status(404).json({
 				status: "error",
@@ -217,7 +217,7 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 				message: "Event not found",
 			});
 		}
-		const user = await User.findById(req.user._id);
+		const user= req.user;
 		if (!user) {
 			return res.status(404).json({
 				status: "error",
@@ -239,10 +239,8 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 
 const getAllLikedEvents = asyncHandler(async (req, res) => {
 	try {
-		const user = await User.findById(req.user._id)
-			.select("likedEvents")
-			.lean();
-		if (!user) {
+		
+		if (!req.user) {
 			return res.status(404).json({
 				status: "error",
 				message: "User not found",
@@ -250,7 +248,7 @@ const getAllLikedEvents = asyncHandler(async (req, res) => {
 		}
 		res.status(200).json({
 			status: "success",
-			likedEvents: user.likedEvents,
+			likedEvents: req.user.likedEvents,
 		});
 	} catch (error) {
 		console.error("Error in getAllLikedEvents:", error);
