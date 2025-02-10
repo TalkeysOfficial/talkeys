@@ -244,6 +244,27 @@ export default function ParticularEventPage({
 	// 	return date <= currentTime;
 	// }
 
+	async function sendBookingID() {
+		try {
+			const response = await fetch(
+				`${process.env.BACKEND_URL}/payment?eventId=${event._id}`,
+				//! HARDCODED FOR NOW
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
+					},
+				},
+			);
+			const data = await response.json();
+			console.log("sendBookingID", data);
+		} catch (error) {
+			console.error("Failed to send booking ID", error);
+		}
+	}
+
 	const renderRegistrationButton = () => {
 		switch (registrationState) {
 			case "initial": {
@@ -264,6 +285,19 @@ export default function ParticularEventPage({
 				} else {
 					buttonText = "Register Now";
 					ariaLabel = "Register for event";
+				}
+
+				if (event.isPaid) {
+					return (
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 w-full"
+							onClick={sendBookingID}
+							disabled={!isEventLive} // || isRegistrationClosed}
+							aria-label={ariaLabel}
+						>
+							Pay NOW
+						</Button>
+					);
 				}
 
 				return (
@@ -434,9 +468,10 @@ export default function ParticularEventPage({
 					<div className="w-full max-w-sm mx-auto">
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={handleCreatePass}
+							// onClick={handleCreatePass}
+							onClick={sendBookingID}
 						>
-							Book Pass
+							Pay Now
 						</Button>
 					</div>
 				);
@@ -610,12 +645,14 @@ export default function ParticularEventPage({
 						>
 							Dates & Deadlines
 						</TabsTrigger>
-						{event.category === "Gaming" && (<TabsTrigger
-							value="prizes"
-							className="text-sm"
-						>
-							Prizes
-						</TabsTrigger>)}
+						{event.category === "Gaming" && (
+							<TabsTrigger
+								value="prizes"
+								className="text-sm"
+							>
+								Prizes
+							</TabsTrigger>
+						)}
 						{event.paymentQRcode && (
 							<TabsTrigger
 								value="Payment QR Code"
