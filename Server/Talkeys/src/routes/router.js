@@ -20,7 +20,7 @@ router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
-router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
+router.post("/payment", auth.verifyToken, initiatePayment);
 router.get("/protected", authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post("/bookPass", Passes.bookTicket);
