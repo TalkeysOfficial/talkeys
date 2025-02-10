@@ -19,10 +19,10 @@ const phonePeCallbackUrl = process.env.PHONEPE_CALLBACK_URL;
 
 const initiatePayment = async (req, res) => {
 	const userId = req.user._id;
-	const { eventId } = req.params;
+	const { eventId } = req.query;
 	const {passType}=req.body;
 	try {
-		
+		console.log(eventId);
 		const event=await Event.findOne({ _id: eventId });
 		if (!event)
 			return res.status(404).json({ detail: "Event not found." });
