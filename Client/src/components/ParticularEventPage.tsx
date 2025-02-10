@@ -530,7 +530,9 @@ export default function ParticularEventPage({
 								<div className="flex items-center gap-2">
 									<Calendar className="w-4 h-4" />
 									<span>
-										{new Date(event.startDate).toLocaleDateString()}{" "}
+										{new Date(event.startDate).toLocaleDateString(
+											"en-IN",
+										)}{" "}
 										{event.startTime}
 									</span>
 								</div>
@@ -608,12 +610,12 @@ export default function ParticularEventPage({
 						>
 							Dates & Deadlines
 						</TabsTrigger>
-						<TabsTrigger
+						{event.category === "Gaming" && (<TabsTrigger
 							value="prizes"
 							className="text-sm"
 						>
 							Prizes
-						</TabsTrigger>
+						</TabsTrigger>)}
 						{event.paymentQRcode && (
 							<TabsTrigger
 								value="Payment QR Code"

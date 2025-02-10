@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, EffectFade } from "swiper/modules";
 import "swiper/swiper-bundle.css";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,24 +67,23 @@ export default function EventCarousel({
 				(event) => new Date(event.startDate) >= now,
 			);
 
-			// upcomingEvents.sort((a, b) => {
-			// 	return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
-			// });
+			upcomingEvents.sort((a, b) => {
+				return (
+					new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+				);
+			});
 
-			// console.log(upcomingEvents);
 			const pastEvents = categorisedEvents.filter(
 				(event) => new Date(event.startDate) < now,
 			);
 
+			pastEvents.sort((a, b) => {
+				return (
+					new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+				);
+			});
+
 			let sortedEvents = [...upcomingEvents, ...pastEvents];
-			sortedEvents = [
-				...sortedEvents.filter(
-					(event) => event._id == "67a35f2b6c6da8d1a909fb48",
-				),
-				...sortedEvents.filter(
-					(event) => event._id != "67a35f2b6c6da8d1a909fb48",
-				),
-			];
 
 			sortedEvents.forEach((event) => {
 				event.isLiked = false;
@@ -147,9 +146,10 @@ export default function EventCarousel({
 					</div>
 					<Swiper
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
-						modules={[Autoplay]}
-						autoplay={{ delay: 3000, disableOnInteraction: false }}
-						loop={fetchedEvents.length > 2}
+						modules={[Autoplay, EffectFade]}
+						autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+						effect="slide"
+						speed={300}
 						spaceBetween={30}
 						slidesPerView={1}
 						breakpoints={{
@@ -157,6 +157,7 @@ export default function EventCarousel({
 							768: { slidesPerView: 2 },
 							1024: { slidesPerView: 3 },
 						}}
+						
 					>
 						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
@@ -176,7 +177,7 @@ export default function EventCarousel({
 											<div className="text-sm text-purple-400 mb-2">
 												{new Date(
 													event.startDate,
-												).toLocaleDateString("en-US", {
+												).toLocaleDateString("en-IN", {
 													weekday: "long",
 													year: "numeric",
 													month: "long",
