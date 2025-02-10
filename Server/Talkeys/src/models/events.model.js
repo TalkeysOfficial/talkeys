@@ -1,6 +1,21 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
+	//paramerters for event
+	isTeamEvent: {
+		type: Boolean,
+		required: true,
+	},
+	isPaid: {
+		type: Boolean,
+		required: true,
+	},
+	isLive: {
+		type: Boolean,
+		default: false,
+	},
+	
+	//event details
 	name: {
 		type: String,
 		required: true,
@@ -9,6 +24,12 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		enum: ["esports", "music", "arts", "food", "tech", "other"],
+	},
+	ticketPrice: {
+		type: Number,
+		required: function () {
+			return this.isPaid;
+		}
 	},
 	mode: {
 		type: String,
@@ -25,14 +46,6 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	ticketPrice: {
-		type: Number,
-		required: true,
-	},
-	totalSeats: {
-		type: Number,
-		required: true,
-	},
 	slots: {
 		type: Number,
 		required: true,
@@ -42,12 +55,6 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		enum: ["public", "private"],
 		required: true,
-	},
-	prizes: {
-		type: String,
-	},
-	photographs: {
-		type: [String],
 	},
 	startDate: {
 		type: Date,
@@ -61,12 +68,21 @@ const eventSchema = new mongoose.Schema({
 		type: Date,
 		required: true,
 	},
-	eventDescription: {
+	totalSeats: {
+		type: Number,
+		required: true,
+	},
+	
+	
+	//additional media and information
+	photographs: {
+		type: [String],
+	},
+	prizes: {
 		type: String,
 	},
-	isLive: {
-		type: Boolean,
-		default: false,
+	eventDescription: {
+		type: String,
 	},
 	paymentQRcode: {
 		type: String,
@@ -76,6 +92,28 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	sponserImages: {
+		type: [String],
+	},
+	regisrationCount: {
+		type: Number,
+		default: 0,
+	},
+
+	//organizer details
+	organizerName: {
+		type: String,
+		required: false,
+	},
+	organizerEmail: {
+		type: String,
+		required: false,
+	},
+	organizerContact: {
+		type: String,
+		required: false,
+	},
+
 });
 
 const Event = mongoose.model("Event", eventSchema);

@@ -2,14 +2,15 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const PaymentSchema = new Schema({
+	// user and pass and transaction details
 	userId: {
 		type: Schema.Types.ObjectId,
 		ref: "User",
 		required: true,
 	},
-	order: {
+	passId: {
 		type: Schema.Types.ObjectId,
-		ref: "Order",
+		ref: "pass",
 		required: true,
 		unique: true,
 	},
@@ -18,6 +19,9 @@ const PaymentSchema = new Schema({
 		unique: true,
 		required: true,
 	},
+	
+	
+	// payment details
 	paidAmount: {
 		type: Number,
 		required: true,

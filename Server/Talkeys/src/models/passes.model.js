@@ -1,18 +1,38 @@
 const mongoose = require("mongoose");
 
 const passSchema = new mongoose.Schema({
-	Team: {
+	// user and event details
+	userId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "TeamSchema",
-	},
-	isScanned: {
-		type: Boolean,
-		default: false,
+		ref: "User",
+		required: true,
 	},
 	eventId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Event",
 		required: true,
+	},
+	Team: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "TeamSchema",
+	},
+
+
+	// pass details
+	isScanned: {
+		type: Boolean,
+		default: false,
+	},
+	timeScanned: {
+		type: String,
+		default: null,
+	},
+
+
+	// backend information
+	dateCreated: {
+		type: Date,
+		default: Date.now,
 	},
 	slotID: {
 		type: Number,
@@ -22,19 +42,6 @@ const passSchema = new mongoose.Schema({
 			message: "Slot ID must be between 1 and 5",
 		},
 		default: 1,
-	},
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
-		required: true,
-	},
-	timeScanned: {
-		type: String,
-		default: null,
-	},
-	dateCreated: {
-		type: Date,
-		default: Date.now,
 	},
 	passType: {
 		type: String,

@@ -1,24 +1,40 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-	googleId: {
+	//user details
+	name: {
 		type: String,
 		required: true,
-		unique: true,
+	},
+	image: {
+		type: String,
+		required: false,
 	},
 	email: {
 		type: String,
 		required: true,
 		unique: true,
 	},
-	name: {
-		type: String,
-		required: true,
-	},
 	phoneNumber: {
 		type: String,
 		required: false,
 	},
+	googleId: {
+		type: String,
+		required: true,
+		unique: true,
+	},
+	
+
+	// extra details
+	likedEvents: {
+		type: [mongoose.Schema.Types.ObjectId],
+		ref: "Event",
+		default: [],
+	},
+
+
+	// backend information
 	accessToken: {
 		type: String,
 		required: true,
@@ -35,11 +51,6 @@ const UserSchema = new mongoose.Schema({
 		type: String,
 		enum: ["user", "admin"],
 		default: "user",
-	},
-	likedEvents: {
-		type: [mongoose.Schema.Types.ObjectId],
-		ref: "Event",
-		default: [],
 	},
 });
 
