@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 const startPayment = async (bookingId: string) => {
     try {
-        const response = await fetch(`https://api.talkeys.xyz/payment/${bookingId}`, {
+        const response = await fetch(`${process.env.BACKEND_URL}/payment/${bookingId}`, {
             method: "POST",
         });
         if (response.ok) {
@@ -21,7 +21,7 @@ const PaymentPage = () => {
     const [bookingId, setBookingId] = useState("");
 
     return (
-        <div className="pt-12">
+        <div className="pt-12" style={{ paddingTop: "60px" }}>
             <input
                 type="text"
                 value={bookingId}
