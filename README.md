@@ -1,4 +1,4 @@
-# Team Creation API Endpointtt
+s# Team Creation API Endpointtt
 
 ## Endpoint Description
 Creates a new team with a unique team code and adds the current user as the team leader.
