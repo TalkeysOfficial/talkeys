@@ -6,6 +6,11 @@ const startPayment = async (bookingId: string) => {
     try {
         const response = await fetch(`${process.env.BACKEND_URL}/payment/${bookingId}`, {
             method: "POST",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                    "accessToken",
+                )}`,
+            },
         });
         if (response.ok) {
             console.log("Payment started successfully");
@@ -21,7 +26,7 @@ const PaymentPage = () => {
     const [bookingId, setBookingId] = useState("");
 
     return (
-        <div className="pt-12" style={{ paddingTop: "60px" }}>
+        <div className="pt-12" style={{ paddingTop: "260px" }}>
             <input
                 type="text"
                 value={bookingId}
