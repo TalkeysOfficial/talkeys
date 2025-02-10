@@ -258,8 +258,8 @@ export default function ParticularEventPage({
 					},
 				},
 			);
-			const data = await response.json();
-			console.log("sendBookingID", data);
+			const bookingdata = await response.json();
+			console.log("sendBookingID", bookingdata);
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}
