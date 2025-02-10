@@ -13,7 +13,7 @@ Creates a new team with a unique team code and adds the current user as the team
 - `teamName` (String, Required): Name of the team
 - `newPhoneNumber` (String, Required): User's phone number
 
-## Response
+## Responses
 ```json
 {
     "team": {
