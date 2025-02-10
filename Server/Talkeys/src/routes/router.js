@@ -14,11 +14,13 @@ router.get("/getEventById/:id", Events.getEventById);
 router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
+router.post("/payment/verify", verifyPayment);
 router.use(auth.verifyToken);
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
+router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
 router.get("/protected", authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post("/bookPass", Passes.bookTicket);
@@ -26,6 +28,7 @@ router.post("/joinTeam", Team.joinTeam);
 router.post("/createTeam", Team.createTeam);
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/getTeam", Team.getTeam);
+router.post("/payment/result", auth.verifyToken, getPaymentResult);
 
 router.use(checkRole(["admin"]));
 router.get("/CanScan", Passes.canScan);
@@ -33,6 +36,3 @@ router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 module.exports = router;
-router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
-router.post("/payment/verify", verifyPayment);
-router.post("/payment/result", auth.verifyToken, getPaymentResult);
