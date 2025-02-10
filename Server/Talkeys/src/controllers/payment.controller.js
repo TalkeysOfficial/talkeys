@@ -9,20 +9,23 @@ const Event = require("../models/events.model.js");
 const Pass= require("../models/passes.model.js");
 // const { generatePassQR, sendPassConfirmationEmail } = require("../util/");
 
-const merchantId = process.env.MERCHANT_ID;
-const saltKey = process.env.SALT_KEY;
+const merchantId = process.env.PHONEPE_MERCHANT_ID;
+const saltKey = process.env.PHONEPE_SALT_KEY;
 const saltIndex = process.env.SALT_INDEX;
 const env = process.env.ENV;
 const phonePeCallbackUrl = process.env.PHONEPE_CALLBACK_URL;
 
 
+BASE_URLS = {
+	PROD: "https://mercury.phonepe.com",
+	SANDBOX: "https://sandbox.phonepe.com",
+};
 
 const initiatePayment = async (req, res) => {
 	const userId = req.user._id;
 	const { eventId } = req.query;
 	const {passType}=req.body;
 	try {
-		console.log(eventId);
 		const event=await Event.findOne({ _id: eventId });
 		if (!event)
 			return res.status(404).json({ detail: "Event not found." });
@@ -34,15 +37,18 @@ const initiatePayment = async (req, res) => {
 		if(event.isLive==false){
 			return res.status(400).json({ detail: "Event is not live" });
 		}
-		const pass = await Pass.findOne({ eventId, userId });
-		pass = new Pass({
-			userId,
-			eventId,
-			// passType: passType || "General", // Use provided passType if available
-			passType: "General",
-			status: "pending",
-		});
-		await pass.save();
+		var pass = await Pass.findOne({ eventId, userId });
+		if (!pass) {
+			pass = new Pass({
+				userId,
+				eventId,
+				// passType: passType || "General", // Use provided passType if available
+				passType: "General",
+				status: "pending",
+			});
+			await pass.save();
+		}
+		console.log(eventId);
 		const booking = await Pass.findOne({ eventId, userId });	
 		if (!booking)
 			return res.status(404).json({ detail: "Booking not found." });
