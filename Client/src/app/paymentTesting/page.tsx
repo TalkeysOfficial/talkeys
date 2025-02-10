@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 const startPayment = async (bookingId: string) => {
     try {
-        const response = await fetch(`/payment/${bookingId}`, {
+        const response = await fetch(`https://api.talkeys.xyz/payment/${bookingId}`, {
             method: "POST",
         });
         if (response.ok) {
