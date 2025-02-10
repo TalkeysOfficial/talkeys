@@ -4,140 +4,57 @@ const { verifyToken } = require("../middleware/oauth.js");
 const bookTicket = require("../controllers/passes.controller.js");
 const router = express.Router();
 
-const { Payment } = require("../models/payment.model.js");
+const Payment = require("../models/payment.model.js");
+const Event = require("../models/events.model.js");
+const Pass= require("../models/passes.model.js");
 // const { generatePassQR, sendPassConfirmationEmail } = require("../util/");
-
-const BASE_URLS = {
-	production: "https://api.phonepe.com",
-	sandbox: "https://sandbox.phonepe.com",
-};
 
 const merchantId = process.env.MERCHANT_ID;
 const saltKey = process.env.SALT_KEY;
 const saltIndex = process.env.SALT_INDEX;
 const env = process.env.ENV;
 const phonePeCallbackUrl = process.env.PHONEPE_CALLBACK_URL;
-const phonePeReturnUrl = process.env.PHONEPE_RETURN_URL;
-
-
-
-
-// const bookTicket = async (req, res) => {
-//     // Validate input
-//     if (!req.body.teamCode || !req.body.eventId) {
-//         return res.status(400).json({ error: "Invalid request parameters" });
-//     }
-
-//     const { teamCode, eventId } = req.body;
-//     const userId = req.user._id;
-
-//     try {
-//         // Find team and populate team members and team leader
-//         const team = await TeamSchema.findOne({ teamCode: teamCode })
-//             .populate('teamMembers')
-//             .populate('teamLeader');
-
-//         if (!team) {
-//             return res.status(404).json({ error: "Team not found" });
-//         }
-
-//         // Check if teamLeader is populated and is a valid ObjectId
-//         if (!team.teamLeader || !mongoose.Types.ObjectId.isValid(team.teamLeader._id)) {
-//             return res.status(404).json({ error: "Team leader not found or invalid" });
-//         }
-//         console.log("===================")
-//         console.log(team)
-
-//         // Check if the user is the team leader
-//         // if (userId != team.teamLeader) {
-//         //     return res.status(403).json({ error: "Only team leader can book tickets" });
-//         // }
-
-//         // Find event
-//         const event = await Event.findOne({
-//             _id: eventId,
-//             isLive: true,
-//         });
-
-//         if (!event) {
-//             return res.status(404).json({ error: "Event not found" });
-//         }
-// console.log("Debug: Event found")
-//         // Check ticket availability
-//         if (event.totalSeats < 0) {
-//             return res.status(400).json({ error: "Insufficient tickets available" });
-//         }
-
-//         // Check if any team member already has a pass
-//         const existingPasses = await Pass.find({
-//             userId,
-//             eventId: event._id,
-//         });
-
-//         if (existingPasses.length > 0) {
-//             return res.status(400).json({
-//                 error: "Some team members already have passes for this event",
-//             });
-//         }
-//         // Create pass for entire team
-//         const teamPasses = team.teamMembers.map((member) => ({
-//             userId: member._id,
-//             eventId: event._id,
-//             passType: "General",
-//         }));
-        
-//         await Promise.all(teamPasses.map(pass => Pass.create(pass)));
-//         console.log("fuck!!!")
-
-//         // Update event tickets
-//         const updatedEvent = await Event.findByIdAndUpdate(
-//             event._id,
-//             {
-//                 $inc: { totalSeats: -team.teamMembers.length },
-//             },
-//             { new: true },
-//         );
-
-//         return res.status(200).json({
-//             message: "Team tickets booked successfully",
-//             teamMembers: team.teamMembers.length,
-//             remainingTickets: updatedEvent.totalSeats,
-//         });
-//     } catch (error) {
-//         console.error("Ticket booking error:", error);
-//         return res.status(500).json({ error: "Internal server error" });
-//     }
-// };
-
-
-
 
 
 
 const initiatePayment = async (req, res) => {
-	const userId = req.user.id;
-	const { bookingId } = req.params;
+	const userId = req.user._id;
+	const { eventId } = req.params;
+	const {passType}=req.body;
 	try {
-		/* The line `const booking = await bookTicket.findOne()` is attempting to find a single booking
-		record using the `findOne()` method from the `bookTicket` model or collection. This operation is
-		typically used to retrieve a specific document from a database based on certain criteria specified
-		in the query. */
-		// const booking= await bookTicket.findOne({userId: userId,eventId: eventId});
-		const booking = await PassBooking.findOne({
-			where: { id: bookingId, userId },
-			include: [{ model: Pass }],
-		});		
+		
+		const event=await Event.findOne({ _id: eventId });
+		if (!event)
+			return res.status(404).json({ detail: "Event not found." });
+		if(event.totalSeats<=0)
+			return res.status(400).json({ detail: "Insufficient tickets available" });
+		if (new Date(event.endRegistrationDate).getTime() < Date.now()){
+			return res.status(400).json({ detail: "Registration date ended" });
+		}
+		if(event.isLive==false){
+			return res.status(400).json({ detail: "Event is not live" });
+		}
+		const pass = await Pass.findOne({ eventId, userId });
+		pass = new Pass({
+			userId,
+			eventId,
+			// passType: passType || "General", // Use provided passType if available
+			passType: "General",
+			status: "pending",
+		});
+		await pass.save();
+		const booking = await Pass.findOne({ eventId, userId });	
 		if (!booking)
 			return res.status(404).json({ detail: "Booking not found." });
 
-		const uniqueTransactionId = `${booking.id}${Date.now()}`;
-		const uiRedirectUrl = `${phonePeReturnUrl}${uniqueTransactionId}/`;
+		const uniqueTransactionId = `${booking._id}-${new Date().getTime()}`;
+		const uiRedirectUrl = process.env.UI_REDIRECT_URL;
 
 		const payload = {
 			merchantId,
 			merchantTransactionId: uniqueTransactionId,
 			merchantUserId: userId,
-			amount: booking.pass.price * 100,
+			amount: event.ticketPrice,
 			redirectUrl: uiRedirectUrl,
 			redirectMode: "REDIRECT",
 			callbackUrl: phonePeCallbackUrl,
@@ -145,7 +62,7 @@ const initiatePayment = async (req, res) => {
 		};
 
 		const jsonPayload = JSON.stringify(payload);
-		const base64Payload = base64.encode(jsonPayload);
+		const base64Payload = Buffer.from(jsonPayload).toString("base64");
 		const signatureString = base64Payload + "/pg/v1/pay" + saltKey;
 		const checksum = crypto
 			.createHash("sha256")
@@ -169,13 +86,14 @@ const initiatePayment = async (req, res) => {
 				});
 
 				if (response.status === 200) {
-					const payPageUrl =
-						response.data?.data?.instrumentResponse?.redirectInfo?.url;
+					const responseJson = await response.json();
+					const payPageUrl = responseJson?.data?.instrumentResponse?.redirectInfo?.url;
+
 					await Payment.create({
 						bookingId: booking.id,
 						transactionId: uniqueTransactionId,
-						paidAmount: booking.pass.price,
-						status: "pending",
+						paidAmount: event.price,
+						status: "PAYMENT_PENDING",
 					});
 					return res.status(200).json({ pay_page_url: payPageUrl });
 				}
@@ -197,57 +115,73 @@ const initiatePayment = async (req, res) => {
 };
 
 const verifyPayment = async (req, res) => {
-	const b64Payload = req.body.response;
-	const payload = JSON.parse(base64.decode(b64Payload));
+    try {
+        const b64Payload = req.body.response;
+        const decodedPayload = JSON.parse(Buffer.from(b64Payload, "base64").toString("utf-8"));
 
-	if (!payload) return res.status(400).json({ detail: "Invalid payload." });
+        if (!decodedPayload) {
+            return res.status(400).json({ detail: "Invalid payload." });
+        }
 
-	try {
-		const { merchantTransactionId, transactionId, state, code } =
-			payload.data;
-		const payment = await Payment.findOne({
-			where: { transactionId: merchantTransactionId,userId: req.user.id },
-			include: [{ model: PassBooking, include: [Pass] }],
-		});
-		
-		payment.status = code;
-		payment.paymentId = transactionId;
-		payment.reason = state;
-		await payment.save();
+        const { merchantTransactionId, transactionId, state, code } = decodedPayload.data;
 
-		if (code === "PAYMENT_SUCCESS") {
-			payment.booking.isActive = true;
-			payment.booking.activatedAt = new Date();
-			await payment.booking.save();
+        // Find the payment record
+        const payment = await Payment.findOne({
+            where: { transactionId: merchantTransactionId },
+            include: [{ model: Pass }],
+        });
 
-			// const qrData = await generatePassQR({
-			// 	bookingId: payment.booking.id,
-			// 	passType: payment.booking.pass.type,
-			// 	validUntil: payment.booking.validUntil,
-			// });
+        if (!payment) {
+            return res.status(404).json({ detail: "Payment record not found." });
+        }
 
-			// await sendPassConfirmationEmail({
-			// 	transactionId: payment.transactionId,
-			// 	amount: payment.paidAmount,
-			// 	passDetails: {
-			// 		type: payment.booking.pass.type,
-			// 		validUntil: payment.booking.validUntil,
-			// 	},
-			// 	userName: payment.booking.user.name,
-			// 	qrCode: qrData,
-			// 	userEmail: payment.booking.user.email,
-			// });
+        // Update payment details
+        payment.status = code;
+        payment.paymentId = transactionId;
+        payment.reason = state;
+        await payment.save();
 
-			return res.status(200).json({ detail: "Payment successful." });
-		} else {
-			payment.booking.isActive = false;
-			await payment.booking.save();
-			return res.status(400).json({ detail: "Payment failed." });
-		}
-	} catch (error) {
-		res.status(500).json({ detail: "Server error.", error: error.message });
-	}
+        const pass = await Pass.findOne({ _id: payment.PassId });
+
+        if (!pass) {
+            return res.status(404).json({ detail: "Pass record not found." });
+        }
+
+        if (code === "PAYMENT_SUCCESS") {
+            pass.status = "active";
+            pass.activatedAt = new Date();
+            await pass.save();
+
+            // Send confirmation email & generate QR (Uncomment if needed)
+            // const qrData = await generatePassQR({
+            //     bookingId: pass.id,
+            //     passType: pass.passType,
+            //     validUntil: pass.validUntil,
+            // });
+
+            // await sendPassConfirmationEmail({
+            //     transactionId: payment.transactionId,
+            //     amount: payment.paidAmount,
+            //     passDetails: {
+            //         type: pass.passType,
+            //         validUntil: pass.validUntil,
+            //     },
+            //     userName: req.user.name,
+            //     qrCode: qrData,
+            //     userEmail: req.user.email,
+            // });
+
+            return res.status(200).json({ detail: "Payment successful." });
+        } else {
+            pass.isActive = false;
+            await pass.save();
+            return res.status(400).json({ detail: "Payment failed." });
+        }
+    } catch (error) {
+        res.status(500).json({ detail: "Server error.", error: error.message });
+    }
 };
+
 
 const getPaymentResult = async (req, res) => {
 	const txnId = req.body.txnid;

@@ -16,6 +16,11 @@ const passSchema = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "TeamSchema",
 	},
+	status: {
+		type: String,
+		enum: ["active", "revoked", "expired","pending"],
+		default: "pending",
+	},
 
 
 	// pass details
@@ -48,11 +53,6 @@ const passSchema = new mongoose.Schema({
 		enum: ["VIP", "General", "Staff"],
 		// required: true,
 		default: "General",
-	},
-	status: {
-		type: String,
-		enum: ["active", "revoked", "expired"],
-		default: "active",
 	},
 });
 

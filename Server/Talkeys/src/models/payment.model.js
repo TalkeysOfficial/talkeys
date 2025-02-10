@@ -28,9 +28,9 @@ const PaymentSchema = new Schema({
 	},
 	status: {
 		type: String,
-		enum: ["success", "failure", "pending"],
+		enum: ["PAYMENT_SUCCESS", "PAYMENT_ERROR", "PAYMENT_PENDING"],
 		required: true,
-	},
+	},	
 	paymentDate: {
 		type: Date,
 		default: Date.now,
