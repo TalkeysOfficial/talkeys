@@ -157,7 +157,7 @@ const verifyPayment = async (req, res) => {
         payment.reason = state;
         await payment.save();
 
-        const pass = await Pass.findOne({ _id: payment.PassId });
+        const pass = await Pass.findOne({ _id: payment.passId });
 
         if (!pass) {
             return res.status(404).json({ detail: "Pass record not found." });
