@@ -7,7 +7,12 @@ const Team = require("./../controllers/team.controller.js");
 
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
-const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
+const {
+	initiatePayment,
+	verifyPayment,
+	getPaymentResult,
+} = require("./../controllers/payment.controller.js");
+router.post("/addEvent", Events.addEvent);
 router.get("/getEvents", Events.getEvents);
 
 router.get("/getEventById/:id", Events.getEventById);
@@ -35,4 +40,5 @@ router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
+
 module.exports = router;
