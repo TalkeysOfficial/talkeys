@@ -248,21 +248,23 @@ export default function ParticularEventPage({
 
 	async function sendBookingID() {
 		try {
-			const response = await fetch(
-				`${process.env.BACKEND_URL}/payment?eventId=${event._id}`,
-				//! HARDCODED FOR NOW
-				{
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
-					},
-				},
-			);
-			const bookingdata = await response.json();
-			window.open(bookingdata.pay_page_url);
-			console.log("sendBookingID", bookingdata);
+			// const response = await fetch(
+			// 	`${process.env.BACKEND_URL}/payment?eventId=${event._id}`,
+			// 	//! HARDCODED FOR NOW
+			// 	{
+			// 		method: "POST",
+			// 		headers: {
+			// 			Authorization: `Bearer ${localStorage.getItem(
+			// 				"accessToken",
+			// 			)}`,
+			// 		},
+			// 	},
+			// );
+			// console.log(event.registrationLink);
+			window.open(event.registrationLink, "_blank");
+			// const bookingdata = await response.json();
+			// window.open(bookingdata.pay_page_url);
+			// console.log("sendBookingID", bookingdata);
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}
