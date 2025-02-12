@@ -10,55 +10,15 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
-		<div className="flex min-h-screen bg-gray-950 text-white pt-10">
-			{/* Desktop Sidebar */}
-			<aside className="hidden md:flex w-64 flex-col bg-gray-900 p-4">
-				<h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
-				<nav className="space-y-4">
-					<SidebarLink
-						href="/admin"
-						icon={LayoutDashboard}
-					>
-						Dashboard
-					</SidebarLink>
-					<SidebarLink
-						href="/admin/qrScanner"
-						icon={QrCode}
-					>
-						QR Code Reader
-					</SidebarLink>
-					<SidebarLink
-						href="/admin/addEvent"
-						icon={PlusCircle}
-					>
-						Add Event
-					</SidebarLink>
-				</nav>
-			</aside>
-
-			{/* Mobile Header with Sheet */}
-			<Sheet>
-				<SheetTrigger asChild>
-					<Button
-						variant="outline"
-						size="icon"
-						className="md:hidden absolute top-4 left-4 z-50"
-					>
-						<LayoutDashboard className="h-4 w-4" />
-					</Button>
-				</SheetTrigger>
-				<SheetContent
-					side="left"
-					className="w-64 bg-gray-900 p-4"
-				>
-					<SheetHeader>
-						<SheetTitle className="text-2xl font-bold mb-6 text-white">
-							Admin Dashboard
-						</SheetTitle>
-					</SheetHeader>
+		<ProtectedRoute>
+			<div className="flex min-h-screen bg-gray-950 text-white pt-10">
+				{/* Desktop Sidebar */}
+				<aside className="hidden md:flex w-64 flex-col bg-gray-900 p-4">
+					<h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
 					<nav className="space-y-4">
 						<SidebarLink
 							href="/admin"
@@ -79,12 +39,55 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 							Add Event
 						</SidebarLink>
 					</nav>
-				</SheetContent>
-			</Sheet>
+				</aside>
 
-			{/* Main Content */}
-			<main className="flex-1 p-4 md:p-8">{children}</main>
-		</div>
+				{/* Mobile Header with Sheet */}
+				<Sheet>
+					<SheetTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className="md:hidden absolute top-4 left-4 z-50"
+						>
+							<LayoutDashboard className="h-4 w-4" />
+						</Button>
+					</SheetTrigger>
+					<SheetContent
+						side="left"
+						className="w-64 bg-gray-900 p-4"
+					>
+						<SheetHeader>
+							<SheetTitle className="text-2xl font-bold mb-6 text-white">
+								Admin Dashboard
+							</SheetTitle>
+						</SheetHeader>
+						<nav className="space-y-4">
+							<SidebarLink
+								href="/admin"
+								icon={LayoutDashboard}
+							>
+								Dashboard
+							</SidebarLink>
+							<SidebarLink
+								href="/admin/qrScanner"
+								icon={QrCode}
+							>
+								QR Code Reader
+							</SidebarLink>
+							<SidebarLink
+								href="/admin/addEvent"
+								icon={PlusCircle}
+							>
+								Add Event
+							</SidebarLink>
+						</nav>
+					</SheetContent>
+				</Sheet>
+
+				{/* Main Content */}
+				<main className="flex-1 p-4 md:p-8">{children}</main>
+			</div>
+		</ProtectedRoute>
 	);
 };
 
