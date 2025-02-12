@@ -40,10 +40,10 @@ const sampleEvents: Event[] = [
 ];
 
 export default function EventCarousel({
-	title = "ALL Events",
+	category = "ALL Events",
 	events = sampleEvents,
 }: Readonly<{
-	title?: string;
+	category?: string;
 	events?: Event[];
 }>) {
 	const swiperRef = useRef<any>(null);
@@ -61,9 +61,13 @@ export default function EventCarousel({
 			const { events } = data;
 
 			const categorisedEvents =
-				title == "ALL Events"
+				category == "ALL Events"
 					? events
-					: events.filter((event) => event.category === title);
+					: events.filter(
+							(event) =>
+								event.category === category &&
+								event.visibility === "public",
+					  );
 
 			const now = new Date();
 			const upcomingEvents = categorisedEvents.filter(
@@ -135,7 +139,7 @@ export default function EventCarousel({
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-xl font-bold">
-							{title ?? "Upcoming Events"}
+							{category ?? "Upcoming Events"}
 						</h2>
 						<div>
 							<Button
@@ -176,7 +180,7 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											priority = {index < 3}
+											priority={index < 3}
 											loading={index < 3 ? "eager" : "lazy"}
 											className="w-full h-64 object-scale-down object-center"
 										/>

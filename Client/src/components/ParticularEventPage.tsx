@@ -238,13 +238,12 @@ export default function ParticularEventPage({
 		);
 	}
 
-	// function isTimePassed(dateString: Date) {
-	// 	const date = new Date(dateString).getTime();
-	// 	const currentTime = new Date().getTime();
-	// 	console.log(date, currentTime);
-	// 	if
-	// 	return date <= currentTime;
-	// }
+	function isTimePassed(dateString: string) {
+		const time = new Date(dateString).getTime();
+		const currentTime = new Date().getTime();
+		console.log(time, currentTime);
+		return time <= currentTime;
+	}
 
 	async function sendBookingID() {
 		try {
@@ -274,19 +273,23 @@ export default function ParticularEventPage({
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				// const isRegistrationClosed = isTimePassed(event.startDate);
+				const isRegistrationClosed = isTimePassed(
+					event.endRegistrationDate,
+				);
+				const isEventPaid = event.isPaid;
 
 				let buttonText;
 				let ariaLabel;
 
-				/*else if (isRegistrationClosed) {
+				if (isRegistrationClosed) {
 					buttonText = "Registrations Closed";
 					ariaLabel = "Registrations closed";
-				}*/
-
-				if (!isEventLive) {
+				} else if (!isEventLive) {
 					buttonText = "Coming Soon";
 					ariaLabel = "Event coming soon";
+				} else if (isEventPaid) {
+					buttonText = "Pay NOW";
+					ariaLabel = "Pay for tickets for event";
 				} else {
 					buttonText = "Register Now";
 					ariaLabel = "Register for event";
@@ -297,10 +300,10 @@ export default function ParticularEventPage({
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={sendBookingID}
-							disabled={!isEventLive} // || isRegistrationClosed}
+							disabled={!isEventLive || isRegistrationClosed}
 							aria-label={ariaLabel}
 						>
-							Pay NOW
+							{buttonText}
 						</Button>
 					);
 				}
@@ -526,10 +529,6 @@ export default function ParticularEventPage({
 		}
 	};
 
-	const removeNewLines = (text: string) => {
-		return text.replace(/\n/g, " ").trim();
-	};
-
 	return (
 		<div
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
@@ -572,7 +571,8 @@ export default function ParticularEventPage({
 									<span>
 										{new Date(event.startDate).toLocaleDateString(
 											"en-IN",
-										)}{" "}
+										)}
+										{" at "}
 										{event.startTime}
 									</span>
 								</div>
@@ -676,18 +676,14 @@ export default function ParticularEventPage({
 							<h3 className="text-lg font-semibold mb-2">
 								Details for the Event
 							</h3>
-							<div className="text-gray-400 space-y-2">
+							<div
+								className="text-gray-400 space-y-2 whitespace-pre-line"
+								
+							>
 								{event.eventDescription
-									?.split("lineBRK")
-									.filter((line) => line.trim() !== "")
-									.map((line, index) => {
-										console.log("line", line);
-										return (
-											<p key={`${event._id}-desc-${index}`}>
-												{line.replace(/lineBRK/g, " ").trim()}
-											</p>
-										);
-									})}
+									?.split("\\n")
+									.map((line) => line)
+									.join("\n")}
 							</div>
 						</div>
 					</TabsContent>
