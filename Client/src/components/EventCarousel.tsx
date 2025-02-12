@@ -176,7 +176,8 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											priority
+											priority = {index < 3}
+											loading={index < 3 ? "eager" : "lazy"}
 											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">

@@ -12,7 +12,6 @@ const {
 	verifyPayment,
 	getPaymentResult,
 } = require("./../controllers/payment.controller.js");
-router.post("/addEvent", Events.addEvent);
 router.get("/getEvents", Events.getEvents);
 
 router.get("/getEventById/:id", Events.getEventById);
@@ -41,4 +40,6 @@ router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 
+router.post("/addEvent", Events.addEvent);
+router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
 module.exports = router;

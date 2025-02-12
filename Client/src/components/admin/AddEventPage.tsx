@@ -23,34 +23,7 @@ import {
 	CardContent,
 	CardFooter,
 } from "@/components/ui/card";
-
-interface FormData {
-	isTeamEvent: boolean;
-	isPaid: boolean;
-	isLive: boolean;
-	name: string;
-	category: string;
-	ticketPrice: number;
-	mode: string;
-	location: string;
-	duration: string;
-	slots: number;
-	visibility: string;
-	startDate: string;
-	startTime: string;
-	endRegistrationDate: string;
-	totalSeats: number;
-	photographs: FileList | null;
-	prizes?: string;
-	eventDescription?: string;
-	paymentQRcode?: string;
-	registrationLink?: string;
-	sponsorImages: FileList | null;
-	registrationCount: number;
-	organizerName?: string;
-	organizerEmail?: string;
-	organizerContact?: string;
-}
+import type { FormData } from "@/types/types";
 
 const AddEventPage: React.FC = () => {
 	const {
