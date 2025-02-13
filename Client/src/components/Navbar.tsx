@@ -29,32 +29,31 @@ const navItems = [
 	{ name: "Communities", link: "/underConstruct" },
 ];
 
-const generateAvatarSeed = (username : string) : string => {
-	return username.toLowerCase().replace(/[^a-z0-9]/g,'');
-};
-
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const { isSignedIn, setIsSignedIn } = useAuth();
 	const [name, setName] = useState("");
 	const [avatarUrl, setAvatarUrl] = useState("");
+	const [showAvatarModal, setShowAvatarModal] = useState(false); 
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 	const pathname = usePathname();
 
 	useEffect(() => {
-		if (typeof window !== "undefined" && isSignedIn) {
+		const updateAvatar = () => {
 			const storedName = localStorage.getItem("name") ?? "";
+			const storedStyle = localStorage.getItem("avatarStyle") ?? "avataaars";
+			const storedBg = localStorage.getItem("avatarBg") ?? "b6e3f4";
 			setName(storedName);
 
-
-			const seed = generateAvatarSeed(storedName);
-			const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4`;
+			const seed = storedName.toLowerCase().replace(/[^a-z0-9]/g, "");
+			const newAvatarUrl = `https://api.dicebear.com/7.x/${storedStyle}/svg?seed=${seed}&backgroundColor=${storedBg}`;
 			setAvatarUrl(newAvatarUrl);
+		};
 
-		} else {
-			setName("");
-			setAvatarUrl("");
-		}
+		updateAvatar();
+
+		window.addEventListener("storage", updateAvatar);
+		return () => window.removeEventListener("storage", updateAvatar);
 	}, [isSignedIn]); 
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
@@ -93,23 +92,21 @@ const Navbar = () => {
 						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300 rounded-xl"
 					>
 						<Avatar className="h-8 w-8">
-              				<AvatarImage src={avatarUrl} alt={name} />
-              					<AvatarFallback>{name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span>{name}</span>
+							<AvatarImage src={avatarUrl} alt={name} />
+							<AvatarFallback>{name.charAt(0)}</AvatarFallback>
+						</Avatar>
+						<span>{name}</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent
-					align="end"
-					className="z-[2000] text-white bg-black w-max"
-				>
+				<DropdownMenuContent align="end" className="z-[2000] text-white bg-black w-max">
 					<DropdownMenuItem className="font-bold underline">
 						Logged in as {name}
 					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={handleLogout}
-						className="cursor-pointer hover:text-black hover:bg-white hover:underline"
-					>
+					<DropdownMenuItem asChild>
+					<Link href="/profile">Edit Avatar</Link>
+
+					</DropdownMenuItem>
+					<DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:text-black hover:bg-white hover:underline">
 						Logout
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -125,52 +122,55 @@ const Navbar = () => {
 		);
 
 	return (
-		<div className="fixed top-0 w-full z-[1000]">
-			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
-				<Link href="/">
-					<Image
-						src={talkey_logo || "/placeholder.svg"}
-						alt="Logo"
-						width={180}
-						height={180}
-						quality={100}
-						priority
-						objectPosition="center"
-						className="py-4 sm:py-3"
-					/>
-				</Link>
-				{isMobile ? (
-					<Button
-						variant="default"
-						size="icon"
-						className="text-white"
-						onClick={toggleMenu}
+		<>
+			<div className="fixed top-0 w-full z-[1000]">
+				<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
+					<Link href="/">
+						<Image
+							src={talkey_logo || "/placeholder.svg"}
+							alt="Logo"
+							width={180}
+							height={180}
+							quality={100}
+							priority
+							objectPosition="center"
+							className="py-4 sm:py-3"
+						/>
+					</Link>
+					{isMobile ? (
+						<Button
+							variant="default"
+							size="icon"
+							className="text-white"
+							onClick={toggleMenu}
+						>
+							{isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+						</Button>
+					) : (
+						<NavigationMenu>
+							<NavigationMenuList className="flex items-center gap-10">
+								<NavLinks />
+								<AuthButton />
+							</NavigationMenuList>
+						</NavigationMenu>
+					)}
+				</div>
+				{isMobile && (
+					<div
+						className={`absolute left-0 right-0 bg-black transition-all duration-300 ease-in-out overflow-hidden ${
+							isMenuOpen ? "max-h-[400px]" : "max-h-0"
+						}`}
 					>
-						{isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-					</Button>
-				) : (
-					<NavigationMenu>
-						<NavigationMenuList className="flex items-center gap-10">
+						<div className="p-4 flex flex-col gap-4">
 							<NavLinks />
 							<AuthButton />
-						</NavigationMenuList>
-					</NavigationMenu>
-				)}
-			</div>
-			{isMobile && (
-				<div
-					className={`absolute left-0 right-0 bg-black transition-all duration-300 ease-in-out overflow-hidden ${
-						isMenuOpen ? "max-h-[400px]" : "max-h-0"
-					}`}
-				>
-					<div className="p-4 flex flex-col gap-4">
-						<NavLinks />
-						<AuthButton />
+						</div>
 					</div>
-				</div>
-			)}
-			<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
-		</div>
+				)}
+				<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
+			</div>
+
+		</>
 	);
 };
 
