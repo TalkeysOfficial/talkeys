@@ -4,7 +4,7 @@ const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
 const Team = require("./../controllers/team.controller.js");
-
+const contact = require("./../controllers/contact.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
 const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
@@ -18,7 +18,7 @@ router.use(auth.verifyToken);
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
-
+router.pose("contactUs", contact.contactUs);
 router.get("/protected", authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post("/bookPass", Passes.bookTicket);
