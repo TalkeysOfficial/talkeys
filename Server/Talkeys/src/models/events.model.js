@@ -1,21 +1,20 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
-	//paramerters for event
 	isTeamEvent: {
 		type: Boolean,
 		required: true,
+		default: false,
 	},
 	isPaid: {
 		type: Boolean,
 		required: true,
+		default: false,
 	},
 	isLive: {
 		type: Boolean,
 		default: false,
 	},
-	
-	//event details
 	name: {
 		type: String,
 		required: true,
@@ -27,9 +26,9 @@ const eventSchema = new mongoose.Schema({
 	},
 	ticketPrice: {
 		type: Number,
-		required: function () {
+		required() {
 			return this.isPaid;
-		}
+		},
 	},
 	mode: {
 		type: String,
@@ -38,7 +37,7 @@ const eventSchema = new mongoose.Schema({
 	},
 	location: {
 		type: String,
-		required: function () {
+		required() {
 			return this.mode === "offline";
 		},
 	},
@@ -95,7 +94,7 @@ const eventSchema = new mongoose.Schema({
 	sponserImages: {
 		type: [String],
 	},
-	regisrationCount: {
+	registrationCount: {
 		type: Number,
 		default: 0,
 	},

@@ -12,7 +12,6 @@ const PaymentSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: "pass",
 		required: true,
-		unique: true,
 	},
 	transactionId: {
 		type: String,
@@ -35,18 +34,18 @@ const PaymentSchema = new Schema({
 		type: Date,
 		default: Date.now,
 	},
-	paymentId: {
-		type: String,
-		unique: true,
-		default: "",
-	},
+	// paymentId: {
+	// 	type: String,
+	// 	unique: true,
+	// 	default: "",
+	// },
 	reason: { // of failure
 		type: String,
 		default: "",
 	},
 });
 
-module.exports = {
 
-	Payment: mongoose.model("Payment", PaymentSchema),
-};
+const Payment = mongoose.model("Payment", PaymentSchema);
+
+module.exports = Payment;

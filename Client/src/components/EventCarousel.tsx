@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-ignore
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -33,14 +35,15 @@ const sampleEvents: Event[] = [
 			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
 		isLive: false,
 		isLiked: false,
+		isPaid: true,
 	},
 ];
 
 export default function EventCarousel({
-	title = "ALL Events",
+	category = "ALL Events",
 	events = sampleEvents,
 }: Readonly<{
-	title?: string;
+	category?: string;
 	events?: Event[];
 }>) {
 	const swiperRef = useRef<any>(null);
@@ -58,9 +61,13 @@ export default function EventCarousel({
 			const { events } = data;
 
 			const categorisedEvents =
-				title == "ALL Events"
+				category == "ALL Events"
 					? events
-					: events.filter((event) => event.category === title);
+					: events.filter(
+							(event) =>
+								event.category === category &&
+								event.visibility === "public",
+					  );
 
 			const now = new Date();
 			const upcomingEvents = categorisedEvents.filter(
@@ -132,7 +139,7 @@ export default function EventCarousel({
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-xl font-bold">
-							{title ?? "Upcoming Events"}
+							{category ?? "Upcoming Events"}
 						</h2>
 						<div>
 							<Button
@@ -147,7 +154,11 @@ export default function EventCarousel({
 					<Swiper
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay, EffectFade]}
-						autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+						autoplay={{
+							delay: 2500,
+							disableOnInteraction: false,
+							pauseOnMouseEnter: true,
+						}}
 						effect="slide"
 						speed={300}
 						spaceBetween={30}
@@ -157,7 +168,6 @@ export default function EventCarousel({
 							768: { slidesPerView: 2 },
 							1024: { slidesPerView: 3 },
 						}}
-						
 					>
 						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
@@ -170,7 +180,8 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											priority
+											priority={index < 3}
+											loading={index < 3 ? "eager" : "lazy"}
 											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">

@@ -6,6 +6,7 @@ const {
 	validatePhoneNumber,
 } = require("../helpers/validatorHelper");
 const User = require("../models/users.model.js");
+const { validateEvent } = require("../schemas/event.Schema.js");
 
 const createEvent = asyncHandler(async (req, res) => {
 	if (!req.body) {
@@ -210,7 +211,7 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 				message: "Event not found",
 			});
 		}
-		const user= req.user;
+		const user = req.user;
 		if (!user) {
 			return res.status(404).json({
 				status: "error",
@@ -232,7 +233,6 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 
 const getAllLikedEvents = asyncHandler(async (req, res) => {
 	try {
-		
 		if (!req.user) {
 			return res.status(404).json({
 				status: "error",
@@ -253,6 +253,57 @@ const getAllLikedEvents = asyncHandler(async (req, res) => {
 	}
 });
 
+const addEvent = asyncHandler(async (req, res) => {
+	try {
+		if (validateEvent(req.body)) {
+			const event = await Event.create(req.body);
+			res.status(201).json(event);
+		}
+	} catch (error) {
+		console.error("Error in addEvent:", error);
+		res.status(500).json({
+			status: "error",
+			message: "Failed to add event",
+			error,
+		});
+	}
+});
+
+const deleteSpecificEvent = asyncHandler(async (req, res) => {
+	const session = await Event.startSession();
+	session.startTransaction();
+
+	try {
+		const event = await Event.findById(req.params.eventId).session(session);
+		if (!event) {
+			await session.abortTransaction();
+			session.endSession();
+			return res.status(404).json({
+				status: "error",
+				message: "Event not found",
+			});
+		}
+
+		await Event.findByIdAndDelete(req.params.eventId).session(session);
+		await session.commitTransaction();
+		session.endSession();
+
+		res.status(200).json({
+			status: "success",
+			message: "Event deleted successfully",
+		});
+	} catch (error) {
+		await session.abortTransaction();
+		session.endSession();
+		console.error("Error in deleteSpecificEvent:", error);
+		res.status(500).json({
+			status: "error",
+			message: "Failed to delete event",
+			error,
+		});
+	}
+});
+
 module.exports = {
 	createEvent,
 	getEvents,
@@ -260,4 +311,6 @@ module.exports = {
 	likeEvent,
 	unlikeEvent,
 	getAllLikedEvents,
+	addEvent,
+	deleteSpecificEvent,
 };

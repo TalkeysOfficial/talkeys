@@ -7,7 +7,11 @@ const Team = require("./../controllers/team.controller.js");
 
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
-const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
+const {
+	initiatePayment,
+	verifyPayment,
+	getPaymentResult,
+} = require("./../controllers/payment.controller.js");
 router.get("/getEvents", Events.getEvents);
 
 router.get("/getEventById/:id", Events.getEventById);
@@ -20,7 +24,7 @@ router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
-router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
+router.post("/payment", auth.verifyToken, initiatePayment);
 router.get("/protected", authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post("/bookPass", Passes.bookTicket);
@@ -35,4 +39,7 @@ router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
+
+router.post("/addEvent", Events.addEvent);
+router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
 module.exports = router;

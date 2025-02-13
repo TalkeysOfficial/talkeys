@@ -1,12 +1,9 @@
-import AdminQRScanner from "@/components/QRScanner";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
 	return (
-		<ProtectedRoute>
-			<div className="container mx-auto px-4 min-h-screen bg-gray-100">
-				<AdminQRScanner />
-			</div>
-		</ProtectedRoute>
+		<div className="min-h-screen bg-gray-950 text-white p-4">
+			<AdminDashboard />
+		</div>
 	);
 }

@@ -21,22 +21,34 @@ export interface Event {
 	name: string;
 	category: string;
 	mode: "offline" | "online";
-	location?: string;
 	duration: string;
-	ticketPrice: string;
 	totalSeats: number;
 	slots: number;
 	visibility: "public" | "private";
 	prizes?: string;
-	photographs?: string[];
-	startDate: Date;
-	startTime: string;
-	endRegistrationDate: Date;
 	eventDescription?: string;
 	isLive?: boolean;
 	isLiked: boolean | null;
 	paymentQRcode?: string;
 	registrationLink?: string;
+	isPaid: boolean;
+	isTeamEvent: boolean;
+	ticketPrice: number;
+	location: string;
+	startDate: string;
+	startTime: string;
+	endRegistrationDate: string;
+	photographs: string[];
+	sponsorImages: string[];
+	registrationCount: number;
+	organizerName?: string;
+	organizerEmail?: string;
+	organizerContact?: string;
+}
+
+export interface FormData extends Omit<Event, "photographs" | "sponsorImages"> {
+	photographs: FileList | null;
+	sponsorImages: FileList | null;
 }
 
 export type RegistrationState =
