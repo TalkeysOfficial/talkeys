@@ -34,7 +34,7 @@ const Navbar = () => {
 	const { isSignedIn, setIsSignedIn } = useAuth();
 	const [name, setName] = useState("");
 	const [avatarUrl, setAvatarUrl] = useState("");
-	const [showAvatarModal, setShowAvatarModal] = useState(false); 
+	const [showAvatarModal, setShowAvatarModal] = useState(false);
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 	const pathname = usePathname();
 
@@ -54,7 +54,7 @@ const Navbar = () => {
 
 		window.addEventListener("storage", updateAvatar);
 		return () => window.removeEventListener("storage", updateAvatar);
-	}, [isSignedIn]); 
+	}, [isSignedIn]);
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
@@ -63,7 +63,7 @@ const Navbar = () => {
 		localStorage.removeItem("name");
 		setIsSignedIn(false);
 		setName("");
-		setAvatarUrl("");	
+		setAvatarUrl("");
 	};
 
 	const NavLinks = () => (
@@ -92,21 +92,29 @@ const Navbar = () => {
 						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300 rounded-xl"
 					>
 						<Avatar className="h-8 w-8">
-							<AvatarImage src={avatarUrl} alt={name} />
+							<AvatarImage
+								src={avatarUrl}
+								alt={name}
+							/>
 							<AvatarFallback>{name.charAt(0)}</AvatarFallback>
 						</Avatar>
 						<span>{name}</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="z-[2000] text-white bg-black w-max">
+				<DropdownMenuContent
+					align="end"
+					className="z-[2000] text-white bg-black w-max"
+				>
 					<DropdownMenuItem className="font-bold underline">
 						Logged in as {name}
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
-					<Link href="/profile">Edit Avatar</Link>
-
+						<Link href="/profile">Edit Avatar</Link>
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:text-black hover:bg-white hover:underline">
+					<DropdownMenuItem
+						onClick={handleLogout}
+						className="cursor-pointer hover:text-black hover:bg-white hover:underline"
+					>
 						Logout
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -122,55 +130,52 @@ const Navbar = () => {
 		);
 
 	return (
-		<>
-			<div className="fixed top-0 w-full z-[1000]">
-				<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
-					<Link href="/">
-						<Image
-							src={talkey_logo || "/placeholder.svg"}
-							alt="Logo"
-							width={180}
-							height={180}
-							quality={100}
-							priority
-							objectPosition="center"
-							className="py-4 sm:py-3"
-						/>
-					</Link>
-					{isMobile ? (
-						<Button
-							variant="default"
-							size="icon"
-							className="text-white"
-							onClick={toggleMenu}
-						>
-							{isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-						</Button>
-					) : (
-						<NavigationMenu>
-							<NavigationMenuList className="flex items-center gap-10">
-								<NavLinks />
-								<AuthButton />
-							</NavigationMenuList>
-						</NavigationMenu>
-					)}
-				</div>
-				{isMobile && (
-					<div
-						className={`absolute left-0 right-0 bg-black transition-all duration-300 ease-in-out overflow-hidden ${
-							isMenuOpen ? "max-h-[400px]" : "max-h-0"
-						}`}
+		<div className="fixed top-0 w-full z-[1000]">
+			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
+				<Link href="/">
+					<Image
+						src={talkey_logo || "/placeholder.svg"}
+						alt="Logo"
+						width={180}
+						height={180}
+						quality={100}
+						priority
+						objectPosition="center"
+						className="py-4 sm:py-3"
+					/>
+				</Link>
+				{isMobile ? (
+					<Button
+						variant="default"
+						size="icon"
+						className="text-white"
+						onClick={toggleMenu}
 					>
-						<div className="p-4 flex flex-col gap-4">
+						{isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+					</Button>
+				) : (
+					<NavigationMenu>
+						<NavigationMenuList className="flex items-center gap-10">
 							<NavLinks />
 							<AuthButton />
-						</div>
-					</div>
+						</NavigationMenuList>
+					</NavigationMenu>
 				)}
-				<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
 			</div>
-
-		</>
+			{isMobile && (
+				<div
+					className={`absolute left-0 right-0 bg-black transition-all duration-300 ease-in-out overflow-hidden ${
+						isMenuOpen ? "max-h-[400px]" : "max-h-0"
+					}`}
+				>
+					<div className="p-4 flex flex-col gap-4">
+						<NavLinks />
+						<AuthButton />
+					</div>
+				</div>
+			)}
+			<div className="absolute left-0 right-0 h-[50px] bottom-[-50px] bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
+		</div>
 	);
 };
 

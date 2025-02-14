@@ -7,7 +7,7 @@ import InfluencerCarousal from "@/components/InfluencerCarousal";
 import HostEventSection from "@/components/HostEventSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
-import { Event } from "@/types/types";
+import type { Event } from "@/types/types";
 
 export default function Home() {
 	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
