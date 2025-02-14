@@ -14,37 +14,12 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ParticularEventPage from "@/components/ParticularEventPage";
 import type { Event } from "@/types/types";
 
-const sampleEvents: Event[] = [
-	{
-		_id: "678b9075f6deb135145b5636",
-		name: "Kick-OFF 2025",
-		category: "Gaming",
-		mode: "offline",
-		location: "Game Box, Patiala, Punjab",
-		duration: "3 hours",
-		ticketPrice: "0",
-		totalSeats: 120,
-		slots: 2,
-		visibility: "public",
-		prizes: "First Prize: $3000, Second Prize: $1500",
-		photographs: [],
-		startDate: new Date("2025-03-15T00:00:00.000Z"),
-		startTime: "10:00 AM",
-		endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
-		eventDescription:
-			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
-		isLive: false,
-		isLiked: false,
-		isPaid: true,
-	},
-];
-
 export default function EventCarousel({
 	category = "ALL Events",
-	events = sampleEvents,
+	ev = sampleEvents,
 }: Readonly<{
 	category?: string;
-	events?: Event[];
+	ev?: Event[];
 }>) {
 	const swiperRef = useRef<any>(null);
 	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
@@ -52,25 +27,8 @@ export default function EventCarousel({
 
 	useEffect(() => {
 		async function fetchEvents() {
-			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
-			const { data } = (await response.json()) as {
-				data: {
-					events: Event[];
-				};
-			};
-			const { events } = data;
-
-			const categorisedEvents =
-				category == "ALL Events"
-					? events
-					: events.filter(
-							(event) =>
-								event.category === category &&
-								event.visibility === "public",
-					  );
-
 			const now = new Date();
-			const upcomingEvents = categorisedEvents.filter(
+			const upcomingEvents = ev.filter(
 				(event) => new Date(event.startDate) >= now,
 			);
 
@@ -80,7 +38,7 @@ export default function EventCarousel({
 				);
 			});
 
-			const pastEvents = categorisedEvents.filter(
+			const pastEvents = ev.filter(
 				(event) => new Date(event.startDate) < now,
 			);
 
@@ -90,37 +48,7 @@ export default function EventCarousel({
 				);
 			});
 
-			let sortedEvents = [...upcomingEvents, ...pastEvents];
-
-			sortedEvents.forEach((event) => {
-				event.isLiked = false;
-			});
-
-			const res = await fetch(
-				`${process.env.BACKEND_URL}/getAllLikedEvents`,
-				{
-					method: "GET",
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
-					},
-				},
-			);
-			if (res.status === 404 || res.status === 401) {
-				setFetchedEvents(sortedEvents);
-				console.log("Log in to get liked events!");
-				return;
-			}
-			const resData = await res.json();
-			console.log(resData);
-			sortedEvents.forEach((event) => {
-				if (resData.likedEvents?.includes(event._id)) {
-					event.isLiked = true;
-				}
-			});
-
-			setFetchedEvents(sortedEvents);
+			setFetchedEvents([...upcomingEvents, ...pastEvents]);
 		}
 		fetchEvents();
 	}, []);

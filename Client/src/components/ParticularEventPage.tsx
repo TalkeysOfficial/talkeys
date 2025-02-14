@@ -26,7 +26,6 @@ export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
-	console.log(event);
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
@@ -241,7 +240,6 @@ export default function ParticularEventPage({
 	function isTimePassed(dateString: string) {
 		const time = new Date(dateString).getTime();
 		const currentTime = new Date().getTime();
-		console.log(time, currentTime);
 		return time <= currentTime;
 	}
 
@@ -259,11 +257,9 @@ export default function ParticularEventPage({
 			// 		},
 			// 	},
 			// );
-			// console.log(event.registrationLink);
 			window.open(event.registrationLink, "_blank");
 			// const bookingdata = await response.json();
 			// window.open(bookingdata.pay_page_url);
-			// console.log("sendBookingID", bookingdata);
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}

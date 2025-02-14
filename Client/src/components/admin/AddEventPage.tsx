@@ -65,7 +65,6 @@ const AddEventPage: React.FC = () => {
 	const mode = watch("mode");
 
 	const onSubmit = async (data: FormData) => {
-		console.log("Form data before image upload:", data);
 
 		const uploadToCloudinary = async (files: FileList | null) => {
 			if (!files) return [];
