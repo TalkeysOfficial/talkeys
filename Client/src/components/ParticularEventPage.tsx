@@ -308,7 +308,7 @@ export default function ParticularEventPage({
 					<Button
 						className="bg-purple-600 hover:bg-purple-700 w-full"
 						onClick={handleRegisterClick}
-						disabled={!isEventLive} // || isRegistrationClosed}
+						disabled={!isEventLive || isRegistrationClosed}
 						aria-label={ariaLabel}
 					>
 						{buttonText}
@@ -672,10 +672,7 @@ export default function ParticularEventPage({
 							<h3 className="text-lg font-semibold mb-2">
 								Details for the Event
 							</h3>
-							<div
-								className="text-gray-400 space-y-2 whitespace-pre-line"
-								
-							>
+							<div className="text-gray-400 space-y-2 whitespace-pre-line">
 								{event.eventDescription
 									?.split("\\n")
 									.map((line) => line)

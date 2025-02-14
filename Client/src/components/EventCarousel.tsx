@@ -16,7 +16,7 @@ import type { Event } from "@/types/types";
 
 export default function EventCarousel({
 	category = "ALL Events",
-	ev = sampleEvents,
+	ev = [],
 }: Readonly<{
 	category?: string;
 	ev?: Event[];
@@ -28,7 +28,7 @@ export default function EventCarousel({
 	useEffect(() => {
 		async function fetchEvents() {
 			const now = new Date();
-			const upcomingEvents = ev.filter(
+			const upcomingEvents = ev?.filter(
 				(event) => new Date(event.startDate) >= now,
 			);
 
@@ -38,7 +38,7 @@ export default function EventCarousel({
 				);
 			});
 
-			const pastEvents = ev.filter(
+			const pastEvents = ev?.filter(
 				(event) => new Date(event.startDate) < now,
 			);
 
@@ -51,6 +51,7 @@ export default function EventCarousel({
 			setFetchedEvents([...upcomingEvents, ...pastEvents]);
 		}
 		fetchEvents();
+		console.log("ev", ev);
 	}, []);
 
 	const handleNext = () => {
