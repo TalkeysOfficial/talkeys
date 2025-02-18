@@ -23,7 +23,7 @@ const BACKGROUND_COLORS = [
   { name: "Lavender", value: "d1d4f9" },
   { name: "Peach", value: "f4b6c2" },
   { name: "Mint Green", value: "a0e7e5" },
-];
+]; 
 
 const AvatarCustomizer = () => {
   const [avatarStyle, setAvatarStyle] = useState(AVATAR_STYLES[0]);
