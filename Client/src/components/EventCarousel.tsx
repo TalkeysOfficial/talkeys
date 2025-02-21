@@ -64,7 +64,7 @@ export default function EventCarousel({
 
 	return (
 		<div className={`mb-[-80px] ${isDialogOpen ? "blur-xl" : ""}`}>
-			<div className="event w-full bg-transparent text-white p-10 overflow-hidden">
+			<div className="event w-full bg-transparent text-white max-sm:p-5 p-10 overflow-hidden">
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-xl font-bold">
@@ -91,7 +91,7 @@ export default function EventCarousel({
 						effect="slide"
 						speed={300}
 						spaceBetween={30}
-						slidesPerView={1}
+						slidesPerView={2}
 						breakpoints={{
 							640: { slidesPerView: 1 },
 							768: { slidesPerView: 2 },
@@ -111,10 +111,10 @@ export default function EventCarousel({
 											height={400}
 											priority={index < 3}
 											loading={index < 3 ? "eager" : "lazy"}
-											className="w-full h-64 object-scale-down object-center"
+											className="h-40 aspect-square object-cover object-center"
 										/>
 										<div className="p-4">
-											<div className="text-sm text-purple-400 mb-2">
+											<div className="text-sm text-purple-400 mb-2 max-sm:hidden">
 												{new Date(
 													event.startDate,
 												).toLocaleDateString("en-IN", {
@@ -126,10 +126,10 @@ export default function EventCarousel({
 												{" at "}
 												{event.startTime}
 											</div>
-											<h3 className="text-xl font-bold mb-2">
+											<h3 className="text-xl font-bold mb-2 max-sm:text-base">
 												{event.name}
 											</h3>
-											<h4 className="text-lg mb-4">
+											<h4 className="text-lg mb-4 max-sm:text-sm">
 												{event.location ?? "Location not specified"}
 											</h4>
 											<Dialog

@@ -530,14 +530,14 @@ export default function ParticularEventPage({
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
 			aria-modal="true"
 		>
-			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto">
-				<button
-					onClick={onClose}
-					className="absolute top-2 right-2 text-gray-400 hover:text-white"
-					aria-label="Close dialog"
-				>
-					<X className="w-6 h-6" />
-				</button>
+			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto relative">
+                <button
+                    onClick={onClose}
+                    className="absolute -top-1 -right-1 text-gray-400 hover:text-white z-50"
+                    aria-label="Close dialog"
+                >
+                    <X className="w-6 h-6" />
+                </button>
 
 				{/* Header Section */}
 				<div className="flex flex-col sm:flex-row gap-6 mb-6">

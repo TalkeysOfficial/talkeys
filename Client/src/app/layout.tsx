@@ -43,7 +43,7 @@ export default function RootLayout({
 			>
 				<AuthProvider>
 					<Navbar />
-					<ScrollProgress className="top-[85px] h-0.5" />
+					<ScrollProgress className="top-[85px] max-sm:top-[92.31px] h-0.5" />
 					{children}
 					<Analytics />
 					<Footer />
