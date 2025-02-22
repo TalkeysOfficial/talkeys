@@ -17,7 +17,7 @@ n
 ```json
 {
     "team": {
-        "teamName": "HelloHimanish",
+        "teamName": "HelloHimanis",
         "teamLeader": "678a933d0b89cdf0e2dcba3f",
         "teamCode": "AL7IKK",
         "teamMembers": [
