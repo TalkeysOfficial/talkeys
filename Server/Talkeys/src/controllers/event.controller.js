@@ -6,7 +6,7 @@ const {
 	validatePhoneNumber,
 } = require("../helpers/validatorHelper");
 const User = require("../models/users.model.js");
-const { validateEvent } = require("../schemas/event.Schema.js");
+const { validateEvent } = require("../schemas/event.schema.js");
 
 const createEvent = asyncHandler(async (req, res) => {
 	if (!req.body) {
