@@ -303,7 +303,32 @@ const deleteSpecificEvent = asyncHandler(async (req, res) => {
 		});
 	}
 });
-
+const reqEvent = asyncHandler(async (req, res) => {
+		try {
+			const { Name, Email, Phone, isSlotted, isTeamEvent, isPaid, date } = req.body;
+	
+			if (!Name || !Email || !Phone || isSlotted === undefined || !date) {
+				return res.status(400).json({ error: "All required fields must be provided." });
+			}
+	
+			const newEvent = new reqEvent({
+				Name,
+				Email,
+				Phone,
+				isSlotted,
+				isTeamEvent: isTeamEvent || false, 
+				isPaid: isPaid || false, 
+				date
+			});
+	
+			await newEvent.save();
+			res.status(201).json({ message: "Event requested successfully", event: newEvent });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error: "Internal server error" });
+		}
+	});
+	
 module.exports = {
 	createEvent,
 	getEvents,
@@ -313,4 +338,5 @@ module.exports = {
 	getAllLikedEvents,
 	addEvent,
 	deleteSpecificEvent,
+	reqEvent,
 };

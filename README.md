@@ -291,4 +291,58 @@ Retrieves the team details for the authenticated user.
         // More members...
     ]
 }
+
+
+# Event API Documentation for creating event 
+
+## Create a New Event
+
+### Endpoint
+`POST /events`
+
+### Request Body
+- **Name** (String, Required) - The name of the event organizer.
+- **Email** (String, Required) - The email of the organizer.
+- **Phone** (String, Required) - The contact number of the organizer.
+- **isSlotted** (Number, Required) - Indicates if the event has a designated slot (1 for true, 0 for false).
+- **isTeamEvent** (Boolean, Optional, Default: false) - Indicates if the event is a team event.
+- **isPaid** (Boolean, Optional, Default: false) - Indicates if the event requires payment.
+- **date** (Date, Required) - The date of the event.
+
+### Success Response
+```json
+{
+  "message": "Event created successfully",
+  "event": {
+    "_id": "65f2d8e1a5c2b3e0c8e4a1d9",
+    "Name": "John Doe",
+    "Email": "john@example.com",
+    "Phone": "1234567890",
+    "isSlotted": 1,
+    "isTeamEvent": false,
+    "isPaid": true,
+    "date": "2025-03-01T10:00:00Z"
+  }
+}
 ```
+
+### Error Response
+```json
+{
+  "error": "All required fields must be provided."
+}
+```
+
+### Example Request
+```json
+{
+  "Name": "John Doe",
+  "Email": "john@example.com",
+  "Phone": "1234567890",
+  "isSlotted": 1,
+  "isTeamEvent": false,
+  "isPaid": true,
+  "date": "2025-03-01T10:00:00Z"
+}
+```
+

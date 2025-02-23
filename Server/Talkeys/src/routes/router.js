@@ -8,6 +8,7 @@ const contact = require("./../controllers/contact.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
 const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
+
 router.get("/getEvents", Events.getEvents);
 
 router.get("/getEventById/:id", Events.getEventById);
@@ -26,7 +27,7 @@ router.post("/joinTeam", Team.joinTeam);
 router.post("/createTeam", Team.createTeam);
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/getTeam", Team.getTeam);
-
+routed.post("/reqEvent", Events.reqEvent);   
 router.use(checkRole(["admin"]));
 router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);
