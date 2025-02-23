@@ -19,7 +19,7 @@ router.use(auth.verifyToken);
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
-router.pose("contactUs", contact.contactUs);
+router.post("contactUs", contact.contactUs);
 router.get("/protected", authentication.protected);
 // Changed from createEvent to getEvents since it's a GET request
 router.post("/bookPass", Passes.bookTicket);
@@ -27,7 +27,7 @@ router.post("/joinTeam", Team.joinTeam);
 router.post("/createTeam", Team.createTeam);
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/getTeam", Team.getTeam);
-routed.post("/reqEvent", Events.reqEvent);   
+router.post("/reqEvent", Events.reqEventt);   
 router.use(checkRole(["admin"]));
 router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);

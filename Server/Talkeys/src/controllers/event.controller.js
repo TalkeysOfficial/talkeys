@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
+const reqEvent = require("../models/reqEvent.model.js");
 const Pass = require("../models/passes.model.js");
 const {
 	validateEmail,
@@ -303,7 +304,7 @@ const deleteSpecificEvent = asyncHandler(async (req, res) => {
 		});
 	}
 });
-const reqEvent = asyncHandler(async (req, res) => {
+const reqEventt = asyncHandler(async (req, res) => {
 		try {
 			const { Name, Email, Phone, isSlotted, isTeamEvent, isPaid, date } = req.body;
 	
@@ -338,5 +339,5 @@ module.exports = {
 	getAllLikedEvents,
 	addEvent,
 	deleteSpecificEvent,
-	reqEvent,
+	reqEventt,
 };
