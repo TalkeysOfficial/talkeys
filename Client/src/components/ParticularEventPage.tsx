@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-ignore
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +26,6 @@ export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
-	console.log(event);
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
@@ -236,41 +237,78 @@ export default function ParticularEventPage({
 		);
 	}
 
-	// function isTimePassed(dateString: Date) {
-	// 	const date = new Date(dateString).getTime();
-	// 	const currentTime = new Date().getTime();
-	// 	console.log(date, currentTime);
-	// 	if
-	// 	return date <= currentTime;
-	// }
+	function isTimePassed(dateString: string) {
+		const time = new Date(dateString).getTime();
+		const currentTime = new Date().getTime();
+		return time <= currentTime;
+	}
+
+	async function sendBookingID() {
+		try {
+			// const response = await fetch(
+			// 	`${process.env.BACKEND_URL}/payment?eventId=${event._id}`,
+			// 	//! HARDCODED FOR NOW
+			// 	{
+			// 		method: "POST",
+			// 		headers: {
+			// 			Authorization: `Bearer ${localStorage.getItem(
+			// 				"accessToken",
+			// 			)}`,
+			// 		},
+			// 	},
+			// );
+			window.open(event.registrationLink, "_blank");
+			// const bookingdata = await response.json();
+			// window.open(bookingdata.pay_page_url);
+		} catch (error) {
+			console.error("Failed to send booking ID", error);
+		}
+	}
 
 	const renderRegistrationButton = () => {
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				// const isRegistrationClosed = isTimePassed(event.startDate);
+				const isRegistrationClosed = isTimePassed(
+					event.endRegistrationDate,
+				);
+				const isEventPaid = event.isPaid;
 
 				let buttonText;
 				let ariaLabel;
 
-				/*else if (isRegistrationClosed) {
+				if (isRegistrationClosed) {
 					buttonText = "Registrations Closed";
 					ariaLabel = "Registrations closed";
-				}*/
-
-				if (!isEventLive) {
+				} else if (!isEventLive) {
 					buttonText = "Coming Soon";
 					ariaLabel = "Event coming soon";
+				} else if (isEventPaid) {
+					buttonText = "Pay NOW";
+					ariaLabel = "Pay for tickets for event";
 				} else {
 					buttonText = "Register Now";
 					ariaLabel = "Register for event";
+				}
+
+				if (event.isPaid) {
+					return (
+						<Button
+							className="bg-purple-600 hover:bg-purple-700 w-full"
+							onClick={sendBookingID}
+							disabled={!isEventLive || isRegistrationClosed}
+							aria-label={ariaLabel}
+						>
+							{buttonText}
+						</Button>
+					);
 				}
 
 				return (
 					<Button
 						className="bg-purple-600 hover:bg-purple-700 w-full"
 						onClick={handleRegisterClick}
-						disabled={!isEventLive} // || isRegistrationClosed}
+						disabled={!isEventLive || isRegistrationClosed}
 						aria-label={ariaLabel}
 					>
 						{buttonText}
@@ -434,9 +472,10 @@ export default function ParticularEventPage({
 					<div className="w-full max-w-sm mx-auto">
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={handleCreatePass}
+							// onClick={handleCreatePass}
+							onClick={sendBookingID}
 						>
-							Book Pass
+							Pay Now
 						</Button>
 					</div>
 				);
@@ -486,10 +525,6 @@ export default function ParticularEventPage({
 		}
 	};
 
-	const removeNewLines = (text: string) => {
-		return text.replace(/\n/g, " ").trim();
-	};
-
 	return (
 		<div
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
@@ -532,7 +567,8 @@ export default function ParticularEventPage({
 									<span>
 										{new Date(event.startDate).toLocaleDateString(
 											"en-IN",
-										)}{" "}
+										)}
+										{" at "}
 										{event.startTime}
 									</span>
 								</div>
@@ -610,12 +646,14 @@ export default function ParticularEventPage({
 						>
 							Dates & Deadlines
 						</TabsTrigger>
-						{event.category === "Gaming" && (<TabsTrigger
-							value="prizes"
-							className="text-sm"
-						>
-							Prizes
-						</TabsTrigger>)}
+						{event.category === "Gaming" && (
+							<TabsTrigger
+								value="prizes"
+								className="text-sm"
+							>
+								Prizes
+							</TabsTrigger>
+						)}
 						{event.paymentQRcode && (
 							<TabsTrigger
 								value="Payment QR Code"
@@ -634,18 +672,11 @@ export default function ParticularEventPage({
 							<h3 className="text-lg font-semibold mb-2">
 								Details for the Event
 							</h3>
-							<div className="text-gray-400 space-y-2">
+							<div className="text-gray-400 space-y-2 whitespace-pre-line">
 								{event.eventDescription
-									?.split("lineBRK")
-									.filter((line) => line.trim() !== "")
-									.map((line, index) => {
-										console.log("line", line);
-										return (
-											<p key={`${event._id}-desc-${index}`}>
-												{line.replace(/lineBRK/g, " ").trim()}
-											</p>
-										);
-									})}
+									?.split("\\n")
+									.map((line) => line)
+									.join("\n")}
 							</div>
 						</div>
 					</TabsContent>

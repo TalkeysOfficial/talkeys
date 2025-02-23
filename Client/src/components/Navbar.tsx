@@ -29,33 +29,32 @@ const navItems = [
 	{ name: "Communities", link: "/underConstruct" },
 ];
 
-const generateAvatarSeed = (username : string) : string => {
-	return username.toLowerCase().replace(/[^a-z0-9]/g,'');
-};
-
 const Navbar = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const { isSignedIn, setIsSignedIn } = useAuth();
 	const [name, setName] = useState("");
 	const [avatarUrl, setAvatarUrl] = useState("");
+	const [showAvatarModal, setShowAvatarModal] = useState(false);
 	const isMobile = useMediaQuery({ query: "(max-width: 950px)" });
 	const pathname = usePathname();
 
 	useEffect(() => {
-		if (typeof window !== "undefined" && isSignedIn) {
+		const updateAvatar = () => {
 			const storedName = localStorage.getItem("name") ?? "";
+			const storedStyle = localStorage.getItem("avatarStyle") ?? "avataaars";
+			const storedBg = localStorage.getItem("avatarBg") ?? "b6e3f4";
 			setName(storedName);
 
-
-			const seed = generateAvatarSeed(storedName);
-			const newAvatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4`;
+			const seed = storedName.toLowerCase().replace(/[^a-z0-9]/g, "");
+			const newAvatarUrl = `https://api.dicebear.com/7.x/${storedStyle}/svg?seed=${seed}&backgroundColor=${storedBg}`;
 			setAvatarUrl(newAvatarUrl);
+		};
 
-		} else {
-			setName("");
-			setAvatarUrl("");
-		}
-	}, [isSignedIn]); 
+		updateAvatar();
+
+		window.addEventListener("storage", updateAvatar);
+		return () => window.removeEventListener("storage", updateAvatar);
+	}, [isSignedIn]);
 
 	const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
@@ -64,7 +63,7 @@ const Navbar = () => {
 		localStorage.removeItem("name");
 		setIsSignedIn(false);
 		setName("");
-		setAvatarUrl("");	
+		setAvatarUrl("");
 	};
 
 	const NavLinks = () => (
@@ -93,10 +92,13 @@ const Navbar = () => {
 						className="p-0 text-white border border-white px-4 hover:text-black hover:bg-white duration-300 rounded-xl"
 					>
 						<Avatar className="h-8 w-8">
-              				<AvatarImage src={avatarUrl} alt={name} />
-              					<AvatarFallback>{name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span>{name}</span>
+							<AvatarImage
+								src={avatarUrl}
+								alt={name}
+							/>
+							<AvatarFallback>{name.charAt(0)}</AvatarFallback>
+						</Avatar>
+						<span>{name}</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -105,6 +107,9 @@ const Navbar = () => {
 				>
 					<DropdownMenuItem className="font-bold underline">
 						Logged in as {name}
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link href="/profile">Edit Avatar</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={handleLogout}

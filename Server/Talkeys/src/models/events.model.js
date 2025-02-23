@@ -1,6 +1,20 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
+	isTeamEvent: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	isPaid: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	isLive: {
+		type: Boolean,
+		default: false,
+	},
 	name: {
 		type: String,
 		required: true,
@@ -10,6 +24,12 @@ const eventSchema = new mongoose.Schema({
 		required: true,
 		enum: ["esports", "music", "arts", "food", "tech", "other"],
 	},
+	ticketPrice: {
+		type: Number,
+		required() {
+			return this.isPaid;
+		},
+	},
 	mode: {
 		type: String,
 		enum: ["offline", "online"],
@@ -17,20 +37,12 @@ const eventSchema = new mongoose.Schema({
 	},
 	location: {
 		type: String,
-		required: function () {
+		required() {
 			return this.mode === "offline";
 		},
 	},
 	duration: {
 		type: String,
-		required: true,
-	},
-	ticketPrice: {
-		type: Number,
-		required: true,
-	},
-	totalSeats: {
-		type: Number,
 		required: true,
 	},
 	slots: {
@@ -42,12 +54,6 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		enum: ["public", "private"],
 		required: true,
-	},
-	prizes: {
-		type: String,
-	},
-	photographs: {
-		type: [String],
 	},
 	startDate: {
 		type: Date,
@@ -61,12 +67,21 @@ const eventSchema = new mongoose.Schema({
 		type: Date,
 		required: true,
 	},
-	eventDescription: {
+	totalSeats: {
+		type: Number,
+		required: true,
+	},
+	
+	
+	//additional media and information
+	photographs: {
+		type: [String],
+	},
+	prizes: {
 		type: String,
 	},
-	isLive: {
-		type: Boolean,
-		default: false,
+	eventDescription: {
+		type: String,
 	},
 	paymentQRcode: {
 		type: String,
@@ -76,6 +91,28 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	sponserImages: {
+		type: [String],
+	},
+	registrationCount: {
+		type: Number,
+		default: 0,
+	},
+
+	//organizer details
+	organizerName: {
+		type: String,
+		required: false,
+	},
+	organizerEmail: {
+		type: String,
+		required: false,
+	},
+	organizerContact: {
+		type: String,
+		required: false,
+	},
+
 });
 
 const Event = mongoose.model("Event", eventSchema);

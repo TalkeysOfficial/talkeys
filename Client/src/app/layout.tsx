@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
+import { ScrollProgress } from "@/components/magicui/scroll-progress";
 
 import { AuthProvider } from "@/lib/authContext";
 
@@ -36,14 +37,13 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased ${urbanist.className}`}
 				style={{
 					backgroundImage: `url(${image.src})`,
-					// backgroundSize: "cover",
-					// backgroundRepeat: "no-repeat",
 					backgroundAttachment: "fixed",
 					width: "100%",
 				}}
 			>
 				<AuthProvider>
 					<Navbar />
+					<ScrollProgress className="top-[85px] h-0.5" />
 					{children}
 					<Analytics />
 					<Footer />

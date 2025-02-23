@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-ignore
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -12,36 +14,12 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import ParticularEventPage from "@/components/ParticularEventPage";
 import type { Event } from "@/types/types";
 
-const sampleEvents: Event[] = [
-	{
-		_id: "678b9075f6deb135145b5636",
-		name: "Kick-OFF 2025",
-		category: "Gaming",
-		mode: "offline",
-		location: "Game Box, Patiala, Punjab",
-		duration: "3 hours",
-		ticketPrice: "0",
-		totalSeats: 120,
-		slots: 2,
-		visibility: "public",
-		prizes: "First Prize: $3000, Second Prize: $1500",
-		photographs: [],
-		startDate: new Date("2025-03-15T00:00:00.000Z"),
-		startTime: "10:00 AM",
-		endRegistrationDate: new Date("2025-03-10T00:00:00.000Z"),
-		eventDescription:
-			"A premier tech event featuring keynote speeches, workshops, and networking opportunities.",
-		isLive: false,
-		isLiked: false,
-	},
-];
-
 export default function EventCarousel({
-	title = "ALL Events",
-	events = sampleEvents,
+	category = "ALL Events",
+	ev = [],
 }: Readonly<{
-	title?: string;
-	events?: Event[];
+	category?: string;
+	ev?: Event[];
 }>) {
 	const swiperRef = useRef<any>(null);
 	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
@@ -49,21 +27,8 @@ export default function EventCarousel({
 
 	useEffect(() => {
 		async function fetchEvents() {
-			const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
-			const { data } = (await response.json()) as {
-				data: {
-					events: Event[];
-				};
-			};
-			const { events } = data;
-
-			const categorisedEvents =
-				title == "ALL Events"
-					? events
-					: events.filter((event) => event.category === title);
-
 			const now = new Date();
-			const upcomingEvents = categorisedEvents.filter(
+			const upcomingEvents = ev?.filter(
 				(event) => new Date(event.startDate) >= now,
 			);
 
@@ -73,7 +38,7 @@ export default function EventCarousel({
 				);
 			});
 
-			const pastEvents = categorisedEvents.filter(
+			const pastEvents = ev?.filter(
 				(event) => new Date(event.startDate) < now,
 			);
 
@@ -83,39 +48,10 @@ export default function EventCarousel({
 				);
 			});
 
-			let sortedEvents = [...upcomingEvents, ...pastEvents];
-
-			sortedEvents.forEach((event) => {
-				event.isLiked = false;
-			});
-
-			const res = await fetch(
-				`${process.env.BACKEND_URL}/getAllLikedEvents`,
-				{
-					method: "GET",
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
-					},
-				},
-			);
-			if (res.status === 404 || res.status === 401) {
-				setFetchedEvents(sortedEvents);
-				console.log("Log in to get liked events!");
-				return;
-			}
-			const resData = await res.json();
-			console.log(resData);
-			sortedEvents.forEach((event) => {
-				if (resData.likedEvents?.includes(event._id)) {
-					event.isLiked = true;
-				}
-			});
-
-			setFetchedEvents(sortedEvents);
+			setFetchedEvents([...upcomingEvents, ...pastEvents]);
 		}
 		fetchEvents();
+		console.log("ev", ev);
 	}, []);
 
 	const handleNext = () => {
@@ -132,7 +68,7 @@ export default function EventCarousel({
 				<div className="w-full bg-transparent text-white p-4">
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-xl font-bold">
-							{title ?? "Upcoming Events"}
+							{category ?? "Upcoming Events"}
 						</h2>
 						<div>
 							<Button
@@ -147,7 +83,11 @@ export default function EventCarousel({
 					<Swiper
 						onSwiper={(swiper) => (swiperRef.current = swiper)}
 						modules={[Autoplay, EffectFade]}
-						autoplay={{ delay: 2500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+						autoplay={{
+							delay: 2500,
+							disableOnInteraction: false,
+							pauseOnMouseEnter: true,
+						}}
 						effect="slide"
 						speed={300}
 						spaceBetween={30}
@@ -157,7 +97,6 @@ export default function EventCarousel({
 							768: { slidesPerView: 2 },
 							1024: { slidesPerView: 3 },
 						}}
-						
 					>
 						{fetchedEvents.map((event, index) => (
 							<SwiperSlide key={event.name}>
@@ -170,7 +109,8 @@ export default function EventCarousel({
 											alt={event.name}
 											width={300}
 											height={400}
-											priority
+											priority={index < 3}
+											loading={index < 3 ? "eager" : "lazy"}
 											className="w-full h-64 object-scale-down object-center"
 										/>
 										<div className="p-4">

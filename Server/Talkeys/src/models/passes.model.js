@@ -1,18 +1,43 @@
 const mongoose = require("mongoose");
 
 const passSchema = new mongoose.Schema({
-	Team: {
+	// user and event details
+	userId: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "TeamSchema",
-	},
-	isScanned: {
-		type: Boolean,
-		default: false,
+		ref: "User",
+		required: true,
 	},
 	eventId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Event",
 		required: true,
+	},
+	Team: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "TeamSchema",
+	},
+	status: {
+		type: String,
+		enum: ["active", "revoked", "expired","pending"],
+		default: "pending",
+	},
+
+
+	// pass details
+	isScanned: {
+		type: Boolean,
+		default: false,
+	},
+	timeScanned: {
+		type: String,
+		default: null,
+	},
+
+
+	// backend information
+	dateCreated: {
+		type: Date,
+		default: Date.now,
 	},
 	slotID: {
 		type: Number,
@@ -23,29 +48,11 @@ const passSchema = new mongoose.Schema({
 		},
 		default: 1,
 	},
-	userId: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "User",
-		required: true,
-	},
-	timeScanned: {
-		type: String,
-		default: null,
-	},
-	dateCreated: {
-		type: Date,
-		default: Date.now,
-	},
 	passType: {
 		type: String,
 		enum: ["VIP", "General", "Staff"],
 		// required: true,
 		default: "General",
-	},
-	status: {
-		type: String,
-		enum: ["active", "revoked", "expired"],
-		default: "active",
 	},
 });
 

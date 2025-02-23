@@ -1,21 +1,19 @@
-# Team Creation API Endpoint
-
+z# Team Creation API Endpoint
 ## Endpoint Description
-Creates a new team with a unique team code and adds the current user as the team leader.
-
+Creates a new team with a unique team code and adds the current user as the team leader
 ## Request Payload
 ```json
-{
-    "teamName": "HelloHimanish",
+{   "teamName": "HelloHimanish",
     "newPhoneNumber": "9814956560"
 }
 ```
 
-### Request Parameters
+n
+### Request Parameterr
 - `teamName` (String, Required): Name of the team
 - `newPhoneNumber` (String, Required): User's phone number
 
-## Response
+## Responses
 ```json
 {
     "team": {

@@ -20,7 +20,9 @@ const nextConfig = {
 		BACKEND_URL: process.env.BACKEND_URL,
 	},
 	images: {
-		domains: ["res.cloudinary.com"],
+		domains: ["res.cloudinary.com", "api.dicebear.com"],
+		dangerouslyAllowSVG : true,
+		contentSecurityPolicy : "default-src 'self'; img-src * data:blob:;",
 	},
 };
 

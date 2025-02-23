@@ -23,7 +23,6 @@ export const authOptions: NextAuthOptions = {
 	},
 	callbacks: {
 		async signIn({ account, profile }) {
-			console.log(account, profile);
 			if (account?.id_token) {
 				setCookie("jwt", account.id_token, {
 					httpOnly: true,
