@@ -138,7 +138,7 @@ const Navbar = () => {
 						alt="Logo"
 						width={180}
 						height={180}
-						quality={100}
+						quality={100}	
 						priority
 						objectPosition="center"
 						className="py-4 sm:py-3"

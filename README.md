@@ -1,4 +1,4 @@
-z# Team Creation API Endpoint
+# Team Creation API Endpoint
 ## Endpoint Description
 Creates a new team with a unique team code and adds the current user as the team leader
 ## Request Payload
@@ -17,7 +17,7 @@ n
 ```json
 {
     "team": {
-        "teamName": "HelloHimanish",
+        "teamName": "HelloHimanis",
         "teamLeader": "678a933d0b89cdf0e2dcba3f",
         "teamCode": "AL7IKK",
         "teamMembers": [
