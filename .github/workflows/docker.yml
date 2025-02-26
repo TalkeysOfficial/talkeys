@@ -66,7 +66,7 @@ jobs:
       - name: Clone and Replace Content in himanish Repo
         run: |
           rm -rf himanish-repo
-          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git himanish-repo
+          git clone https://ShreyasMahajann:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git himanish-repo
           
           # Remove everything except .git directory
           find himanish-repo -mindepth 1 ! -regex '^himanis-repo/.git\(/.*\)?' -delete
