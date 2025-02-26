@@ -69,9 +69,9 @@ jobs:
           cd temp_repo
           rm -rf .github/workflows  # Remove workflow files
           git config --global user.email "redacted@example.com"
-          git config --global user.name "ShreyasMahajann"
-          git remote add backup https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git
-          git branch -M main
+          git config --global user.name "himanishpuri"
+          git remote add backup https://himanishpuri:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git
+          git branch -M himanish
           git add .  # Stage changes (important for removed files)
           git commit -m "Overriding with latest changes from talkeys repo"
           git push --force backup main
