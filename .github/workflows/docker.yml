@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          repository: TalkeysOfficial/talkeys
 
       - name: Install SSH client
         run: |
@@ -37,7 +39,7 @@ jobs:
 
       - name: SSH into server and git pull
         run: |
-          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/Harsh5840/talkeys.git && sudo docker compose up --build -d'
+          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git && sudo docker compose up --build -d'
           echo "Allowing Go Fiber Program to start properly"
           echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
@@ -60,3 +62,16 @@ jobs:
       - name: cleanUP
         run: |
           echo y | docker system prune
+
+      - name: Replace Content and Push to talkeyz Repo
+        run: |
+          rm -rf talkeyz-deploy
+          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git talkeyz-deploy
+          rm -rf talkeyz-deploy/*
+          cp -r ./* talkeyz-deploy/
+          cd talkeyz-deploy
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Replacing repository content with latest from TalkeysOfficial/talkeys"
+          git push origin main
