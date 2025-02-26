@@ -24,6 +24,8 @@
         "express": "^4.17.1",
         "express-async-handler": "^1.2.0",
         "express-custom-error": "^1.8.4",
+        "express-rate-limit": "^7.5.0",
+        "express-validator": "^7.2.1",
         "google-auth-library": "^9.15.0",
         "has-keys": "^0.1.0",
         "helmet": "^3.21.2",
