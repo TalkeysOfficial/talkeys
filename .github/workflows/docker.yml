@@ -90,7 +90,7 @@ jobs:
           rsync -av --exclude=.git ../ himanish-repo/
       
           echo "Configuring git user..."
-          git config user.name "ShreyasMahajan"
+          git config user.name "ShreyasMahajann"
           git config user.email "redacted@example.com"
       
           echo "Checking for changes..."
