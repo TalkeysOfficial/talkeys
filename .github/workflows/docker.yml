@@ -63,13 +63,14 @@ jobs:
         run: |
           echo y | docker system prune
 
-      - name: Replace Content and Push to talkeyz Repo
+      - name: Clone and Replace Content in himanish Repo
         run: |
-          rm -rf talkeyz-deploy
-          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git talkeyz-deploy
-          rm -rf talkeyz-deploy/*
-          cp -r ./* talkeyz-deploy/
-          cd talkeyz-deploy
+          rm -rf himanish-repo
+          mkdir himanish-repo
+          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git himanish-repo
+          rm -rf himanish-repo/*
+          cp -r ./* himanish-repo/
+          cd himanish-repo
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
