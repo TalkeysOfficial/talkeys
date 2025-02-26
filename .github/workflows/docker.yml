@@ -63,21 +63,36 @@ jobs:
         run: |
           echo y | docker system prune
 
-      - name: clone and Replace Content in himanish Repo
+      - name: Clone and Replace Content in himanish Repo
         run: |
           echo "Starting repository sync..."
           rm -rf himanish-repo
           mkdir himanish-repo
           echo "Cloning himanish repo..."
           git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git himanish-repo
-          echo "Removing old contents except .git..."
-          find himanish-repo -mindepth 1 ! -name ".git" -exec rm -rf {} +
-          echo "Copying new contents..."
-          rsync -av --exclude=.git ./ himanish-repo/
           cd himanish-repo
+      
+          echo "Checking for existing branches..."
+          git fetch origin
+          if git show-ref --verify --quiet refs/heads/main; then
+            echo "Main branch exists. Switching to main."
+            git checkout main
+          else
+            echo "Main branch does not exist. Creating it."
+            git checkout -b main
+            git push origin main
+          fi
+      
+          echo "Removing old contents except .git..."
+          find . -mindepth 1 ! -name ".git" -exec rm -rf {} +
+      
+          echo "Copying new contents..."
+          rsync -av --exclude=.git ../ himanish-repo/
+      
           echo "Configuring git user..."
-          git config user.name "ShreyasMahajann"
+          git config user.name "ShreyasMahajan"
           git config user.email "redacted@example.com"
+      
           echo "Checking for changes..."
           git status
           git add .
@@ -88,4 +103,5 @@ jobs:
             git commit -m "Replacing repository content with latest from TalkeysOfficial/talkeys"
             git push origin main
           fi
+      
           echo "Repository sync complete."
