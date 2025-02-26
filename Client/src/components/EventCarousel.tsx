@@ -107,11 +107,11 @@ export default function EventCarousel({
 												event.photographs?.[0] ?? placeholderImage
 											}
 											alt={event.name}
-											width={300}
-											height={400}
+											width={350}
+											height={450}
 											priority={index < 3}
 											loading={index < 3 ? "eager" : "lazy"}
-											className="h-40 aspect-square object-cover object-center"
+											className="w-full max-w-72 mx-auto aspect-square object-contain object-center"
 										/>
 										<div className="p-4">
 											<div className="text-sm text-purple-400 mb-2 max-sm:hidden">

@@ -25,7 +25,10 @@ export default function Home() {
 					};
 				};
 				const { events } = data;
-				setFetchedEvents(events);
+				const upcomingEvents = events.filter(
+					(event) => new Date(event.startDate) >= new Date(),
+				);
+				setFetchedEvents(upcomingEvents);
 			} catch (error) {
 				console.error("Error fetching events:", error);
 			} finally {
@@ -39,7 +42,12 @@ export default function Home() {
 	return (
 		<GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
 			<Hero />
-			{!loading && <EventCarousel ev={fetchedEvents} />}
+			{!loading && (
+				<EventCarousel
+					ev={fetchedEvents}
+					category="Upcoming Events"
+				/>
+			)}
 			<CommunityCarousel />
 			<InfluencerCarousal />
 			<HostEventSection />
