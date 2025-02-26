@@ -66,12 +66,19 @@ jobs:
       - name: Clone and Replace Content in himanish Repo
         run: |
           rm -rf himanish-repo
-          mkdir himanish-repo
           git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git himanish-repo
+          
+          # Remove everything except .git directory
+          find himanish-repo -mindepth 1 ! -regex '^himanis-repo/.git\(/.*\)?' -delete
+
+          # Copy latest content while excluding .git
           rsync -av --exclude=himanis-repo --exclude=.git ./ himanish-repo/
+          
           cd himanish-repo
+          
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          
           git add .
-          git commit -m "Replacing repository content with latest from TalkeysOfficial/talkeys"
+          git commit -m "Replacing repository content with latest from TalkeysOfficial/talkeys" || echo "No changes to commit"
           git push origin main
