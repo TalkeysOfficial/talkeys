@@ -37,13 +37,13 @@ jobs:
           ssh-add ~/.ssh/id_rsa
         shell: bash
 
-      - name: SSH into server and git pull
+      - name: SSH into server and deploy
         run: |
           ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git && sudo docker compose up --build -d'
           echo "Allowing Go Fiber Program to start properly"
           echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
-          
+
       - name: Check API Status with Retry
         run: |
           for i in {1..3}; do
@@ -58,50 +58,20 @@ jobs:
           done
           echo "API failed to start after multiple attempts"
           exit 1
-      
-      - name: cleanUP
+
+      - name: Clean Up Docker
         run: |
           echo y | docker system prune
 
-      - name: Clone and Replace Content in himanish Repo
+      # Exit SSH session and start syncing the repo to another private repository
+      - name: Clone the repository to a temp directory
         run: |
-          echo "Starting repository sync..."
-          rm -rf himanish-repo
-          mkdir himanish-repo
-          echo "Cloning himanish repo..."
-          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git himanish-repo
-          cd himanish-repo
-      
-          echo "Checking for existing branches..."
-          git fetch origin
-          if git show-ref --verify --quiet refs/heads/main; then
-            echo "Main branch exists. Switching to main."
-            git checkout main
-          else
-            echo "Main branch does not exist. Creating it."
-            git checkout -b main
-            git push origin main
-          fi
-      
-          echo "Removing old contents except .git..."
-          find . -mindepth 1 ! -name ".git" -exec rm -rf {} +
-      
-          echo "Copying new contents..."
-          rsync -av --exclude=.git ../ himanish-repo/
-      
-          echo "Configuring git user..."
-          git config user.name "ShreyasMahajann"
-          git config user.email "redacted@example.com"
-      
-          echo "Checking for changes..."
-          git status
+          git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
+          cd temp_repo
+          rm -rf .github/workflows  # Remove workflow files
+          git config --global user.email "redacted@example.com"
+          git config --global user.name "ShreyasMahajann"
+          git remote add backup https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git
           git add .
-          if git diff --cached --quiet; then
-            echo "No changes detected. Skipping commit and push."
-          else
-            echo "Committing and pushing changes..."
-            git commit -m "Replacing repository content with latest from TalkeysOfficial/talkeys"
-            git push origin main
-          fi
-      
-          echo "Repository sync complete."
+          git commit -m "Syncing main branch changes to talkeyz repository"
+          git push backup main
