@@ -63,7 +63,6 @@ jobs:
         run: |
           echo y | docker system prune
 
-      # Exit SSH session and start syncing the repo to another private repository
       - name: Clone the repository to a temp directory
         run: |
           git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
@@ -72,6 +71,8 @@ jobs:
           git config --global user.email "redacted@example.com"
           git config --global user.name "ShreyasMahajann"
           git remote add backup https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/himanishpuri/talkeyz.git
-          git add .
-          git commit -m "Syncing main branch changes to talkeyz repository"
-          git push backup main
+          git branch -M main
+          git add .  # Stage changes (important for removed files)
+          git commit -m "Overriding with latest changes from talkeys repo"
+          git push --force backup main
+
