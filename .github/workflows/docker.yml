@@ -74,5 +74,5 @@ jobs:
           git branch -M himanish
           git add .  # Stage changes (important for removed files)
           git commit -m "Overriding with latest changes from talkeys repo"
-          git push --force backup main
+          git push --force backup himanish
 
