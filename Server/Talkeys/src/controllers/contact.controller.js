@@ -1,6 +1,6 @@
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
-const ContactMessage = require('../models/ContactMessage');
+const ContactMessage = require('../models/contactUs.model');
 
 const contactLimiter = rateLimit({
     windowMs: 60 * 1000, 
