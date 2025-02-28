@@ -43,5 +43,6 @@ router.post("/payment/result", getPaymentResult);
 
 // mera code matt hattayo
 router.post("/addEvent", Events.addEvent);
+router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
 
 module.exports = router;
