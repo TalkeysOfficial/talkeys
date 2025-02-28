@@ -7,7 +7,11 @@ const Team = require("./../controllers/team.controller.js");
 const contact = require("./../controllers/contact.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { isTeamOK } = require("../middleware/Team.middleware");
-const { initiatePayment, verifyPayment, getPaymentResult } = require("./../controllers/payment.controller.js");
+const {
+	initiatePayment,
+	verifyPayment,
+	getPaymentResult,
+} = require("./../controllers/payment.controller.js");
 
 router.get("/getEvents", Events.getEvents);
 
@@ -27,13 +31,17 @@ router.post("/joinTeam", Team.joinTeam);
 router.post("/createTeam", Team.createTeam);
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/getTeam", Team.getTeam);
-router.post("/reqEvent", Events.reqEventt);   
+router.post("/reqEvent", Events.reqEventt);
 router.use(checkRole(["admin"]));
 router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
-module.exports = router;
-router.post("/payment/:bookingId", auth.verifyToken, initiatePayment);
+router.post("/payment/:bookingId", initiatePayment);
 router.post("/payment/verify", verifyPayment);
-router.post("/payment/result", auth.verifyToken, getPaymentResult);
+router.post("/payment/result", getPaymentResult);
+
+// mera code matt hattayo
+router.post("/addEvent", Events.addEvent);
+
+module.exports = router;
