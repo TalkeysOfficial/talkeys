@@ -64,20 +64,18 @@ function EventPage() {
 	return (
 		<AnimatePresence>
 			<motion.div
-				className="py-36"
+				className="flex flex-col min-h-screen"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
 				transition={{ duration: 1.05 }}
 			>
-				<h1 className="text-white text-4xl px-10">Explore Events</h1>
-				{Object.entries(groupedEvents).map(([category, ev]) => (
-					<EventCarousel
-						key={category}
-						category={category}
-						ev={ev}
-					/>
-				))}
+				<div className="flex-grow py-36">
+					<h1 className="text-white text-4xl px-10">Explore Events</h1>
+					{Object.entries(groupedEvents).map(([category, ev]) => (
+						<EventCarousel key={category} category={category} ev={ev} />
+					))}
+				</div>
 			</motion.div>
 		</AnimatePresence>
 	);
