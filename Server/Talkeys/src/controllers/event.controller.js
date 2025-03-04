@@ -71,12 +71,10 @@ const getEvents = asyncHandler(async (req, res) => {
 			search = "",
 			minPrice,
 			maxPrice,
-			isLive,
 		} = req.query;
 
 		// Build query
 		const query = {};
-		if (isLive !== undefined) query.isLive = isLive === 'true';
 
 		if (mode) query.mode = mode;
 		if (category) query.category = category;
