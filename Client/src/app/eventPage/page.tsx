@@ -1,6 +1,7 @@
 // @ts-nocheck
 // @ts-ignore
 
+
 "use client";
 
 import EventCarousel from "@/components/EventCarousel";
