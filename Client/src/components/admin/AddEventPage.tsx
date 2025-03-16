@@ -65,7 +65,6 @@ const AddEventPage: React.FC = () => {
 	const mode = watch("mode");
 
 	const onSubmit = async (data: FormData) => {
-
 		const uploadToCloudinary = async (files: FileList | null) => {
 			if (!files) return [];
 			const uploadedFiles: string[] = [];
@@ -74,7 +73,7 @@ const AddEventPage: React.FC = () => {
 				const formData = new FormData();
 				formData.append("file", file);
 				formData.append("upload_preset", "talkeys");
-			
+
 				try {
 					const response = await fetch(
 						`https://api.cloudinary.com/v1_1/drvoynt07/image/upload`,
@@ -84,7 +83,7 @@ const AddEventPage: React.FC = () => {
 						},
 					);
 					const result = await response.json();
-					uploadedFiles.push(result.secure_url); 
+					uploadedFiles.push(result.secure_url);
 				} catch (error) {
 					console.error("Error uploading to Cloudinary", error);
 				}
@@ -109,7 +108,7 @@ const AddEventPage: React.FC = () => {
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(eventData), 
+				body: JSON.stringify(eventData),
 			});
 
 			if (response.ok) {
@@ -120,7 +119,7 @@ const AddEventPage: React.FC = () => {
 			}
 		} catch (error) {
 			alert("Could Not add Event");
-            alert(error);
+			alert(error);
 		}
 	};
 

@@ -4,8 +4,8 @@ import EventCarousel from "@/components/EventCarousel";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
 import { motion, AnimatePresence } from "framer-motion";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function EventPage() {
 	const [groupedEvents, setGroupedEvents] = useState<Record<string, Event[]>>(
@@ -14,6 +14,7 @@ function EventPage() {
 	const [showPastEvents, setShowPastEvents] = useState(false);
 	const [allEvents, setAllEvents] = useState<Event[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
 	useEffect(() => {
 		async function fetchEvents() {
@@ -80,73 +81,144 @@ function EventPage() {
 		);
 
 		setGroupedEvents(grouped);
+		setActiveCategory(null);
 	}, [showPastEvents, allEvents]);
+
+	const categories = Object.keys(groupedEvents);
+
+	const containerVariants = {
+		hidden: { opacity: 0 },
+		visible: {
+			opacity: 1,
+			transition: {
+				staggerChildren: 0.1,
+				delayChildren: 0.2,
+			},
+		},
+		exit: { opacity: 0 },
+	};
+
+	const itemVariants = {
+		hidden: { y: 20, opacity: 0 },
+		visible: { y: 0, opacity: 1 },
+		exit: { y: -20, opacity: 0 },
+	};
 
 	return (
 		<AnimatePresence mode="wait">
 			<motion.div
-				className="flex flex-col min-h-screen"
+				className="flex flex-col min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8"
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
-				transition={{ duration: 1.05 }}
+				transition={{ duration: 0.5 }}
 			>
-				<div className="flex-grow py-36">
-					<div className="px-10 mb-8">
-						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-							<h1 className="text-white text-4xl">
-								{showPastEvents ? "Past Events" : "Live Events"}
-							</h1>
+				<motion.div
+					className="mb-8"
+					initial={{ y: -20, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					transition={{ delay: 0.1, duration: 0.5 }}
+				>
+					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+						<h1 className="text-white text-3xl sm:text-4xl font-bold">
+							{showPastEvents ? "Past Events" : "Live Events"}
+						</h1>
 
-							<div className="flex items-center space-x-4">
-								{/* <Label
-									htmlFor="event-mode"
-									className="text-white"
-								>
-									{showPastEvents
-										? "Showing Past Events"
-										: "Showing Live Events"}
-								</Label> */}
-								<button
-									className="bg-gray-900 hover:bg-black duration-500 text-white font-bold py-1 px-3 rounded"
-									onClick={() => setShowPastEvents(!showPastEvents)}
-								>
-									{showPastEvents ? "Switch to Live Events" : "Switch to Past Events"}
-								</button>
-							</div>
-						</div>
-
-						{isLoading ? (
-							<div className="flex justify-center py-20">
-								<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-							</div>
-						) : Object.keys(groupedEvents).length > 0 ? (
-							<AnimatePresence mode="wait">
-								<motion.div
-									key={showPastEvents ? "past" : "live"}
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0 }}
-									transition={{ duration: 0.3 }}
-								>
-									{Object.entries(groupedEvents).map(
-										([category, ev]) => (
-											<EventCarousel
-												key={category}
-												category={category}
-												ev={ev}
-											/>
-										),
-									)}
-								</motion.div>
-							</AnimatePresence>
-						) : (
-							<p className="text-gray-400">
-								No {showPastEvents ? "past" : "live"} events available.
-							</p>
-						)}
+						<Button
+							variant="outline"
+							className="bg-gray-900 hover:bg-black hover:text-white duration-300 text-white font-medium py-2 px-4 rounded-lg border border-purple-500"
+							onClick={() => setShowPastEvents(!showPastEvents)}
+						>
+							{showPastEvents
+								? "Switch to Live Events"
+								: "Switch to Past Events"}
+						</Button>
 					</div>
-				</div>
+
+					{categories.length > 1 && (
+						<Tabs
+							defaultValue="all"
+							className="w-full mb-6"
+						>
+							<TabsList className="p-1 rounded-lg overflow-x-auto flex w-full max-w-full no-scrollbar">
+								<TabsTrigger
+									value="all"
+									onClick={() => setActiveCategory(null)}
+									className="data-[state=active]:bg-purple-600 text-white"
+								>
+									All Categories
+								</TabsTrigger>
+								{categories.map((category) => (
+									<TabsTrigger
+										key={category}
+										value={category}
+										onClick={() => setActiveCategory(category)}
+										className="data-[state=active]:bg-purple-600 text-white"
+									>
+										{category}
+									</TabsTrigger>
+								))}
+							</TabsList>
+						</Tabs>
+					)}
+				</motion.div>
+
+				{isLoading ? (
+					<div className="flex justify-center py-20">
+						<motion.div
+							className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"
+							animate={{ rotate: 360 }}
+							transition={{
+								duration: 1,
+								repeat: Number.POSITIVE_INFINITY,
+								ease: "linear",
+							}}
+						/>
+					</div>
+				) : Object.keys(groupedEvents).length > 0 ? (
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={showPastEvents ? "past" : "live"}
+							variants={containerVariants}
+							initial="hidden"
+							animate="visible"
+							exit="exit"
+						>
+							{activeCategory ? (
+								<motion.div
+									key={activeCategory}
+									variants={itemVariants}
+								>
+									<EventCarousel
+										category={activeCategory}
+										ev={groupedEvents[activeCategory]}
+									/>
+								</motion.div>
+							) : (
+								Object.entries(groupedEvents).map(([category, ev]) => (
+									<motion.div
+										key={category}
+										variants={itemVariants}
+									>
+										<EventCarousel
+											category={category}
+											ev={ev}
+										/>
+									</motion.div>
+								))
+							)}
+						</motion.div>
+					</AnimatePresence>
+				) : (
+					<motion.p
+						className="text-gray-400 text-center py-12 text-lg"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.3 }}
+					>
+						No {showPastEvents ? "past" : "live"} events available.
+					</motion.p>
+				)}
 			</motion.div>
 		</AnimatePresence>
 	);
