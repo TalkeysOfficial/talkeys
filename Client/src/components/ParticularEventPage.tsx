@@ -615,10 +615,18 @@ export default function ParticularEventPage({
 									aria-label="Share event"
 									className="hover:text-purple-400 transition-colors"
 									onClick={() => {
-										navigator.clipboard.writeText(
-											window.location.href,
-										);
-									}}
+										if (navigator.share) {
+										  navigator
+											.share({
+											  title: event.name,
+											  text: event.eventDescription,
+											  url: `${window.location.origin}/event/${event._id}`,
+											})
+											.catch((err) => console.error("Error sharing:", err));
+										} else {
+										  console.log("Web Share API not supported");
+										}
+									  }}
 								>
 									<Send className="w-5 h-5 text-gray-400" />
 								</button>

@@ -74,7 +74,7 @@ const getEvents = asyncHandler(async (req, res) => {
 		} = req.query;
 
 		// Build query
-		const query = { isLive: true }; // Only fetch events where isLive is true
+		const query = {};
 
 		if (mode) query.mode = mode;
 		if (category) query.category = category;
@@ -135,8 +135,6 @@ const getEvents = asyncHandler(async (req, res) => {
 		});
 	}
 });
-
-// Helper function to get a single event
 const getEventById = async (req, res) => {
 	try {
 		const { id } = req.params;
