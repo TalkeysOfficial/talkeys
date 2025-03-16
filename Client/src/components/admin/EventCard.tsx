@@ -1,13 +1,14 @@
 "use client";
 
 import type React from "react";
+
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import type { Event } from "@/types/types";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users, Trash2 } from "lucide-react";
 
 interface EventCardProps {
 	event: Event;
@@ -48,7 +49,6 @@ const EventCard: React.FC<EventCardProps> = ({
 			variants={cardVariants}
 			animate={deleteMode ? "deleteMode" : "normal"}
 			whileHover={deleteMode ? "deleteMode" : "hover"}
-			onClick={() => deleteMode && onDelete(event._id)}
 			className={`group ${deleteMode ? "cursor-pointer" : ""}`}
 		>
 			<Card className="bg-gray-800/80 text-white border-gray-700 overflow-hidden h-full transition-all duration-300 hover:border-purple-500">
@@ -57,7 +57,8 @@ const EventCard: React.FC<EventCardProps> = ({
 						<Image
 							src={
 								event.photographs?.[0] ||
-								"/placeholder.svg?height=160&width=320"
+								"/placeholder.svg?height=160&width=320" ||
+								"/placeholder.svg"
 							}
 							alt={event.name}
 							fill
@@ -75,6 +76,22 @@ const EventCard: React.FC<EventCardProps> = ({
 							{isLive ? "Live" : "Past"}
 						</Badge>
 					</div>
+
+					{deleteMode && (
+						<motion.div
+							className="absolute top-2 left-2 bg-red-500 rounded-full p-1.5"
+							initial={{ opacity: 0, scale: 0 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0 }}
+							transition={{ duration: 0.2 }}
+							onClick={(e) => {
+								e.stopPropagation();
+								onDelete(event._id);
+							}}
+						>
+							<Trash2 className="w-4 h-4 text-white" />
+						</motion.div>
+					)}
 				</div>
 
 				<CardHeader className="p-4 pb-2">

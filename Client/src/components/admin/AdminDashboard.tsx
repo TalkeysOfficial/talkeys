@@ -1,20 +1,11 @@
 "use client";
 
 import type React from "react";
+
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import SearchBar from "./SearchBar";
-import EventList from "./EventList";
-import DeleteModeToggle from "./DeleteModeToggle";
+import { motion } from "framer-motion";
 import type { Event } from "@/types/types";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	CalendarDays,
 	Users,
@@ -22,6 +13,14 @@ import {
 	Calendar,
 	Trash2,
 } from "lucide-react";
+
+// Import shared components
+import PageHeader from "@/components/ui/shared/PageHeader";
+import StatsCard from "@/components/ui/shared/StatsCard";
+import TabsContainer from "@/components/ui/shared/TabsContainer";
+import EventsGrid from "@/components/ui/shared/EventsGrid";
+import SearchInput from "@/components/ui/shared/SearchInput";
+import DeleteModeToggle from "./DeleteModeToggle";
 
 const AdminDashboard: React.FC = () => {
 	const [events, setEvents] = useState<Event[] | null>();
@@ -118,244 +117,119 @@ const AdminDashboard: React.FC = () => {
 		}
 	};
 
-	// Animation variants
-	const containerVariants = {
-		hidden: { opacity: 0 },
-		visible: {
-			opacity: 1,
-			transition: {
-				when: "beforeChildren",
-				staggerChildren: 0.1,
-				duration: 0.3,
-			},
-		},
-	};
+	// Create tab content components
+	const createTabContent = (events: Event[] | undefined, title: string) => (
+		<Card className="bg-gray-900/60 border-gray-700">
+			<CardHeader className="pb-3">
+				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+					<CardTitle className="text-xl text-white">{title}</CardTitle>
+					<SearchInput
+						onSearch={setSearchTerm}
+						placeholder="Search events..."
+					/>
+				</div>
+			</CardHeader>
+			<CardContent>
+				<EventsGrid
+					events={events}
+					onDelete={handleDelete}
+					deleteMode={deleteMode}
+					isLoading={isLoading}
+				/>
+			</CardContent>
+		</Card>
+	);
 
-	const itemVariants = {
-		hidden: { y: 20, opacity: 0 },
-		visible: {
-			y: 0,
-			opacity: 1,
-			transition: { duration: 0.5 },
+	// Define tabs
+	const tabs = [
+		{
+			value: "all",
+			label: "All Events",
+			content: createTabContent(filteredEvents, "All Events"),
 		},
-	};
+		{
+			value: "live",
+			label: "Live Events",
+			content: createTabContent(
+				filteredEvents?.filter((event) => event.isLive),
+				"Live Events",
+			),
+		},
+		{
+			value: "past",
+			label: "Past Events",
+			content: createTabContent(
+				filteredEvents?.filter((event) => !event.isLive),
+				"Past Events",
+			),
+		},
+	];
 
 	return (
-		<motion.div
-			initial="hidden"
-			animate="visible"
-			variants={containerVariants}
-			className="container mx-auto px-4 py-8"
-		>
-			<motion.div
-				variants={itemVariants}
-				className="flex flex-col sm:flex-row justify-between items-center mb-8"
-			>
-				<h1 className="text-3xl font-bold text-white mb-4 sm:mb-0">
-					Admin Dashboard
-				</h1>
-				<DeleteModeToggle
-					deleteMode={deleteMode}
-					setDeleteMode={setDeleteMode}
+		<div className="container mx-auto px-4 py-8">
+			<PageHeader
+				title="Admin Dashboard"
+				rightContent={
+					<DeleteModeToggle
+						deleteMode={deleteMode}
+						setDeleteMode={setDeleteMode}
+					/>
+				}
+			/>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+				<StatsCard
+					title="Total Events"
+					value={stats.totalEvents}
+					description="Manage all your events"
+					icon={<CalendarDays className="h-6 w-6" />}
+					className="bg-gradient-to-br from-purple-900/80 to-purple-700/50 border-purple-500/30"
+					iconClassName="text-purple-300"
+					index={0}
 				/>
-			</motion.div>
 
-			<motion.div
-				variants={itemVariants}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-			>
-				<Card className="bg-gradient-to-br from-purple-900/80 to-purple-700/50 border-purple-500/30 text-white">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-purple-200">
-							Total Events
-						</CardDescription>
-						<CardTitle className="text-3xl flex items-center">
-							{stats.totalEvents}
-							<CalendarDays className="ml-auto h-6 w-6 text-purple-300" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-sm text-purple-200">
-							Manage all your events
-						</div>
-					</CardContent>
-				</Card>
+				<StatsCard
+					title="Live Events"
+					value={stats.liveEvents}
+					description="Currently active events"
+					icon={<TrendingUp className="h-6 w-6" />}
+					className="bg-gradient-to-br from-blue-900/80 to-blue-700/50 border-blue-500/30"
+					iconClassName="text-blue-300"
+					index={1}
+				/>
 
-				<Card className="bg-gradient-to-br from-blue-900/80 to-blue-700/50 border-blue-500/30 text-white">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-blue-200">
-							Live Events
-						</CardDescription>
-						<CardTitle className="text-3xl flex items-center">
-							{stats.liveEvents}
-							<TrendingUp className="ml-auto h-6 w-6 text-blue-300" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-sm text-blue-200">
-							Currently active events
-						</div>
-					</CardContent>
-				</Card>
+				<StatsCard
+					title="Past Events"
+					value={stats.pastEvents}
+					description="Completed events"
+					icon={<Calendar className="h-6 w-6" />}
+					className="bg-gradient-to-br from-amber-900/80 to-amber-700/50 border-amber-500/30"
+					iconClassName="text-amber-300"
+					index={2}
+				/>
 
-				<Card className="bg-gradient-to-br from-amber-900/80 to-amber-700/50 border-amber-500/30 text-white">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-amber-200">
-							Past Events
-						</CardDescription>
-						<CardTitle className="text-3xl flex items-center">
-							{stats.pastEvents}
-							<Calendar className="ml-auto h-6 w-6 text-amber-300" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-sm text-amber-200">Completed events</div>
-					</CardContent>
-				</Card>
+				<StatsCard
+					title="Total Registrations"
+					value={stats.totalRegistrations}
+					description="Total user sign-ups"
+					icon={<Users className="h-6 w-6" />}
+					className="bg-gradient-to-br from-emerald-900/80 to-emerald-700/50 border-emerald-500/30"
+					iconClassName="text-emerald-300"
+					index={3}
+				/>
+			</div>
 
-				<Card className="bg-gradient-to-br from-emerald-900/80 to-emerald-700/50 border-emerald-500/30 text-white">
-					<CardHeader className="pb-2">
-						<CardDescription className="text-emerald-200">
-							Total Registrations
-						</CardDescription>
-						<CardTitle className="text-3xl flex items-center">
-							{stats.totalRegistrations}
-							<Users className="ml-auto h-6 w-6 text-emerald-300" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-sm text-emerald-200">
-							Total user sign-ups
-						</div>
-					</CardContent>
-				</Card>
-			</motion.div>
-
-			<motion.div
-				variants={itemVariants}
-				className="mb-8"
-			>
-				<Tabs
-					defaultValue="all"
-					className="w-full"
-				>
-					<TabsList className="bg-gray-800 w-full mb-6">
-						<TabsTrigger
-							value="all"
-							className="data-[state=active]:bg-purple-600"
-						>
-							All Events
-						</TabsTrigger>
-						<TabsTrigger
-							value="live"
-							className="data-[state=active]:bg-purple-600"
-						>
-							Live Events
-						</TabsTrigger>
-						<TabsTrigger
-							value="past"
-							className="data-[state=active]:bg-purple-600"
-						>
-							Past Events
-						</TabsTrigger>
-					</TabsList>
-
-					<TabsContent
-						value="all"
-						className="mt-0"
-					>
-						<Card className="bg-gray-900/60 border-gray-700">
-							<CardHeader className="pb-3">
-								<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-									<CardTitle className="text-xl text-white">
-										All Events
-									</CardTitle>
-									<SearchBar onSearch={setSearchTerm} />
-								</div>
-							</CardHeader>
-							<CardContent>
-								{isLoading ? (
-									<div className="flex justify-center py-12">
-										<motion.div
-											className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full"
-											animate={{ rotate: 360 }}
-											transition={{
-												duration: 1,
-												repeat: Number.POSITIVE_INFINITY,
-												ease: "linear",
-											}}
-										/>
-									</div>
-								) : (
-									<AnimatePresence mode="wait">
-										<EventList
-											events={filteredEvents}
-											onDelete={handleDelete}
-											deleteMode={deleteMode}
-										/>
-									</AnimatePresence>
-								)}
-							</CardContent>
-						</Card>
-					</TabsContent>
-
-					<TabsContent
-						value="live"
-						className="mt-0"
-					>
-						<Card className="bg-gray-900/60 border-gray-700">
-							<CardHeader className="pb-3">
-								<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-									<CardTitle className="text-xl text-white">
-										Live Events
-									</CardTitle>
-									<SearchBar onSearch={setSearchTerm} />
-								</div>
-							</CardHeader>
-							<CardContent>
-								<EventList
-									events={filteredEvents?.filter(
-										(event) => event.isLive,
-									)}
-									onDelete={handleDelete}
-									deleteMode={deleteMode}
-								/>
-							</CardContent>
-						</Card>
-					</TabsContent>
-
-					<TabsContent
-						value="past"
-						className="mt-0"
-					>
-						<Card className="bg-gray-900/60 border-gray-700">
-							<CardHeader className="pb-3">
-								<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-									<CardTitle className="text-xl text-white">
-										Past Events
-									</CardTitle>
-									<SearchBar onSearch={setSearchTerm} />
-								</div>
-							</CardHeader>
-							<CardContent>
-								<EventList
-									events={filteredEvents?.filter(
-										(event) => !event.isLive,
-									)}
-									onDelete={handleDelete}
-									deleteMode={deleteMode}
-								/>
-							</CardContent>
-						</Card>
-					</TabsContent>
-				</Tabs>
-			</motion.div>
+			<TabsContainer
+				tabs={tabs}
+				defaultValue="all"
+			/>
 
 			{deleteMode && (
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
-					className="fixed bottom-6 right-6 bg-red-600 text-white p-4 rounded-lg shadow-lg flex items-center"
+					exit={{ opacity: 0, y: 20 }}
+					className="fixed bottom-6 right-6 bg-red-600 text-white p-4 rounded-lg shadow-lg flex items-center z-50"
 				>
 					<Trash2 className="mr-2 h-5 w-5" />
 					<span>
@@ -363,7 +237,7 @@ const AdminDashboard: React.FC = () => {
 					</span>
 				</motion.div>
 			)}
-		</motion.div>
+		</div>
 	);
 };
 
