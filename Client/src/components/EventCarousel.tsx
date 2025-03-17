@@ -1,8 +1,7 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import placeholderImage from "@/public/images/events.jpg";
@@ -18,6 +17,7 @@ import {
 	CarouselNext,
 	CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useMediaQuery } from "react-responsive";
 
 interface EventCarouselProps {
 	category?: string;
@@ -73,18 +73,24 @@ const EventCard = memo(
 								loading={index < 4 ? "eager" : "lazy"}
 								className="object-cover object-center transition-transform duration-500 hover:scale-110"
 							/>
+							<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
+							<div className="absolute bottom-0 left-0 right-0 p-3">
+								<div className="text-sm text-purple-300 font-medium">
+									{new Date(event.startDate).toLocaleDateString(
+										"en-IN",
+										{
+											day: "numeric",
+											month: "short",
+											year: "numeric",
+										},
+									)}
+									{" • "}
+									{event.startTime}
+								</div>
+							</div>
 						</div>
 						<div className="p-4 flex flex-col flex-grow">
-							<div className="text-sm text-purple-400 mb-2">
-								{new Date(event.startDate).toLocaleDateString("en-IN", {
-									day: "numeric",
-									month: "short",
-									year: "numeric",
-								})}
-								{" • "}
-								{event.startTime}
-							</div>
-							<h3 className="text-lg font-bold mb-2 line-clamp-2">
+							<h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
 								{event.name}
 							</h3>
 							<p className="text-gray-400 mb-4 line-clamp-1">
@@ -93,7 +99,7 @@ const EventCard = memo(
 							<div className="mt-auto">
 								<Button
 									variant="outline"
-									className="w-full hover:bg-purple-600 hover:text-white transition-colors duration-300"
+									className="w-full hover:bg-purple-600 hover:text-white transition-colors duration-300 border-purple-500/50"
 									onClick={() => onOpenDialog(event)}
 								>
 									More info
@@ -116,6 +122,8 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 }) => {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+	const dialogRef = useRef<HTMLDivElement>(null);
+	const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
 
 	// Sort events by date - memoize if this becomes a performance issue
 	const sortedEvents = [...ev].sort((a, b) => {
@@ -137,14 +145,17 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 		<div className="mb-16 px-4 sm:px-6 lg:px-8">
 			<div className="w-full bg-transparent text-white py-6">
 				<div className="flex justify-between items-center mb-6">
-					<motion.h2
-						className="text-xl sm:text-2xl font-bold"
+					<motion.div
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
 						transition={{ duration: 0.5 }}
+						className="flex items-center"
 					>
-						{category ?? "Upcoming Events"}
-					</motion.h2>
+						<div className="w-1 h-6 bg-purple-500 mr-3 rounded-full"></div>
+						<h2 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
+							{category ?? "Upcoming Events"}
+						</h2>
+					</motion.div>
 				</div>
 
 				<Carousel
@@ -191,7 +202,12 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 						open={isDialogOpen}
 						onOpenChange={setIsDialogOpen}
 					>
-						<DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar p-0 bg-transparent">
+						<DialogContent
+							ref={dialogRef}
+							className="max-w-5xl max-h-[90vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar p-0 bg-transparent"
+							// Increased top margin for mobile to avoid navbar overlap
+							style={{ marginTop: isMobile ? "4rem" : "1.5rem" }}
+						>
 							<ParticularEventPage
 								event={selectedEvent}
 								onClose={handleCloseDialog}
