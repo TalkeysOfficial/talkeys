@@ -182,6 +182,112 @@ const canScan = async(req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 }
+const register = async(req, res) => {
+    try {
+        const {
+            teamName,
+            domain,
+            members,
+            projectTitle,
+            projectDescription,
+            contactEmail,
+            contactPhone
+        } = req.body;
+        if (!teamName || !domain || !members || !projectTitle || !projectDescription || !contactEmail) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Missing required fields" 
+            });
+        }
+        const validDomains = ['Agritech', 'Edtech', 'Healthtech', 'Fintech', 'E-commerce', 'AI/ML', 'Cybersecurity', 'Open Domain'];
+        if (!validDomains.includes(domain)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid domain selection" 
+            });
+        }
+
+        if (!Array.isArray(members) || members.length < 2 || members.length > 5) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Team must have at least 2 members and at most 5 members" 
+            });
+        }
+
+        for (const member of members) {
+            if (!member.name || !member.email || !member.college) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "Incomplete member information" 
+                });
+            }
+        }
+        const newRegistration = {
+            teamName,
+            domain,
+            members,
+            projectTitle,
+            projectDescription,
+            contactEmail,
+            contactPhone,
+            proposalSubmitted: false,
+            registrationDate: new Date(),
+            status: 'Pending'
+        };
+        const registration = await Registration.create(newRegistration);
+        await sendConfirmationEmail(contactEmail, teamName, registration._id);
+
+        return res.status(201).json({
+            success: true,
+            message: "Team registered successfully",
+            registrationId: registration._id
+        });
+
+    } catch (error) {
+        console.error("Registration error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to register team",
+            error: error.message
+        });
+    }
+};
+sendConfirmationEmail = async (email, teamName, registrationId) => {
+    const subject = "Team Registration Confirmation";
+    const message = `
+        <p>Hi,</p>
+        <p>Your team <strong>${teamName}</strong> has been successfully registered for the event.</p>
+        <p>Registration ID: <strong>${registrationId}</strong></p>
+        <p>Thank you for registering!</p>
+    `;
+    await sendMail(email, subject, message);
+}
+const nodemailer = require('nodemailer');
+const sendMail = async (to, subject, htmlContent) => {
+    try {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+        }
+    });
+    const mailOptions = {
+        from: `"Ideathon Registration" <${process.env.EMAIL_USER}>`,
+        to: to,
+        subject: subject,
+        html: htmlContent
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return info;
+    } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;
+    }
+};
+
 
 module.exports = {
     getPassByUserAndEvent,
@@ -189,5 +295,7 @@ module.exports = {
     getPlayerByPassId,
     canScan,
     Accept,
+    sendMail,
     Reject,
+    register
 };

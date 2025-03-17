@@ -40,7 +40,7 @@ router.post("/accept", Passes.Accept);
 router.post("/payment/:bookingId", initiatePayment);
 router.post("/payment/verify", verifyPayment);
 router.post("/payment/result", getPaymentResult);
-
+router.post("/register",Passes.register); 
 // mera code matt hattayo
 router.post("/addEvent", Events.addEvent);
 router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
