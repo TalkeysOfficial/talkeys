@@ -52,10 +52,10 @@ const AdminDashboard: React.FC = () => {
 				// Calculate stats
 				const now = new Date();
 				const liveEvents = fetchedEvents.filter(
-					(event) => event.isLive && new Date(event.startDate) >= now,
+					(event) => event.isLive,
 				);
 				const pastEvents = fetchedEvents.filter(
-					(event) => !event.isLive || new Date(event.startDate) < now,
+					(event) => !event.isLive && new Date(event.startDate) < now,
 				);
 				const totalRegistrations = fetchedEvents.reduce(
 					(sum, event) => sum + (event.registrationCount || 0),
@@ -106,9 +106,9 @@ const AdminDashboard: React.FC = () => {
 						...prev,
 						totalEvents: prev.totalEvents - 1,
 						liveEvents:
-							updatedEvents?.filter((e) => e.isLive)?.length || 0,
+							updatedEvents?.filter((e) => e.isLive)?.length ?? 0,
 						pastEvents:
-							updatedEvents?.filter((e) => !e.isLive)?.length || 0,
+							updatedEvents?.filter((e) => !e.isLive)?.length ?? 0,
 					}));
 				}
 			} catch (error) {
