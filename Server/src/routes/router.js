@@ -20,6 +20,8 @@ router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
+
+
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
@@ -32,7 +34,12 @@ router.post("/createTeam", Team.createTeam);
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/getTeam", Team.getTeam);
 router.post("/reqEvent", Events.reqEventt);
+
+
+
 router.use(checkRole(["admin"]));
+
+
 router.get("/CanScan", Passes.canScan);
 router.post("/verifyPass", Passes.getPlayerByPassId);
 router.post("/reject", Passes.Reject);

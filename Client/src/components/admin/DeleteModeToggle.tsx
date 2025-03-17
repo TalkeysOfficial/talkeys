@@ -17,7 +17,6 @@ const DeleteModeToggle: React.FC<DeleteModeToggleProps> = ({
 	deleteMode,
 	setDeleteMode,
 }) => {
-	const [isHovered, setIsHovered] = useState(false);
 	const [showRipple, setShowRipple] = useState(false);
 	const [ripplePosition, setRipplePosition] = useState({ x: 0, y: 0 });
 
@@ -67,8 +66,6 @@ const DeleteModeToggle: React.FC<DeleteModeToggleProps> = ({
 					? "0 0 20px rgba(239, 68, 68, 0.6)"
 					: "0 0 10px rgba(139, 92, 246, 0.3)",
 			}}
-			onHoverStart={() => setIsHovered(true)}
-			onHoverEnd={() => setIsHovered(false)}
 			onClick={handleClick}
 			role="button"
 			aria-pressed={deleteMode}
