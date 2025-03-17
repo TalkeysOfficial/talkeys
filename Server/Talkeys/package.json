@@ -6,7 +6,8 @@
     "type": "commonjs",
     "scripts": {
         "setup": "npm install && npm update",
-        "start": "node src/server.js"
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js"
     },
     "keywords": [
         "express",

@@ -1,165 +1,223 @@
-// @ts-nocheck
-// @ts-ignore
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useState, useCallback, memo, useRef } from "react";
 import Image from "next/image";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade } from "swiper/modules";
-import "swiper/swiper-bundle.css";
+import { motion, AnimatePresence } from "framer-motion";
+import placeholderImage from "@/public/images/events.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import placeholderImage from "@/public/images/events.jpg";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ParticularEventPage from "@/components/ParticularEventPage";
 import type { Event } from "@/types/types";
+import {
+	Carousel,
+	CarouselContent,
+	CarouselItem,
+	CarouselNext,
+	CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useMediaQuery } from "react-responsive";
 
-export default function EventCarousel({
-	category = "ALL Events",
-	ev = [],
-}: Readonly<{
+interface EventCarouselProps {
 	category?: string;
 	ev?: Event[];
-}>) {
-	const swiperRef = useRef<any>(null);
-	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
+}
+
+// Memoized EventCard component for better performance
+const EventCard = memo(
+	({
+		event,
+		index,
+		onOpenDialog,
+	}: {
+		event: Event;
+		index: number;
+		onOpenDialog: (event: Event) => void;
+	}) => {
+		const cardVariants = {
+			hidden: { opacity: 0, y: 20 },
+			visible: (i: number) => ({
+				opacity: 1,
+				y: 0,
+				transition: {
+					delay: i * 0.1,
+					duration: 0.5,
+					ease: "easeOut",
+				},
+			}),
+			hover: {
+				y: -10,
+				boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+				transition: { duration: 0.3 },
+			},
+		};
+
+		return (
+			<motion.div
+				custom={index}
+				initial="hidden"
+				animate="visible"
+				whileHover="hover"
+				variants={cardVariants}
+			>
+				<Card className="bg-gray-900/80 border-none overflow-hidden h-full">
+					<CardContent className="p-0 flex flex-col h-full">
+						<div className="relative w-full aspect-square overflow-hidden">
+							<Image
+								src={event.photographs?.[0] ?? placeholderImage}
+								alt={event.name}
+								fill
+								sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+								priority={index < 4}
+								loading={index < 4 ? "eager" : "lazy"}
+								className="object-cover object-center transition-transform duration-500 hover:scale-110"
+							/>
+							<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
+							<div className="absolute bottom-0 left-0 right-0 p-3">
+								<div className="text-sm text-purple-300 font-medium">
+									{new Date(event.startDate).toLocaleDateString(
+										"en-IN",
+										{
+											day: "numeric",
+											month: "short",
+											year: "numeric",
+										},
+									)}
+									{" • "}
+									{event.startTime}
+								</div>
+							</div>
+						</div>
+						<div className="p-4 flex flex-col flex-grow">
+							<h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
+								{event.name}
+							</h3>
+							<p className="text-gray-400 mb-4 line-clamp-1">
+								{event.location ?? "Location not specified"}
+							</p>
+							<div className="mt-auto">
+								<Button
+									variant="outline"
+									className="w-full hover:bg-purple-600 hover:text-white transition-colors duration-300 border-purple-500/50"
+									onClick={() => onOpenDialog(event)}
+								>
+									More info
+								</Button>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</motion.div>
+		);
+	},
+);
+
+EventCard.displayName = "EventCard";
+
+// Main component with performance optimizations
+const EventCarousel: React.FC<EventCarouselProps> = ({
+	category = "ALL Events",
+	ev = [],
+}) => {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+	const dialogRef = useRef<HTMLDivElement>(null);
+	const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
 
-	useEffect(() => {
-		async function fetchEvents() {
-			const now = new Date();
-			const upcomingEvents = ev?.filter(
-				(event) => new Date(event.startDate) >= now,
-			);
+	// Sort events by date - memoize if this becomes a performance issue
+	const sortedEvents = [...ev].sort((a, b) => {
+		const dateA = new Date(a.startDate).getTime();
+		const dateB = new Date(b.startDate).getTime();
+		return dateA - dateB;
+	});
 
-			upcomingEvents.sort((a, b) => {
-				return (
-					new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-				);
-			});
-
-			const pastEvents = ev?.filter(
-				(event) => new Date(event.startDate) < now,
-			);
-
-			pastEvents.sort((a, b) => {
-				return (
-					new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-				);
-			});
-
-			setFetchedEvents([...upcomingEvents, ...pastEvents]);
-		}
-		fetchEvents();
-		console.log("ev", ev);
+	const handleOpenDialog = useCallback((event: Event) => {
+		setSelectedEvent(event);
+		setIsDialogOpen(true);
 	}, []);
 
-	const handleNext = () => {
-		swiperRef.current?.slideNext();
-	};
-
-	const handlePrev = () => {
-		swiperRef.current?.slidePrev();
-	};
+	const handleCloseDialog = useCallback(() => {
+		setIsDialogOpen(false);
+	}, []);
 
 	return (
-		<div className={`mb-[-80px] ${isDialogOpen ? "blur-xl" : ""}`}>
-			<div className="event w-full bg-transparent text-white max-sm:p-5 p-10 overflow-hidden">
-				<div className="w-full bg-transparent text-white p-4">
-					<div className="flex justify-between items-center mb-4">
-						<h2 className="text-xl font-bold">
+		<div className="mb-16 px-4 sm:px-6 lg:px-8">
+			<div className="w-full bg-transparent text-white py-6">
+				<div className="flex justify-between items-center mb-6">
+					<motion.div
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.5 }}
+						className="flex items-center"
+					>
+						<div className="w-1 h-6 bg-purple-500 mr-3 rounded-full"></div>
+						<h2 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
 							{category ?? "Upcoming Events"}
 						</h2>
-						<div>
-							<Button
-								onClick={handlePrev}
-								className="mr-2"
-							>
-								Previous
-							</Button>
-							<Button onClick={handleNext}>Next</Button>
-						</div>
-					</div>
-					<Swiper
-						onSwiper={(swiper) => (swiperRef.current = swiper)}
-						modules={[Autoplay, EffectFade]}
-						autoplay={{
-							delay: 2500,
-							disableOnInteraction: false,
-							pauseOnMouseEnter: true,
-						}}
-						effect="slide"
-						speed={300}
-						spaceBetween={30}
-						slidesPerView={2}
-						breakpoints={{
-							640: { slidesPerView: 1 },
-							768: { slidesPerView: 2 },
-							1024: { slidesPerView: 3 },
-						}}
-					>
-						{fetchedEvents.map((event, index) => (
-							<SwiperSlide key={event.name}>
-								<Card className="bg-gray-950 border-none">
-									<CardContent className="p-0">
-										<Image
-											src={
-												event.photographs?.[0] ?? placeholderImage
-											}
-											alt={event.name}
-											width={350}
-											height={450}
-											priority={index < 3}
-											loading={index < 3 ? "eager" : "lazy"}
-											className="w-full max-w-72 mx-auto aspect-square object-contain object-center"
-										/>
-										<div className="p-4">
-											<div className="text-sm text-purple-400 mb-2 max-sm:hidden">
-												{new Date(
-													event.startDate,
-												).toLocaleDateString("en-IN", {
-													weekday: "long",
-													year: "numeric",
-													month: "long",
-													day: "numeric",
-												})}
-												{" at "}
-												{event.startTime}
-											</div>
-											<h3 className="text-xl font-bold mb-2 max-sm:text-base">
-												{event.name}
-											</h3>
-											<h4 className="text-lg mb-4 max-sm:text-sm">
-												{event.location ?? "Location not specified"}
-											</h4>
-											<Dialog
-												onOpenChange={(isOpen) =>
-													setIsDialogOpen(isOpen)
-												}
-											>
-												<DialogTrigger asChild>
-													<Button
-														variant="outline"
-														className="w-full hover:bg-purple-600 duration-500"
-													>
-														More info
-													</Button>
-												</DialogTrigger>
-												<DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar">
-													<ParticularEventPage
-														event={event}
-														onClose={() => setIsDialogOpen(false)}
-													/>
-												</DialogContent>
-											</Dialog>
-										</div>
-									</CardContent>
-								</Card>
-							</SwiperSlide>
-						))}
-					</Swiper>
+					</motion.div>
 				</div>
+
+				<Carousel
+					opts={{
+						align: "start",
+						loop: true,
+					}}
+					className="w-full"
+				>
+					<CarouselContent className="-ml-2 md:-ml-4">
+						{sortedEvents.length > 0 ? (
+							sortedEvents.map((event, index) => (
+								<CarouselItem
+									key={event._id || index}
+									className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
+								>
+									<EventCard
+										event={event}
+										index={index}
+										onOpenDialog={handleOpenDialog}
+									/>
+								</CarouselItem>
+							))
+						) : (
+							<CarouselItem className="pl-2 md:pl-4 basis-full">
+								<div className="flex justify-center items-center h-40 bg-purple-900/25 rounded-lg">
+									<p className="text-gray-400">
+										No Upcoming Events Currently
+									</p>
+								</div>
+							</CarouselItem>
+						)}
+					</CarouselContent>
+					<div className="flex justify-end mt-4 gap-2">
+						<CarouselPrevious className="relative inset-0 translate-y-0 bg-purple-600 hover:bg-purple-700 text-white" />
+						<CarouselNext className="relative inset-0 translate-y-0 bg-purple-600 hover:bg-purple-700 text-white" />
+					</div>
+				</Carousel>
 			</div>
+
+			<AnimatePresence>
+				{selectedEvent && isDialogOpen && (
+					<Dialog
+						open={isDialogOpen}
+						onOpenChange={setIsDialogOpen}
+					>
+						<DialogContent
+							ref={dialogRef}
+							className="max-w-5xl max-h-[90vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar p-0 bg-transparent"
+							// Increased top margin for mobile to avoid navbar overlap
+							style={{ marginTop: isMobile ? "4rem" : "1.5rem" }}
+						>
+							<ParticularEventPage
+								event={selectedEvent}
+								onClose={handleCloseDialog}
+							/>
+						</DialogContent>
+					</Dialog>
+				)}
+			</AnimatePresence>
 		</div>
 	);
-}
+};
+
+export default memo(EventCarousel);

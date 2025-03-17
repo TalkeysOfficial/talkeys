@@ -21,6 +21,7 @@ import type { EventPageProps, RegistrationState } from "@/types/types";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ParticularEventPage({
 	event,
@@ -245,21 +246,7 @@ export default function ParticularEventPage({
 
 	async function sendBookingID() {
 		try {
-			// const response = await fetch(
-			// 	`${process.env.BACKEND_URL}/payment?eventId=${event._id}`,
-			// 	//! HARDCODED FOR NOW
-			// 	{
-			// 		method: "POST",
-			// 		headers: {
-			// 			Authorization: `Bearer ${localStorage.getItem(
-			// 				"accessToken",
-			// 			)}`,
-			// 		},
-			// 	},
-			// );
 			window.open(event.registrationLink, "_blank");
-			// const bookingdata = await response.json();
-			// window.open(bookingdata.pay_page_url);
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}
@@ -293,44 +280,66 @@ export default function ParticularEventPage({
 
 				if (event.isPaid) {
 					return (
+						<motion.div
+							whileHover={{ scale: 1.03 }}
+							whileTap={{ scale: 0.97 }}
+						>
+							<Button
+								className="bg-purple-600 hover:bg-purple-700 w-full"
+								onClick={sendBookingID}
+								disabled={!isEventLive || isRegistrationClosed}
+								aria-label={ariaLabel}
+							>
+								{buttonText}
+							</Button>
+						</motion.div>
+					);
+				}
+
+				return (
+					<motion.div
+						whileHover={{ scale: 1.03 }}
+						whileTap={{ scale: 0.97 }}
+					>
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={sendBookingID}
+							onClick={handleRegisterClick}
 							disabled={!isEventLive || isRegistrationClosed}
 							aria-label={ariaLabel}
 						>
 							{buttonText}
 						</Button>
-					);
-				}
-
-				return (
-					<Button
-						className="bg-purple-600 hover:bg-purple-700 w-full"
-						onClick={handleRegisterClick}
-						disabled={!isEventLive || isRegistrationClosed}
-						aria-label={ariaLabel}
-					>
-						{buttonText}
-					</Button>
+					</motion.div>
 				);
 			}
 
 			case "teamOptions":
 				return (
 					<div className="flex flex-col sm:flex-row gap-2 w-full max-w-sm mx-auto">
-						<Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={handleJoinTeam}
+						<motion.div
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							className="w-full"
 						>
-							Join Team
-						</Button>
-						<Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={handleCreateTeam}
+							<Button
+								className="bg-purple-600 hover:bg-purple-700 w-full"
+								onClick={handleJoinTeam}
+							>
+								Join Team
+							</Button>
+						</motion.div>
+						<motion.div
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							className="w-full"
 						>
-							Create Team
-						</Button>
+							<Button
+								className="bg-purple-600 hover:bg-purple-700 w-full"
+								onClick={handleCreateTeam}
+							>
+								Create Team
+							</Button>
+						</motion.div>
 					</div>
 				);
 			case "joinTeamPhone":
@@ -342,24 +351,36 @@ export default function ParticularEventPage({
 							placeholder="Enter your phone number"
 							value={phoneNumber}
 							onChange={(e) => setPhoneNumber(e.target.value)}
-							className="bg-gray-800 text-white w-full text-base px-4 py-2"
+							className="bg-gray-800 text-white w-full text-base px-4 py-2 border-purple-500/50 focus:border-purple-500"
 						/>
 						<div className="flex flex-col sm:flex-row gap-2 w-full">
-							<Button
-								className="bg-green-600 hover:bg-green-700 w-full"
-								onClick={handlePhoneSubmit}
-								disabled={!phoneNumber}
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								<Check className="w-4 h-4 mr-2" />
-								Continue
-							</Button>
-							<Button
-								className="bg-red-600 hover:bg-red-700 w-full"
-								onClick={() => setRegistrationState("initial")}
+								<Button
+									className="bg-green-600 hover:bg-green-700 w-full"
+									onClick={handlePhoneSubmit}
+									disabled={!phoneNumber}
+								>
+									<Check className="w-4 h-4 mr-2" />
+									Continue
+								</Button>
+							</motion.div>
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								<X className="w-4 h-4 mr-2" />
-								Cancel
-							</Button>
+								<Button
+									className="bg-red-600 hover:bg-red-700 w-full"
+									onClick={() => setRegistrationState("initial")}
+								>
+									<X className="w-4 h-4 mr-2" />
+									Cancel
+								</Button>
+							</motion.div>
 						</div>
 					</div>
 				);
@@ -371,34 +392,46 @@ export default function ParticularEventPage({
 							placeholder="Enter team name"
 							value={teamName}
 							onChange={(e) => setTeamName(e.target.value)}
-							className="bg-gray-800 text-white w-full text-base px-4 py-2"
+							className="bg-gray-800 text-white w-full text-base px-4 py-2 border-purple-500/50 focus:border-purple-500"
 						/>
 						<div className="flex flex-col sm:flex-row gap-2 w-full">
-							<Button
-								className="bg-green-600 hover:bg-green-700 w-full"
-								onClick={handleCreateTeamSubmit}
-								disabled={isLoading || !teamName}
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								{isLoading ? (
-									<div className="flex items-center justify-center gap-2 w-full">
-										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-										<span className="text-sm">Creating...</span>
-									</div>
-								) : (
-									<>
-										<Check className="w-4 h-4 mr-2" />
-										Create Team
-									</>
-								)}
-							</Button>
-							<Button
-								className="bg-red-600 hover:bg-red-700 w-full"
-								onClick={() => setRegistrationState("initial")}
-								disabled={isLoading}
+								<Button
+									className="bg-green-600 hover:bg-green-700 w-full"
+									onClick={handleCreateTeamSubmit}
+									disabled={isLoading || !teamName}
+								>
+									{isLoading ? (
+										<div className="flex items-center justify-center gap-2 w-full">
+											<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+											<span className="text-sm">Creating...</span>
+										</div>
+									) : (
+										<>
+											<Check className="w-4 h-4 mr-2" />
+											Create Team
+										</>
+									)}
+								</Button>
+							</motion.div>
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								<X className="w-4 h-4 mr-2" />
-								Cancel
-							</Button>
+								<Button
+									className="bg-red-600 hover:bg-red-700 w-full"
+									onClick={() => setRegistrationState("initial")}
+									disabled={isLoading}
+								>
+									<X className="w-4 h-4 mr-2" />
+									Cancel
+								</Button>
+							</motion.div>
 						</div>
 					</div>
 				);
@@ -410,34 +443,46 @@ export default function ParticularEventPage({
 							placeholder="Enter team code"
 							value={teamCode}
 							onChange={(e) => setTeamCode(e.target.value)}
-							className="bg-gray-800 text-white w-full text-base px-4 py-2"
+							className="bg-gray-800 text-white w-full text-base px-4 py-2 border-purple-500/50 focus:border-purple-500"
 						/>
 						<div className="flex flex-col sm:flex-row gap-2 w-full">
-							<Button
-								className="bg-green-600 hover:bg-green-700 w-full"
-								onClick={handleTeamCodeSubmit}
-								disabled={isLoading || !teamCode}
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								{isLoading ? (
-									<div className="flex items-center justify-center gap-2 w-full">
-										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-										<span className="text-sm">Joining...</span>
-									</div>
-								) : (
-									<>
-										<Check className="w-4 h-4 mr-2" />
-										Join Team
-									</>
-								)}
-							</Button>
-							<Button
-								className="bg-red-600 hover:bg-red-700 w-full"
-								onClick={() => setRegistrationState("initial")}
-								disabled={isLoading}
+								<Button
+									className="bg-green-600 hover:bg-green-700 w-full"
+									onClick={handleTeamCodeSubmit}
+									disabled={isLoading || !teamCode}
+								>
+									{isLoading ? (
+										<div className="flex items-center justify-center gap-2 w-full">
+											<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+											<span className="text-sm">Joining...</span>
+										</div>
+									) : (
+										<>
+											<Check className="w-4 h-4 mr-2" />
+											Join Team
+										</>
+									)}
+								</Button>
+							</motion.div>
+							<motion.div
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="w-full"
 							>
-								<X className="w-4 h-4 mr-2" />
-								Cancel
-							</Button>
+								<Button
+									className="bg-red-600 hover:bg-red-700 w-full"
+									onClick={() => setRegistrationState("initial")}
+									disabled={isLoading}
+								>
+									<X className="w-4 h-4 mr-2" />
+									Cancel
+								</Button>
+							</motion.div>
 						</div>
 					</div>
 				);
@@ -449,46 +494,67 @@ export default function ParticularEventPage({
 								type="text"
 								value={teamCode}
 								readOnly
-								className="bg-gray-800 text-white flex-1 text-base px-4 py-2"
+								className="bg-gray-800 text-white flex-1 text-base px-4 py-2 border-purple-500/50"
 							/>
-							<Button
-								className="ml-2"
-								onClick={() => navigator.clipboard.writeText(teamCode)}
+							<motion.div
+								whileHover={{ scale: 1.1 }}
+								whileTap={{ scale: 0.9 }}
 							>
-								<Copy className="w-4 h-4" />
-							</Button>
+								<Button
+									className="ml-2 bg-purple-600"
+									onClick={() =>
+										navigator.clipboard.writeText(teamCode)
+									}
+								>
+									<Copy className="w-4 h-4" />
+								</Button>
+							</motion.div>
 						</div>
 						<div className="text-green-500">Team Created: {teamName}</div>
-						<Button
-							className="bg-green-600 hover:bg-green-700 w-full"
-							onClick={handleCreatePass}
+						<motion.div
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
 						>
-							Create Pass
-						</Button>
+							<Button
+								className="bg-green-600 hover:bg-green-700 w-full"
+								onClick={handleCreatePass}
+							>
+								Create Pass
+							</Button>
+						</motion.div>
 					</div>
 				);
 			case "teamJoined":
 				return (
 					<div className="w-full max-w-sm mx-auto">
-						<Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							// onClick={handleCreatePass}
-							onClick={sendBookingID}
+						<motion.div
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
 						>
-							Pay Now
-						</Button>
+							<Button
+								className="bg-purple-600 hover:bg-purple-700 w-full"
+								onClick={sendBookingID}
+							>
+								Pay Now
+							</Button>
+						</motion.div>
 					</div>
 				);
 			case "error":
 				return (
 					<div className="w-full max-w-sm mx-auto space-y-2">
 						<div className="text-red-500">{errorMessage}</div>
-						<Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={() => setRegistrationState("initial")}
+						<motion.div
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
 						>
-							Try Again
-						</Button>
+							<Button
+								className="bg-purple-600 hover:bg-purple-700 w-full"
+								onClick={() => setRegistrationState("initial")}
+							>
+								Try Again
+							</Button>
+						</motion.div>
 					</div>
 				);
 			case "booked":
@@ -510,16 +576,15 @@ export default function ParticularEventPage({
 							Pass Created: Reload to Get Pass
 						</div>
 						{pass && (
-							<div className="flex justify-center">
+							<motion.div
+								className="flex justify-center"
+								initial={{ opacity: 0, scale: 0.8 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ duration: 0.3 }}
+							>
 								<QRCode value={pass} />
-							</div>
+							</motion.div>
 						)}
-						{/* <Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={() => window.location.reload()}
-						>
-							Show Pass
-						</Button> */}
 					</div>
 				);
 		}
@@ -531,16 +596,19 @@ export default function ParticularEventPage({
 			aria-modal="true"
 		>
 			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto relative">
-                <button
-                    onClick={onClose}
-                    className="absolute -top-1 -right-1 text-gray-400 hover:text-white z-50"
-                    aria-label="Close dialog"
-                >
-                    <X className="w-6 h-6" />
-                </button>
+				{/* Close button - repositioned for mobile */}
+				<motion.button
+					onClick={onClose}
+					className="absolute top-3 right-3 z-50 bg-gray-800 rounded-full p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+					aria-label="Close dialog"
+					whileHover={{ scale: 1.1 }}
+					whileTap={{ scale: 0.9 }}
+				>
+					<X className="w-5 h-5" />
+				</motion.button>
 
 				{/* Header Section */}
-				<div className="flex flex-col sm:flex-row gap-6 mb-6">
+				<div className="flex flex-col sm:flex-row gap-6 mb-6 mt-8 sm:mt-0">
 					{/* Left Column - Event Image */}
 					<div className="relative w-full sm:w-1/2 aspect-[4/3] sm:aspect-auto">
 						<Image
@@ -556,14 +624,16 @@ export default function ParticularEventPage({
 					{/* Right Column - Event Details */}
 					<div className="w-full sm:w-1/2 space-y-4">
 						<div>
-							<h1 className="text-2xl font-bold mb-3">{event.name}</h1>
+							<h1 className="text-2xl font-bold mb-3 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
+								{event.name}
+							</h1>
 							<div className="space-y-1.5 text-gray-400 text-sm">
 								<div className="flex items-center gap-2">
-									<MapPin className="w-4 h-4" />
+									<MapPin className="w-4 h-4 text-purple-400" />
 									<span>{event.location ?? "Online Event"}</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<Calendar className="w-4 h-4" />
+									<Calendar className="w-4 h-4 text-purple-400" />
 									<span>
 										{new Date(event.startDate).toLocaleDateString(
 											"en-IN",
@@ -573,7 +643,7 @@ export default function ParticularEventPage({
 									</span>
 								</div>
 								<div className="flex items-center gap-2">
-									<User className="w-4 h-4" />
+									<User className="w-4 h-4 text-purple-400" />
 									<span>
 										{event.mode === "offline"
 											? "In-person Event"
@@ -585,19 +655,39 @@ export default function ParticularEventPage({
 
 						{/* Cost Section */}
 						<div className="flex flex-col items-start gap-4">
-							<div className="text-base">Cost: ₹{event.ticketPrice}</div>
+							<div className="text-base">
+								Cost:{" "}
+								<span className="font-bold text-purple-300">
+									₹{event.ticketPrice}
+								</span>
+							</div>
 							{renderRegistrationButton()}
 						</div>
 
 						{/* Tags */}
 						<div className="space-y-4">
 							<div className="flex flex-wrap gap-2">
-								<Badge variant="secondary">{event.category}</Badge>
-								<Badge variant="secondary">{event.mode}</Badge>
-								<Badge variant="secondary">{event.visibility}</Badge>
+								<Badge
+									variant="secondary"
+									className="bg-purple-900/50 border border-purple-500/30"
+								>
+									{event.category}
+								</Badge>
+								<Badge
+									variant="secondary"
+									className="bg-blue-900/50 border border-blue-500/30"
+								>
+									{event.mode}
+								</Badge>
+								<Badge
+									variant="secondary"
+									className="bg-pink-900/50 border border-pink-500/30"
+								>
+									{event.visibility}
+								</Badge>
 							</div>
 							<div className="flex gap-4">
-								<button
+								<motion.button
 									aria-label="Like event"
 									className="hover:text-purple-400 transition-colors"
 									onClick={() => {
@@ -605,31 +695,37 @@ export default function ParticularEventPage({
 										event.isLiked = !event.isLiked;
 										setIsLike(event.isLiked);
 									}}
+									whileHover={{ scale: 1.2 }}
+									whileTap={{ scale: 0.9 }}
 								>
 									<Heart
 										className="w-5 h-5 text-gray-400"
 										color={isLike ? "red" : "currentColor"}
 									/>
-								</button>
-								<button
+								</motion.button>
+								<motion.button
 									aria-label="Share event"
 									className="hover:text-purple-400 transition-colors"
 									onClick={() => {
 										if (navigator.share) {
-										  navigator
-											.share({
-											  title: event.name,
-											  text: event.eventDescription,
-											  url: `${window.location.origin}/event/${event._id}`,
-											})
-											.catch((err) => console.error("Error sharing:", err));
+											navigator
+												.share({
+													title: event.name,
+													text: event.eventDescription,
+													url: `${window.location.origin}/event/${event._id}`,
+												})
+												.catch((err) =>
+													console.error("Error sharing:", err),
+												);
 										} else {
-										  console.log("Web Share API not supported");
+											console.log("Web Share API not supported");
 										}
-									  }}
+									}}
+									whileHover={{ scale: 1.2 }}
+									whileTap={{ scale: 0.9 }}
 								>
 									<Send className="w-5 h-5 text-gray-400" />
-								</button>
+								</motion.button>
 							</div>
 						</div>
 					</div>
@@ -644,20 +740,20 @@ export default function ParticularEventPage({
 					<TabsList className="bg-gray-900 border-b border-gray-800 w-full overflow-x-auto flex-nowrap overflow-y-hidden -mx-3 px-3 sm:mx-0 sm:px-0">
 						<TabsTrigger
 							value="details"
-							className="text-sm"
+							className="text-sm data-[state=active]:bg-purple-600"
 						>
 							Details
 						</TabsTrigger>
 						<TabsTrigger
 							value="dates"
-							className="text-sm"
+							className="text-sm data-[state=active]:bg-purple-600"
 						>
 							Dates & Deadlines
 						</TabsTrigger>
 						{event.category === "Gaming" && (
 							<TabsTrigger
 								value="prizes"
-								className="text-sm"
+								className="text-sm data-[state=active]:bg-purple-600"
 							>
 								Prizes
 							</TabsTrigger>
@@ -665,76 +761,110 @@ export default function ParticularEventPage({
 						{event.paymentQRcode && (
 							<TabsTrigger
 								value="Payment QR Code"
-								className="text-sm"
+								className="text-sm data-[state=active]:bg-purple-600"
 							>
 								Payment QR Code
 							</TabsTrigger>
 						)}
 					</TabsList>
 
-					<TabsContent
-						value="details"
-						className="py-4"
-					>
-						<div className="bg-gray-800 p-4 rounded-lg">
-							<h3 className="text-lg font-semibold mb-2">
-								Details for the Event
-							</h3>
-							<div className="text-gray-400 space-y-2 whitespace-pre-line">
-								{event.eventDescription
-									?.split("\\n")
-									.map((line) => line)
-									.join("\n")}
-							</div>
-						</div>
-					</TabsContent>
+					<AnimatePresence mode="wait">
+						<TabsContent
+							value="details"
+							className="py-4"
+						>
+							<motion.div
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -10 }}
+								transition={{ duration: 0.2 }}
+								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
+							>
+								<h3 className="text-lg font-semibold mb-2 text-purple-300">
+									Details for the Event
+								</h3>
+								<div className="text-gray-300 space-y-2 whitespace-pre-line">
+									{event.eventDescription
+										?.split("\\n")
+										.map((line) => line)
+										.join("\n")}
+								</div>
+							</motion.div>
+						</TabsContent>
 
-					<TabsContent
-						value="dates"
-						className="py-4"
-					>
-						<div className="bg-gray-800 p-4 rounded-lg">
-							<h3 className="text-lg font-semibold mb-2">
-								Dates & Deadlines
-							</h3>
-							<p className="text-gray-400">
-								Start Date:{" "}
-								{new Date(event.startDate).toLocaleDateString()}
-								<br />
-								Start Time: {event.startTime}
-								<br />
-								Duration: {event.duration}
-								<br />
-								Registration Deadline:{" "}
-								{new Date(
-									event.endRegistrationDate,
-								).toLocaleDateString()}
-							</p>
-						</div>
-					</TabsContent>
+						<TabsContent
+							value="dates"
+							className="py-4"
+						>
+							<motion.div
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -10 }}
+								transition={{ duration: 0.2 }}
+								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
+							>
+								<h3 className="text-lg font-semibold mb-2 text-purple-300">
+									Dates & Deadlines
+								</h3>
+								<p className="text-gray-300">
+									<span className="font-medium">Start Date:</span>{" "}
+									{new Date(event.startDate).toLocaleDateString()}
+									<br />
+									<span className="font-medium">Start Time:</span>{" "}
+									{event.startTime}
+									<br />
+									<span className="font-medium">Duration:</span>{" "}
+									{event.duration}
+									<br />
+									<span className="font-medium">
+										Registration Deadline:
+									</span>{" "}
+									{new Date(
+										event.endRegistrationDate,
+									).toLocaleDateString()}
+								</p>
+							</motion.div>
+						</TabsContent>
 
-					<TabsContent
-						value="prizes"
-						className="py-4"
-					>
-						<div className="bg-gray-800 p-4 rounded-lg">
-							<h3 className="text-lg font-semibold mb-2">Prizes</h3>
-							<p className="text-gray-400">
-								{event.prizes ?? "No prize information available."}
-							</p>
-						</div>
-					</TabsContent>
-					<TabsContent
-						value="Payment QR Code"
-						className="py-4 flex justify-center items-center"
-					>
-						<Image
-							src={event.paymentQRcode ?? ""}
-							alt="paymentQRcode"
-							height={300}
-							width={300}
-						/>
-					</TabsContent>
+						<TabsContent
+							value="prizes"
+							className="py-4"
+						>
+							<motion.div
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -10 }}
+								transition={{ duration: 0.2 }}
+								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
+							>
+								<h3 className="text-lg font-semibold mb-2 text-purple-300">
+									Prizes
+								</h3>
+								<p className="text-gray-300">
+									{event.prizes ?? "No prize information available."}
+								</p>
+							</motion.div>
+						</TabsContent>
+
+						<TabsContent
+							value="Payment QR Code"
+							className="py-4 flex justify-center items-center"
+						>
+							<motion.div
+								initial={{ opacity: 0, scale: 0.9 }}
+								animate={{ opacity: 1, scale: 1 }}
+								exit={{ opacity: 0, scale: 0.9 }}
+								transition={{ duration: 0.3 }}
+							>
+								<Image
+									src={event.paymentQRcode ?? ""}
+									alt="paymentQRcode"
+									height={300}
+									width={300}
+								/>
+							</motion.div>
+						</TabsContent>
+					</AnimatePresence>
 				</Tabs>
 			</div>
 		</div>
