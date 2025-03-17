@@ -6,6 +6,7 @@ const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
 const User = require("../models/users.model.js");
 const mongoose = require("mongoose");
+const nodemailer = require('nodemailer');
 
 
 
@@ -298,7 +299,6 @@ sendConfirmationEmail = async (email, teamName, registrationId) => {
     `;
     await sendeMail(email, subject, message);
 }
-const nodemailer = require('nodemailer');
 
 module.exports = {
     getPassByUserAndEvent,
