@@ -33,6 +33,7 @@ const eventSchema = new mongoose.Schema({
 			},
 			message: "Ticket price must be a positive number",
 		},
+		default: 0,
 	},
 	mode: {
 		type: String,

@@ -58,6 +58,7 @@ const AddEventPage: React.FC = () => {
 			organizerEmail: "redacted@example.com",
 			organizerContact: undefined,
 			location: "",
+			ticketPrice: 0,
 		},
 	});
 
@@ -513,7 +514,7 @@ const AddEventPage: React.FC = () => {
 								name="prizes"
 								control={control}
 								render={({ field }) => (
-									<Input
+									<Textarea
 										id="prizes"
 										{...field}
 										className="mt-1 bg-gray-800"
