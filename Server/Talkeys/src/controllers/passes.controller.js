@@ -1,5 +1,4 @@
 const asyncHandler = require("express-async-handler");
-const { sendMail } = require("../helpers/email.service");
 const TeamSchema = require("../models/teams.model.js");
 const express = require("express");
 const auth = require("../middleware/oauth.js");
@@ -182,6 +181,30 @@ const canScan = async(req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 }
+const sendeMail = async (to, subject, htmlContent) => {
+    try {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+        }
+    });
+    const mailOptions = {
+        from: `"Ideathon Registration" <${process.env.EMAIL_USER}>`,
+        to: to,
+        subject: subject,
+        html: htmlContent
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
+    return info;
+    } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;
+    }
+};
 const register = async(req, res) => {
     try {
         const {
@@ -260,7 +283,7 @@ sendConfirmationEmail = async (email, teamName, registrationId) => {
         <p>Registration ID: <strong>${registrationId}</strong></p>
         <p>Thank you for registering!</p>
     `;
-    await sendMail(email, subject, message);
+    await sendeMail(email, subject, message);
 }
 const nodemailer = require('nodemailer');
 const sendMail = async (to, subject, htmlContent) => {
