@@ -39,7 +39,7 @@ jobs:
 
       - name: SSH into server and deploy
         run: |
-          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys'
+          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/ && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys'
           echo "Allowing Go Fiber Program to start properly"
           echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
