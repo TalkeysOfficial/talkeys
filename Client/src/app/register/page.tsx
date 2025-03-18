@@ -19,10 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-/**
- * Updated Member type:
- * Each member has a name, email, and college.
- */
+
 type Member = {
   name: string;
   email: string;
@@ -32,7 +29,7 @@ type Member = {
 type FormData = {
   teamName: string;
   domain: string;
-  members: Member[]; // Now an array of objects with { name, email, college }
+  members: Member[]; 
   projectTitle: string;
   projectDescription: string;
   contactEmail: string;
@@ -66,10 +63,7 @@ const itemVariants = {
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Updated defaultValues to have two members,
-   * each with name, email, and college set to empty strings.
-   */
+
   const {
     control,
     register,
@@ -176,7 +170,6 @@ export default function RegisterPage() {
           initial="hidden"
           animate="visible"
         >
-          {/* TEAM NAME */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-400" />
@@ -198,7 +191,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* DOMAIN */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <Globe2 className="w-4 h-4 text-purple-400" />
@@ -230,7 +222,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* TEAM MEMBERS */}
           <motion.div variants={itemVariants}>
             <label className="block mb-2 text-gray-300 flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-400" />
@@ -293,7 +284,6 @@ export default function RegisterPage() {
                     </p>
                   )}
 
-                  {/* Member College */}
                   <label className="block mb-1 text-gray-300">
                     Member {index + 1} College
                   </label>
@@ -316,7 +306,6 @@ export default function RegisterPage() {
                     </p>
                   )}
 
-                  {/* Remove button if more than 2 members */}
                   {fields.length > 2 && (
                     <Button
                       type="button"
@@ -334,7 +323,6 @@ export default function RegisterPage() {
               ))}
             </AnimatePresence>
 
-            {/* Add Member button if fields.length < 5 */}
             {fields.length < 5 && (
               <Button
                 type="button"
@@ -351,7 +339,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* PROJECT TITLE */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-purple-400" />
@@ -375,7 +362,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* PROJECT DESCRIPTION */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <FileText className="w-4 h-4 text-purple-400" />
@@ -399,7 +385,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* CONTACT EMAIL */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <Mail className="w-4 h-4 text-purple-400" />
@@ -427,7 +412,6 @@ export default function RegisterPage() {
             )}
           </motion.div>
 
-          {/* CONTACT PHONE (Optional) */}
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
               <Phone className="w-4 h-4 text-purple-400" />
@@ -444,7 +428,6 @@ export default function RegisterPage() {
             />
           </motion.div>
 
-          {/* SUBMIT BUTTON */}
           <motion.div variants={itemVariants}>
             <Button
               type="submit"
