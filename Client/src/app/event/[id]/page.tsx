@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -24,21 +23,14 @@ import placeholderImage from "@/public/images/events.jpg";
 import type { Event, RegistrationState } from "@/types/types";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
-<<<<<<< HEAD
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ParticularEventPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params.id;
-=======
-import { motion, AnimatePresence } from "framer-motion";
-
-export default function ParticularEventPage() {
-	const params = useParams();
-	const eventId = params.id;
->>>>>>> 6e0be73608d8afe90b309725239b1f44b52fea80
 
 	const [event, setEvent] = useState<Event | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -360,7 +352,6 @@ export default function ParticularEventPage() {
 					);
 				}
 
-<<<<<<< HEAD
         return (
           <Button
             className="bg-purple-600 hover:bg-purple-700 w-full"
@@ -372,28 +363,6 @@ export default function ParticularEventPage() {
           </Button>
         );
       }
-=======
-				return (
-					<motion.div
-						whileHover={{ scale: 1.03 }}
-						whileTap={{ scale: 0.97 }}
-					>
-						<Button
-							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={handleRegisterClick}
-							disabled={
-								!isEventLive ||
-								isRegistrationClosed ||
-								hasEventYetToCome
-							}
-							aria-label={ariaLabel}
-						>
-							{buttonText}
-						</Button>
-					</motion.div>
-				);
-			}
->>>>>>> 6e0be73608d8afe90b309725239b1f44b52fea80
 
 			case "teamOptions":
 				return (

@@ -19,23 +19,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-
+/**
+ * Updated Member type:
+ * Each member has a name, email, and college.
+ */
 type Member = {
-  value: string; 
+  name: string;
+  email: string;
+  college: string;
 };
-
 
 type FormData = {
-  teamName: string;           
-  domain: string;             
-  members: Member[];         
-  projectTitle: string;       
-  projectDescription: string; 
-  contactEmail: string;       
-  contactPhone?: string;      
+  teamName: string;
+  domain: string;
+  members: Member[]; // Now an array of objects with { name, email, college }
+  projectTitle: string;
+  projectDescription: string;
+  contactEmail: string;
+  contactPhone?: string;
 };
-
-
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -62,9 +64,12 @@ const itemVariants = {
 };
 
 export default function RegisterPage() {
+  const [loading, setLoading] = useState(false);
 
-    const [loading, setLoading] = useState(false);
-  
+  /**
+   * Updated defaultValues to have two members,
+   * each with name, email, and college set to empty strings.
+   */
   const {
     control,
     register,
@@ -74,7 +79,10 @@ export default function RegisterPage() {
     defaultValues: {
       teamName: "",
       domain: "",
-      members: [{ value: "" }, { value: "" }],
+      members: [
+        { name: "", email: "", college: "" },
+        { name: "", email: "", college: "" },
+      ],
       projectTitle: "",
       projectDescription: "",
       contactEmail: "",
@@ -95,15 +103,11 @@ export default function RegisterPage() {
       const response = await fetch(`${process.env.BACKEND_URL}/register`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(
-                "accessToken",
-            )}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data), 
+        body: JSON.stringify(data),
       });
-
-
 
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
@@ -237,24 +241,81 @@ export default function RegisterPage() {
               {fields.map((field, index) => (
                 <motion.div
                   key={field.id}
-                  className="flex items-center gap-2 mb-2"
+                  className="mb-4 p-3 bg-gray-800/60 rounded-md"
                   variants={itemVariants}
                   initial="hidden"
                   animate="visible"
                   exit={{ opacity: 0, y: -10 }}
                 >
+                  {/* Member Name */}
+                  <label className="block mb-1 text-gray-300">
+                    Member {index + 1} Name
+                  </label>
                   <Input
                     className="
                       bg-gray-700 text-white w-full 
+                      mb-2
                       transition-colors duration-300 
                       focus:outline-none focus:ring-2 focus:ring-purple-500
                     "
-                    placeholder={`Member ${index + 1}`}
-                    {...register(`members.${index}.value`, {
+                    placeholder="Enter member name"
+                    {...register(`members.${index}.name`, {
                       required: "Member name is required",
                     })}
-                    defaultValue={field.value}
+                    defaultValue={field.name}
                   />
+                  {errors.members?.[index]?.name && (
+                    <p className="text-red-500 text-sm mb-2">
+                      {errors.members[index].name?.message}
+                    </p>
+                  )}
+
+                  {/* Member Email */}
+                  <label className="block mb-1 text-gray-300">
+                    Member {index + 1} Email
+                  </label>
+                  <Input
+                    className="
+                      bg-gray-700 text-white w-full 
+                      mb-2
+                      transition-colors duration-300 
+                      focus:outline-none focus:ring-2 focus:ring-purple-500
+                    "
+                    placeholder="Enter member email"
+                    {...register(`members.${index}.email`, {
+                      required: "Member email is required",
+                    })}
+                    defaultValue={field.email}
+                  />
+                  {errors.members?.[index]?.email && (
+                    <p className="text-red-500 text-sm mb-2">
+                      {errors.members[index].email?.message}
+                    </p>
+                  )}
+
+                  {/* Member College */}
+                  <label className="block mb-1 text-gray-300">
+                    Member {index + 1} College
+                  </label>
+                  <Input
+                    className="
+                      bg-gray-700 text-white w-full 
+                      mb-2
+                      transition-colors duration-300 
+                      focus:outline-none focus:ring-2 focus:ring-purple-500
+                    "
+                    placeholder="Enter member college"
+                    {...register(`members.${index}.college`, {
+                      required: "Member college is required",
+                    })}
+                    defaultValue={field.college}
+                  />
+                  {errors.members?.[index]?.college && (
+                    <p className="text-red-500 text-sm mb-2">
+                      {errors.members[index].college?.message}
+                    </p>
+                  )}
+
                   {/* Remove button if more than 2 members */}
                   {fields.length > 2 && (
                     <Button
@@ -282,7 +343,7 @@ export default function RegisterPage() {
                   hover:from-green-700 hover:to-lime-700 
                   transition-transform duration-300 hover:scale-105
                 "
-                onClick={() => append({ value: "" })}
+                onClick={() => append({ name: "", email: "", college: "" })}
               >
                 <UserPlus className="w-4 h-4 mr-1" />
                 Add Member
