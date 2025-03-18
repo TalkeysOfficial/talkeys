@@ -37,16 +37,16 @@ const AddEventPage: React.FC = () => {
 			isTeamEvent: false,
 			isPaid: false,
 			isLive: false,
-			category: "esports",
+			category: "other",
 			mode: "offline",
 			visibility: "public",
 			slots: 1,
 			registrationCount: 0,
-			name: "",
-			duration: "",
-			startDate: "",
-			startTime: "",
-			endRegistrationDate: "",
+			name: "<NONE>",
+			duration: "Variable",
+			startDate: new Date().toString(),
+			startTime: new Date().getTime().toString(),
+			endRegistrationDate: new Date().toString(),
 			totalSeats: 0,
 			photographs: null,
 			prizes: undefined,
@@ -55,9 +55,10 @@ const AddEventPage: React.FC = () => {
 			registrationLink: undefined,
 			sponsorImages: null,
 			organizerName: undefined,
-			organizerEmail: undefined,
+			organizerEmail: "redacted@example.com",
 			organizerContact: undefined,
 			location: "",
+			ticketPrice: 0,
 		},
 	});
 
@@ -228,24 +229,11 @@ const AddEventPage: React.FC = () => {
 								control={control}
 								rules={{ required: "Category is required" }}
 								render={({ field }) => (
-									<Select
-										onValueChange={field.onChange}
-										defaultValue={field.value}
-									>
-										<SelectTrigger className="w-full bg-gray-800">
-											<SelectValue placeholder="Select a category" />
-										</SelectTrigger>
-										<SelectContent className="bg-white">
-											<SelectItem value="esports">
-												Esports
-											</SelectItem>
-											<SelectItem value="music">Music</SelectItem>
-											<SelectItem value="arts">Arts</SelectItem>
-											<SelectItem value="food">Food</SelectItem>
-											<SelectItem value="tech">Tech</SelectItem>
-											<SelectItem value="other">Other</SelectItem>
-										</SelectContent>
-									</Select>
+									<Input
+										id="category"
+										{...field}
+										className="mt-1 bg-gray-800"
+									/>
 								)}
 							/>
 							{errors.category && (
@@ -526,7 +514,7 @@ const AddEventPage: React.FC = () => {
 								name="prizes"
 								control={control}
 								render={({ field }) => (
-									<Input
+									<Textarea
 										id="prizes"
 										{...field}
 										className="mt-1 bg-gray-800"

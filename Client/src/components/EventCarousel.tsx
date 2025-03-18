@@ -5,26 +5,21 @@ import { useState, useCallback, memo, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import placeholderImage from "@/public/images/events.jpg";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ParticularEventPage from "@/components/ParticularEventPage";
 import type { Event } from "@/types/types";
-import {
-	Carousel,
-	CarouselContent,
-	CarouselItem,
-	CarouselNext,
-	CarouselPrevious,
-} from "@/components/ui/carousel";
 import { useMediaQuery } from "react-responsive";
+import { Carousel, CarouselItem } from "@/components/ui/carousel";
+import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
+import { cn } from "@/lib/utils";
 
 interface EventCarouselProps {
 	category?: string;
 	ev?: Event[];
 }
 
-// Memoized EventCard component for better performance
+// Memoized EventCard component with 3D effect
 const EventCard = memo(
 	({
 		event,
@@ -35,79 +30,115 @@ const EventCard = memo(
 		index: number;
 		onOpenDialog: (event: Event) => void;
 	}) => {
-		const cardVariants = {
-			hidden: { opacity: 0, y: 20 },
-			visible: (i: number) => ({
-				opacity: 1,
-				y: 0,
-				transition: {
-					delay: i * 0.1,
-					duration: 0.5,
-					ease: "easeOut",
-				},
-			}),
-			hover: {
-				y: -10,
-				boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-				transition: { duration: 0.3 },
-			},
-		};
+		const [isHovered, setIsHovered] = useState(false);
 
 		return (
 			<motion.div
 				custom={index}
 				initial="hidden"
 				animate="visible"
-				whileHover="hover"
-				variants={cardVariants}
+				variants={{
+					hidden: { opacity: 0, y: 20 },
+					visible: (i: number) => ({
+						opacity: 1,
+						y: 0,
+						transition: {
+							delay: i * 0.1,
+							duration: 0.5,
+							ease: "easeOut",
+						},
+					}),
+				}}
+				className="h-full"
 			>
-				<Card className="bg-gray-900/80 border-none overflow-hidden h-full">
-					<CardContent className="p-0 flex flex-col h-full">
-						<div className="relative w-full aspect-square overflow-hidden">
-							<Image
-								src={event.photographs?.[0] ?? placeholderImage}
-								alt={event.name}
-								fill
-								sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-								priority={index < 4}
-								loading={index < 4 ? "eager" : "lazy"}
-								className="object-cover object-center transition-transform duration-500 hover:scale-110"
-							/>
-							<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
-							<div className="absolute bottom-0 left-0 right-0 p-3">
-								<div className="text-sm text-purple-300 font-medium">
-									{new Date(event.startDate).toLocaleDateString(
-										"en-IN",
-										{
-											day: "numeric",
-											month: "short",
-											year: "numeric",
-										},
-									)}
-									{" • "}
-									{event.startTime}
-								</div>
-							</div>
-						</div>
-						<div className="p-4 flex flex-col flex-grow">
-							<h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
-								{event.name}
-							</h3>
-							<p className="text-gray-400 mb-4 line-clamp-1">
-								{event.location ?? "Location not specified"}
-							</p>
-							<div className="mt-auto">
-								<Button
-									variant="outline"
-									className="w-full hover:bg-purple-600 hover:text-white transition-colors duration-300 border-purple-500/50"
-									onClick={() => onOpenDialog(event)}
+				<CardContainer
+					className="w-full h-full py-0"
+					containerClassName="py-0"
+					onMouseEnter={() => setIsHovered(true)}
+					onMouseLeave={() => setIsHovered(false)}
+				>
+					<CardBody
+						className={cn(
+							"w-full h-full rounded-xl overflow-hidden border border-gray-800 bg-gray-900/80",
+							isHovered ? "shadow-lg shadow-purple-500/20" : "",
+						)}
+					>
+						<div className="relative w-full h-full flex flex-col">
+							{/* Image Container */}
+							<CardItem
+								translateZ={50}
+								className="relative w-full aspect-square overflow-hidden"
+							>
+								<Image
+									src={event.photographs?.[0] ?? placeholderImage}
+									alt={event.name}
+									fill
+									sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+									priority={index < 4}
+									loading={index < 4 ? "eager" : "lazy"}
+									className="object-cover object-center transition-transform duration-500"
+								/>
+								<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
+
+								{/* Date Badge */}
+								<CardItem
+									translateZ="60"
+									className="absolute bottom-0 left-0 right-0 p-3"
 								>
-									More info
-								</Button>
-							</div>
+									<div className="text-sm text-purple-300 font-medium">
+										{new Date(event.startDate).toLocaleDateString(
+											"en-IN",
+											{
+												day: "numeric",
+												month: "short",
+												year: "numeric",
+											},
+										)}
+										{" • "}
+										{event.startTime}
+									</div>
+								</CardItem>
+
+								{/* Status Badge */}
+								<CardItem
+									translateZ="60"
+									className={cn(
+										"absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md",
+										event.isLive
+											? "bg-green-500/80 text-white"
+											: "bg-red-500/80 text-white",
+									)}
+								>
+									{event.isLive ? "Live" : "Ended"}
+								</CardItem>
+							</CardItem>
+
+							{/* Content */}
+							<CardItem
+								translateZ={30}
+								className="p-4 flex flex-col flex-grow"
+							>
+								<h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
+									{event.name}
+								</h3>
+								<p className="text-gray-400 mb-4 line-clamp-1">
+									{event.location ?? "Location not specified"}
+								</p>
+								<div className="mt-auto">
+									<CardItem translateZ="50">
+										<Button
+											variant="outline"
+											className="w-full hover:bg-purple-600 hover:text-white transition-colors duration-300 border-purple-500/50"
+											onClick={() => onOpenDialog(event)}
+										>
+											More info
+										</Button>
+									</CardItem>
+								</div>
+							</CardItem>
 						</div>
-					</CardContent>
-				</Card>
+					</CardBody>
+				</CardContainer>
 			</motion.div>
 		);
 	},
@@ -158,64 +189,56 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 					</motion.div>
 				</div>
 
-				<Carousel
-					opts={{
-						align: "start",
-						loop: true,
-					}}
-					className="w-full"
-				>
-					<CarouselContent className="-ml-2 md:-ml-4">
-						{sortedEvents.length > 0 ? (
-							sortedEvents.map((event, index) => (
-								<CarouselItem
-									key={event._id || index}
-									className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4"
-								>
-									<EventCard
-										event={event}
-										index={index}
-										onOpenDialog={handleOpenDialog}
-									/>
-								</CarouselItem>
-							))
-						) : (
-							<CarouselItem className="pl-2 md:pl-4 basis-full">
-								<div className="flex justify-center items-center h-40 bg-purple-900/25 rounded-lg">
-									<p className="text-gray-400">
-										No Upcoming Events Currently
-									</p>
-								</div>
-							</CarouselItem>
-						)}
-					</CarouselContent>
-					<div className="flex justify-end mt-4 gap-2">
-						<CarouselPrevious className="relative inset-0 translate-y-0 bg-purple-600 hover:bg-purple-700 text-white" />
-						<CarouselNext className="relative inset-0 translate-y-0 bg-purple-600 hover:bg-purple-700 text-white" />
+				{sortedEvents.length > 0 ? (
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+						{sortedEvents.map((event, index) => (
+							<motion.div
+								key={event._id}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -20 }}
+								transition={{ duration: 0.3 }}
+								className="h-full"
+							>
+								<EventCard
+									event={event}
+									index={index}
+									onOpenDialog={handleOpenDialog}
+								/>
+							</motion.div>
+						))}
 					</div>
-				</Carousel>
-			</div>
-
-			<AnimatePresence>
-				{selectedEvent && isDialogOpen && (
-					<Dialog
-						open={isDialogOpen}
-						onOpenChange={setIsDialogOpen}
-					>
-						<DialogContent
-							ref={dialogRef}
-							className="max-w-5xl max-h-[90vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar p-0 bg-transparent"
-							// Increased top margin for mobile to avoid navbar overlap
-							style={{ marginTop: isMobile ? "4rem" : "1.5rem" }}
-						>
-							<ParticularEventPage
-								event={selectedEvent}
-								onClose={handleCloseDialog}
-							/>
-						</DialogContent>
-					</Dialog>
+				) : (
+					<div className="pl-2 md:pl-4 basis-full">
+						<div className="flex justify-center items-center h-40 bg-purple-900/25 rounded-lg">
+							<p className="text-gray-400">
+								No Upcoming Events Currently
+							</p>
+						</div>
+					</div>
 				)}
-			</AnimatePresence>
+
+				<AnimatePresence>
+					{selectedEvent && isDialogOpen && (
+						<Dialog
+							open={isDialogOpen}
+							onOpenChange={setIsDialogOpen}
+						>
+							<DialogContent
+								ref={dialogRef}
+								className="max-w-5xl max-h-[90vh] overflow-y-auto border-none mt-6 scrollbar-hide custom-scrollbar p-0 bg-transparent"
+								// Increased top margin for mobile to avoid navbar overlap
+								style={{ marginTop: isMobile ? "4rem" : "1.5rem" }}
+							>
+								<ParticularEventPage
+									event={selectedEvent}
+									onClose={handleCloseDialog}
+								/>
+							</DialogContent>
+						</Dialog>
+					)}
+				</AnimatePresence>
+			</div>
 		</div>
 	);
 };

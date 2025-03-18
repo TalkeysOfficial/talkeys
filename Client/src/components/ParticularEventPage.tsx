@@ -256,6 +256,8 @@ export default function ParticularEventPage({
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
+				const hasEventYetToCome = !isTimePassed(event.startDate)
+				console.log(hasEventYetToCome);
 				const isRegistrationClosed = isTimePassed(
 					event.endRegistrationDate,
 				);
@@ -267,7 +269,7 @@ export default function ParticularEventPage({
 				if (isRegistrationClosed) {
 					buttonText = "Registrations Closed";
 					ariaLabel = "Registrations closed";
-				} else if (!isEventLive) {
+				} else if (!isEventLive || hasEventYetToCome) {
 					buttonText = "Coming Soon";
 					ariaLabel = "Event coming soon";
 				} else if (isEventPaid) {
@@ -287,7 +289,7 @@ export default function ParticularEventPage({
 							<Button
 								className="bg-purple-600 hover:bg-purple-700 w-full"
 								onClick={sendBookingID}
-								disabled={!isEventLive || isRegistrationClosed}
+								disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
 								aria-label={ariaLabel}
 							>
 								{buttonText}
@@ -304,7 +306,7 @@ export default function ParticularEventPage({
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={handleRegisterClick}
-							disabled={!isEventLive || isRegistrationClosed}
+							disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
 							aria-label={ariaLabel}
 						>
 							{buttonText}
@@ -590,6 +592,13 @@ export default function ParticularEventPage({
 		}
 	};
 
+	function formatTime(timeString: string): string {
+		const [hours, minutes] = timeString.split(":").map(Number);
+		const period = hours >= 12 ? "PM" : "AM";
+		const hours12 = hours % 12 || 12;
+		return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
+	}
+
 	return (
 		<div
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
@@ -658,7 +667,10 @@ export default function ParticularEventPage({
 							<div className="text-base">
 								Cost:{" "}
 								<span className="font-bold text-purple-300">
-									₹{event.ticketPrice}
+									₹{" "}
+									{event.ticketPrice && event.ticketPrice > 0
+										? event.ticketPrice
+										: "Free"}
 								</span>
 							</div>
 							{renderRegistrationButton()}
@@ -750,7 +762,7 @@ export default function ParticularEventPage({
 						>
 							Dates & Deadlines
 						</TabsTrigger>
-						{event.category === "Gaming" && (
+						{event.prizes && (
 							<TabsTrigger
 								value="prizes"
 								className="text-sm data-[state=active]:bg-purple-600"
@@ -808,10 +820,12 @@ export default function ParticularEventPage({
 								</h3>
 								<p className="text-gray-300">
 									<span className="font-medium">Start Date:</span>{" "}
-									{new Date(event.startDate).toLocaleDateString()}
+									{new Date(event.startDate).toLocaleDateString(
+										"en-IN",
+									)}
 									<br />
 									<span className="font-medium">Start Time:</span>{" "}
-									{event.startTime}
+									{formatTime(event.startTime)}
 									<br />
 									<span className="font-medium">Duration:</span>{" "}
 									{event.duration}
@@ -821,7 +835,7 @@ export default function ParticularEventPage({
 									</span>{" "}
 									{new Date(
 										event.endRegistrationDate,
-									).toLocaleDateString()}
+									).toLocaleDateString("en-IN")}
 								</p>
 							</motion.div>
 						</TabsContent>
@@ -840,9 +854,12 @@ export default function ParticularEventPage({
 								<h3 className="text-lg font-semibold mb-2 text-purple-300">
 									Prizes
 								</h3>
-								<p className="text-gray-300">
-									{event.prizes ?? "No prize information available."}
-								</p>
+								<div className="text-gray-300 space-y-2 whitespace-pre-line">
+									{event.prizes
+										?.split("\\n")
+										.map((line) => line)
+										.join("\n")}
+								</div>
 							</motion.div>
 						</TabsContent>
 

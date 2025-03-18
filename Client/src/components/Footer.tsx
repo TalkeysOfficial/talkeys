@@ -104,8 +104,7 @@ export default function Footer() {
 							</li>
 							<li>
 								<Link
-									href="https://docs.google.com/document/d/1esA4099ZLWFmrBxo_Cs1KWWRvtLeW6pUzl_7hHLEECI/edit?usp=sharing"
-									target="_blank"
+									href="/t&c"
 									className="hover:underline transition-colors duration-200"
 								>
 									Terms of Service

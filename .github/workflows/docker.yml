@@ -39,10 +39,17 @@ jobs:
 
       - name: SSH into server and deploy
         run: |
-          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git && sudo docker compose up --build -d'
+          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server/Talkeys && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys'
           echo "Allowing Go Fiber Program to start properly"
           echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
+
+      - name: Check and free port 4890
+        run: |
+          if lsof -Pi :4890 -sTCP:LISTEN -t >/dev/null ; then
+            echo "Port 4890 is in use. Stopping the service."
+            fuser -k 4890/tcp
+          fi
 
       - name: Check API Status with Retry
         run: |
@@ -75,4 +82,3 @@ jobs:
           git add .  # Stage changes (important for removed files)
           git commit -m "Overriding with latest changes from talkeys repo"
           git push --force backup himanish
-

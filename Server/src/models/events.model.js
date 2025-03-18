@@ -18,17 +18,22 @@ const eventSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: true,
+		default: "<NONE>",
 	},
 	category: {
 		type: String,
 		required: true,
-		enum: ["esports", "music", "arts", "food", "tech", "other"],
+		default: "other",
 	},
 	ticketPrice: {
 		type: Number,
-		required() {
-			return this.isPaid;
+		validate: {
+			validator(val) {
+				return val >= 0;
+			},
+			message: "Ticket price must be a positive number",
 		},
+		default: 0,
 	},
 	mode: {
 		type: String,
@@ -37,8 +42,11 @@ const eventSchema = new mongoose.Schema({
 	},
 	location: {
 		type: String,
-		required() {
-			return this.mode === "offline";
+		validate: {
+			validator(val) {
+				return this.mode !== "offline" || !!val;
+			},
+			message: "Location is required for offline events",
 		},
 	},
 	duration: {
@@ -70,18 +78,24 @@ const eventSchema = new mongoose.Schema({
 	totalSeats: {
 		type: Number,
 		required: true,
+		default: 0,
+		validate: {
+			validator(val) {
+				return val >= 0;
+			},
+			message: "Total Seats must NOT be negative number",
+		},
 	},
-	
-	
-	//additional media and information
 	photographs: {
 		type: [String],
 	},
 	prizes: {
 		type: String,
+		default: "",
 	},
 	eventDescription: {
 		type: String,
+		default: "",
 	},
 	paymentQRcode: {
 		type: String,
@@ -98,21 +112,24 @@ const eventSchema = new mongoose.Schema({
 		type: Number,
 		default: 0,
 	},
-
-	//organizer details
 	organizerName: {
 		type: String,
-		required: false,
+		default: "",
 	},
 	organizerEmail: {
 		type: String,
-		required: false,
+		validate: {
+			validator(val) {
+				return /.+@.+\..+/.test(val);
+			},
+			message: "Invalid email",
+		},
+		default: "redacted@example.com",
 	},
 	organizerContact: {
 		type: String,
-		required: false,
+		default: "",
 	},
-
 });
 
 const Event = mongoose.model("Event", eventSchema);

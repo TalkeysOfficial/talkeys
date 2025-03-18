@@ -2,139 +2,207 @@
 
 import type React from "react";
 
-import { motion } from "framer-motion";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import type { Event } from "@/types/types";
+import { useState } from "react";
 import Image from "next/image";
-import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Heart, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
+import type { Event } from "@/types/types";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
 	event: Event;
-	onDelete: (id: string) => void;
-	deleteMode: boolean;
+	onDelete?: (id: string) => void;
+	deleteMode?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
 	event,
 	onDelete,
-	deleteMode,
+	deleteMode = false,
 }) => {
-	const cardVariants = {
-		normal: { scale: 1, rotate: 0 },
-		deleteMode: {
-			scale: 0.98,
-			rotate: [-1, 1, -1, 0],
-			transition: {
-				rotate: {
-					duration: 0.3,
-					repeat: Number.POSITIVE_INFINITY,
-					repeatType: "reverse",
+	const [isLiked, setIsLiked] = useState(event.isLiked || false);
+	const [isHovered, setIsHovered] = useState(false);
+
+	const handleLikeUnlikeEvent = async (eventId: string) => {
+		try {
+			await fetch(
+				`${process.env.BACKEND_URL}/${
+					isLiked ? "unlikeEvent" : "likeEvent"
+				}/${eventId}`,
+				{
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
+					},
 				},
-			},
-		},
-		hover: {
-			scale: 1.03,
-			boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-			transition: { duration: 0.2 },
-		},
+			);
+			setIsLiked(!isLiked);
+		} catch (error) {
+			console.error("Error liking/unliking event:", error);
+		}
 	};
 
-	const formattedDate = format(new Date(event.startDate), "dd MMM yyyy");
-	const isLive = event.isLive;
+	const handleDelete = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (onDelete) {
+			onDelete(event._id);
+		}
+	};
+
+	const formatDate = (dateString: string) => {
+		const options: Intl.DateTimeFormatOptions = {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		};
+		return new Date(dateString).toLocaleDateString("en-US", options);
+	};
 
 	return (
-		<motion.div
-			variants={cardVariants}
-			animate={deleteMode ? "deleteMode" : "normal"}
-			whileHover={deleteMode ? "deleteMode" : "hover"}
-			className={`group ${deleteMode ? "cursor-pointer" : ""}`}
+		<CardContainer
+			className="w-full h-full py-0"
+			containerClassName="py-0"
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
 		>
-			<Card className="bg-gray-800/80 text-white border-gray-700 overflow-hidden h-full transition-all duration-300 hover:border-purple-500">
-				<div className="relative">
-					<div className="relative w-full h-40">
-						<Image
-							src={
-								event.photographs?.[0] ||
-								"/placeholder.svg?height=160&width=320" ||
-								"/placeholder.svg"
-							}
-							alt={event.name}
-							fill
-							className="object-cover"
-							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-						/>
-						<div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-70" />
-					</div>
-
-					<div className="absolute top-2 right-2">
-						<Badge
-							variant={isLive ? "default" : "secondary"}
-							className={isLive ? "bg-green-600" : "bg-gray-600"}
+			<CardBody
+				className={cn(
+					"w-full h-full rounded-xl overflow-hidden border border-gray-800 bg-gray-900/80 transition-all duration-300",
+					isHovered ? "shadow-lg shadow-purple-500/20" : "",
+				)}
+			>
+				<Link
+					href={`/event/${event._id}`}
+					className="block h-full"
+				>
+					<div className="relative w-full h-full flex flex-col">
+						{/* Image Container */}
+						<CardItem
+							translateZ="40"
+							className="relative w-full h-48 overflow-hidden"
 						>
-							{isLive ? "Live" : "Past"}
-						</Badge>
-					</div>
+							<Image
+								src={
+									event.photographs?.[0] ||
+									"/placeholder.svg?height=400&width=600"
+								}
+								alt={event.name}
+								fill
+								className="object-cover transition-transform duration-500"
+								sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+							/>
 
-					{deleteMode && (
-						<motion.div
-							className="absolute top-2 left-2 bg-red-500 rounded-full p-1.5"
-							initial={{ opacity: 0, scale: 0 }}
-							animate={{ opacity: 1, scale: 1 }}
-							exit={{ opacity: 0, scale: 0 }}
-							transition={{ duration: 0.2 }}
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete(event._id);
-							}}
+							{/* Overlay for status */}
+							<div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+
+							{/* Status Badge */}
+							<CardItem
+								translateZ="60"
+								className={cn(
+									"absolute top-3 left-3 px-2 py-1 text-xs font-medium rounded-md",
+									event.isLive
+										? "bg-green-500/80 text-white"
+										: "bg-red-500/80 text-white",
+								)}
+							>
+								{event.isLive ? "Live" : "Ended"}
+							</CardItem>
+
+							{/* Category Badge */}
+							<CardItem
+								translateZ="60"
+								className="absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md bg-purple-600/80 text-white"
+							>
+								{event.category}
+							</CardItem>
+
+							{/* Date */}
+							<CardItem
+								translateZ="50"
+								className="absolute bottom-3 left-3 text-white text-sm font-medium"
+							>
+								{formatDate(event.startDate)}
+							</CardItem>
+						</CardItem>
+
+						{/* Content */}
+						<CardItem
+							translateZ="30"
+							className="flex-1 p-4 flex flex-col"
 						>
-							<Trash2 className="w-4 h-4 text-white" />
-						</motion.div>
-					)}
-				</div>
+							<h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+								{event.name}
+							</h3>
 
-				<CardHeader className="p-4 pb-2">
-					<CardTitle className="text-lg font-semibold line-clamp-1">
-						{event.name}
-					</CardTitle>
-				</CardHeader>
+							<div className="flex items-center text-gray-400 text-sm mb-2">
+								<span className="line-clamp-1">
+									{event.location || "Online Event"}
+								</span>
+							</div>
 
-				<CardContent className="p-4 pt-0 space-y-2">
-					<div className="flex items-center text-sm text-gray-300">
-						<Calendar className="w-4 h-4 mr-2 text-purple-400" />
-						<span>{formattedDate}</span>
+							<div className="mt-auto flex justify-between items-center">
+								<CardItem
+									translateZ="20"
+									className={cn(
+										"text-sm font-medium",
+										event.isPaid
+											? "text-yellow-400"
+											: "text-green-400",
+									)}
+								>
+									{event.isPaid ? `₹${event.ticketPrice}` : "Free"}
+								</CardItem>
+
+								{deleteMode ? (
+									<CardItem translateZ="20">
+										<motion.button
+											whileHover={{ scale: 1.1 }}
+											whileTap={{ scale: 0.9 }}
+											onClick={handleDelete}
+											className="p-2 bg-red-500/20 rounded-full text-red-500 hover:bg-red-500/30 transition-colors"
+											aria-label="Delete event"
+										>
+											<Trash2 size={16} />
+										</motion.button>
+									</CardItem>
+								) : (
+									<CardItem translateZ="20">
+										<motion.button
+											whileHover={{ scale: 1.1 }}
+											whileTap={{ scale: 0.9 }}
+											onClick={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												handleLikeUnlikeEvent(event._id);
+											}}
+											className={cn(
+												"p-2 rounded-full transition-colors",
+												isLiked
+													? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+													: "bg-gray-700/50 text-gray-400 hover:bg-gray-700",
+											)}
+											aria-label={
+												isLiked ? "Unlike event" : "Like event"
+											}
+										>
+											<Heart
+												size={16}
+												fill={isLiked ? "currentColor" : "none"}
+											/>
+										</motion.button>
+									</CardItem>
+								)}
+							</div>
+						</CardItem>
 					</div>
-
-					<div className="flex items-center text-sm text-gray-300">
-						<MapPin className="w-4 h-4 mr-2 text-purple-400" />
-						<span className="line-clamp-1">
-							{event.location || "No location specified"}
-						</span>
-					</div>
-
-					<div className="flex items-center text-sm text-gray-300">
-						<Users className="w-4 h-4 mr-2 text-purple-400" />
-						<span>{event.registrationCount || 0} registrations</span>
-					</div>
-
-					<div className="flex flex-wrap gap-1 mt-2">
-						<Badge
-							variant="outline"
-							className="bg-gray-700/50 text-xs"
-						>
-							{event.category}
-						</Badge>
-						<Badge
-							variant="outline"
-							className="bg-gray-700/50 text-xs"
-						>
-							{event.mode}
-						</Badge>
-					</div>
-				</CardContent>
-			</Card>
-		</motion.div>
+				</Link>
+			</CardBody>
+		</CardContainer>
 	);
 };
 
