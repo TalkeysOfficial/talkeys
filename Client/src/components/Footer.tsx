@@ -96,7 +96,7 @@ export default function Footer() {
 							</li>
 							<li>
 								<Link
-									href="/underConstruct"
+									href="/privacyPolicy"
 									className="hover:underline transition-colors duration-200"
 								>
 									Privacy Policy
