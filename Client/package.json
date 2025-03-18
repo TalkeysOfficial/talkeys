@@ -43,7 +43,7 @@
     "express": "^4.21.2",
     "facejs": "^1.0.1",
     "facesjs": "^4.2.2",
-    "framer-motion": "^12.0.5",
+    "framer-motion": "^12.5.0",
     "lucide-react": "^0.453.0",
     "mongoose": "^8.8.0",
     "motion": "^12.4.3",

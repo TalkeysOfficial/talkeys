@@ -22,8 +22,10 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ParticularEventPage() {
+  const router = useRouter();
   const params = useParams();
   const eventId = params.id;
 
@@ -334,7 +336,7 @@ export default function ParticularEventPage() {
         return (
           <Button
             className="bg-purple-600 hover:bg-purple-700 w-full"
-            onClick={handleRegisterClick}
+            onClick= {() => router.push("/register")}
             disabled={!isEventLive || isRegistrationClosed}
             aria-label={ariaLabel}
           >
