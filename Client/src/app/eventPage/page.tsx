@@ -21,6 +21,8 @@ function EventPage() {
 	const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
 	useEffect(() => {
+		document.getElementsByTagName("title")[0].text = "All Our Events";
+
 		async function fetchEvents() {
 			setIsLoading(true);
 			try {
@@ -71,6 +73,10 @@ function EventPage() {
 			}
 		}
 		fetchEvents();
+
+		return () => {
+			document.getElementsByTagName("title")[0].text = "Talkeys";
+		};
 	}, []);
 
 	// Memoize filtered events to prevent unnecessary re-renders
