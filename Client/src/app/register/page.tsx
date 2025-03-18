@@ -94,7 +94,7 @@ export default function RegisterPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      console.log("Submitting form with data:", data);
+      console.log("Submitting form with dataaaaaaaaaaaaaa:", data);
       console.log("Token:", token);
       const response = await fetch(`https://api.talkeys.xyz/register`, {
         method: "POST",
