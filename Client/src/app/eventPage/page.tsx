@@ -1,7 +1,6 @@
 // @ts-nocheck
 // @ts-ignore
 
-
 "use client";
 
 import { useEffect, useState } from "react";
