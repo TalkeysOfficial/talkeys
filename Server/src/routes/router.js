@@ -19,6 +19,7 @@ router.get("/getEventById/:id", Events.getEventById);
 router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
+router.post("/register",Passes.register); 
 router.use(auth.verifyToken);
 
 
@@ -36,7 +37,6 @@ router.post("/getTeam", Team.getTeam);
 router.post("/reqEvent", Events.reqEventt);
 
 
-
 router.use(checkRole(["admin"]));
 
 
@@ -47,7 +47,7 @@ router.post("/accept", Passes.Accept);
 router.post("/payment/:bookingId", initiatePayment);
 router.post("/payment/verify", verifyPayment);
 router.post("/payment/result", getPaymentResult);
-router.post("/register",Passes.register); 
+
 // mera code matt hattayo
 router.post("/addEvent", Events.addEvent);
 router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
