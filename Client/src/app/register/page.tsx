@@ -100,7 +100,8 @@ export default function RegisterPage() {
 
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(`${process.env.BACKEND_URL}/register`, {
+      console.log("Submitting form with data:", data);
+      const response = await fetch(`http://127.0.0.1:8000/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
