@@ -22,11 +22,13 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
+	const router = useRouter();
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
 	const [teamCode, setTeamCode] = useState("");
@@ -94,9 +96,10 @@ export default function ParticularEventPage({
 			window.open(event.registrationLink, "_blank");
 			return;
 		}
-		if (event.isLive) {
+		/* if (event.isLive) {
 			setRegistrationState("teamOptions");
-		}
+		} */
+		router.push("/register");
 	};
 
 	const handleJoinTeam = () => {
