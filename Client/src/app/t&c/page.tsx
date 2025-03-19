@@ -33,6 +33,7 @@ import {
 	XCircle,
 	RefreshCw,
 	Mail,
+	IndianRupee
 } from "lucide-react";
 
 export default function TermsPage() {
@@ -310,8 +311,25 @@ export default function TermsPage() {
 			),
 		},
 		{
+			id: "refund",
+			title: "12. Refund Policy",
+			icon: <IndianRupee className="h-5 w-5" />,
+			description: "Our refund policy",
+			content: (
+				<>
+				<p>Talkeys serves solely as a ticketing platform and does not directly manage or organize the events listed on the platform. As such, the refund policy for each event is determined by the individual event organizer. Talkeys does not guarantee refunds for ticket purchases.
+				</p>
+				<p>Users are advised to review the specific event's refund terms prior to completing a booking. If an event is canceled or rescheduled, any refund (partial or full) will be subject to the event organizer’s refund guidelines.
+				</p>
+				<p>Talkeys will facilitate the refund process only as per instructions received from the event organizer and is not liable for the outcome of refund claims.</p>
+				<p>
+				For refund-related inquiries, please contact the respective event organizer directly. In case of technical issues related to payment processing, users can reach out to Talkeys at:<br></br> talkeys11@gmail.com.</p>
+				</>
+			),
+		},
+		{
 			id: "contact",
-			title: "12. Contact Us",
+			title: "13. Contact Us",
 			icon: <Mail className="h-5 w-5" />,
 			description: "How to reach our support team",
 			content: (

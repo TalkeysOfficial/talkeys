@@ -107,7 +107,7 @@ export default function Footer() {
 				</div>
 
 				{/* Main footer content */}
-				<div className="bg-gradient-to-b from-black/60 via-gray-900/80 to-black/80 backdrop-blur-sm text-white py-12 px-4 sm:px-6 lg:px-8">
+				<div className="bg-gradient-to-b from-black/60 via-gray-900/80 to-black/80 backdrop-blur-sm text-white py-6 px-2 sm:px-4 lg:px-6">
 					<div className="container mx-auto">
 						{/* Desktop layout */}
 						<div className="hidden lg:grid grid-cols-4 gap-8">
