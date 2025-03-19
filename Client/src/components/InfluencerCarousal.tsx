@@ -86,7 +86,7 @@ export default function InfluencerCarousel() {
 										alt={card.title}
 										width={300}
 										height={400}
-										className="w-full h-64 object-cover object-center"
+										className="w-full h-64 object-cover object-center rounded-xl"
 									/>
 									<div className="p-4">
 										<div className="flex justify-between items-center">

@@ -55,7 +55,7 @@ export default function CommunityCarousel() {
 											alt={card.title}
 											width={300}
 											height={400}
-											className="w-full h-64 object-cover"
+											className="w-full h-64 object-cover rounded-xl"
 										/>
 										<div className="p-4">
 											<div className="text-sm text-red-500 mb-2">

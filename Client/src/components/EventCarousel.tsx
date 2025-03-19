@@ -77,7 +77,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								className="absolute bottom-0 left-0 right-0 p-3"
 							>
 								<div className="text-sm text-purple-300 font-medium">
-									{new Date(event.startDate).toLocaleDateString(
+									{new Date(event.endRegistrationDate).toLocaleDateString(
 										"en-IN",
 										{
 											day: "numeric",

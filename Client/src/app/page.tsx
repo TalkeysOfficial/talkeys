@@ -26,7 +26,7 @@ export default function Home() {
 				};
 				const { events } = data;
 				const upcomingEvents = events.filter(
-					(event) => new Date(event.startDate) >= new Date(),
+					(event) => new Date(event.endRegistrationDate) >= new Date(),
 				);
 				setFetchedEvents(upcomingEvents);
 			} catch (error) {
