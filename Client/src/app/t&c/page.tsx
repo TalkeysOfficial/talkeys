@@ -321,15 +321,27 @@ export default function TermsPage() {
 				</p>
 				<p>Users are advised to review the specific event's refund terms prior to completing a booking. If an event is canceled or rescheduled, any refund (partial or full) will be subject to the event organizer’s refund guidelines.
 				</p>
-				<p>Talkeys will facilitate the refund process only as per instructions received from the event organizer and is not liable for the outcome of refund claims.</p>
+				<p>Refund will be credited to your original payment method within 1 or 2 business days.
+				Talkeys will facilitate the refund process only as per instructions received from the event organizer and is not liable for the outcome of refund claims.</p>
 				<p>
 				For refund-related inquiries, please contact the respective event organizer directly. In case of technical issues related to payment processing, users can reach out to Talkeys at:<br></br> talkeys11@gmail.com.</p>
 				</>
 			),
 		},
 		{
+			id: "ownership",
+			title: "13. Ownership",
+			icon: <Mail className="h-5 w-5" />,
+			description: "Ownership of content and platform rights",
+			content: (
+				<p>
+					The Talkeys platform, including its website, content, design, and associated services, is solely owned and operated by Arsh Chatrath. Any unauthorized use, reproduction, or distribution of the platform or its materials is strictly prohibited without prior written consent.
+				</p>
+			),
+		},
+		{
 			id: "contact",
-			title: "13. Contact Us",
+			title: "14. Contact Us",
 			icon: <Mail className="h-5 w-5" />,
 			description: "How to reach our support team",
 			content: (
