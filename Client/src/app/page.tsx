@@ -8,7 +8,6 @@ import HostEventSection from "@/components/HostEventSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
-import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
