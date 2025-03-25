@@ -8,49 +8,63 @@ import HostEventSection from "@/components/HostEventSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
+import {Tabs, TabsList, TabsTrigger} from "@/components/ui/tabs";
 
 export default function Home() {
-	const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
-	const [loading, setLoading] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		const fetchEvents = async () => {
-			try {
-				const response = await fetch(
-					`${process.env.BACKEND_URL}/getEvents`,
-				);
-				const { data } = (await response.json()) as {
-					data: {
-						events: Event[];
-					};
-				};
-				const { events } = data;
-				const upcomingEvents = events.filter(
-					(event) => new Date(event.endRegistrationDate) >= new Date(),
-				);
-				setFetchedEvents(upcomingEvents);
-			} catch (error) {
-				console.error("Error fetching events:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
+        const { data } = (await response.json()) as {
+          data: {
+            events: Event[];
+          };
+        };
 
-		fetchEvents();
-	}, []);
+        const { events } = data;
 
-	return (
-		<GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
-			<Hero />
-			{!loading && (
-				<EventCarousel
-					ev={fetchedEvents}
-					category="Upcoming Events"
-				/>
-			)}
-			<CommunityCarousel />
-			<InfluencerCarousal />
-			<HostEventSection />
-		</GoogleOAuthProvider>
-	);
+        
+        const now = new Date();
+        const upcoming = events.filter(
+          (event) => new Date(event.endRegistrationDate) >= now
+        );
+        const past = events.filter(
+          (event) => new Date(event.endRegistrationDate) < now
+        );
+
+        setUpcomingEvents(upcoming);
+        setPastEvents(past);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  return (
+    <GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
+      <Hero />
+
+      
+      {!loading && upcomingEvents.length > 0 && (
+        <EventCarousel ev={upcomingEvents} category="Upcoming Events" />
+      )}
+
+      
+      {!loading && pastEvents.length > 0 && (
+        <EventCarousel ev={pastEvents} category="Past Events" />
+      )}
+
+      <CommunityCarousel />
+      <InfluencerCarousal />
+      <HostEventSection />
+    </GoogleOAuthProvider>
+  );
 }
