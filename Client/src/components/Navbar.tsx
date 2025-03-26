@@ -31,7 +31,7 @@ import talkey_logo from "@/public/images/talkeyLogo.png";
 const navItems = [
 	// { name: "Explore", link: "/underConstruct", icon: Search },
 	{ name: "Events", link: "/eventPage", icon: Calendar },
-	{ name: "Communities", link: "/underConstruct", icon: Users },
+	// { name: "Communities", link: "/underConstruct", icon: Users },
 	// { name: "Global", link: "/underConstruct", icon: Globe },
 	// { name: "Inbox", link: "/underConstruct", icon: MessagesSquare },
 ];

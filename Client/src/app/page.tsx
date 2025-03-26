@@ -61,8 +61,8 @@ export default function Home() {
         <EventCarousel ev={pastEvents} category="Past Events" />
       )}
 
-      <CommunityCarousel />
-      <InfluencerCarousal />
+      {/* <CommunityCarousel /> */}
+      {/* <InfluencerCarousal /> */}
       <HostEventSection />
     </GoogleOAuthProvider>
   );
