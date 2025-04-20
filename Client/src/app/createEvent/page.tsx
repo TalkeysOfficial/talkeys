@@ -21,7 +21,7 @@ import {
   FileText,
   Check,
 } from "lucide-react";
-
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -871,7 +871,14 @@ export default function CreateEventPage() {
                     {...register("agreeTerms", { required: true })}
                   />
                   <label className="text-gray-300 text-sm">
-                    I agree to abide by Talkeys' terms and privacy policy.
+                    I agree to abide by{" "}
+                    <Link
+                      href="/t&c"
+                      className="text-purple-400 underline hover:text-purple-300 transition-colors"
+                    >
+                      terms and privacy policy
+                    </Link>
+                    .
                   </label>
                 </div>
                 {errors.agreeTerms && (
