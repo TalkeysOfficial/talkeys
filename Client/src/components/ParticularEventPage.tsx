@@ -279,7 +279,7 @@ export default function ParticularEventPage({
 					buttonText = "Pay NOW";
 					ariaLabel = "Pay for tickets for event";
 				} else {
-					buttonText = "Register Now";
+					buttonText = "Pay Now";
 					ariaLabel = "Register for event";
 				}
 
