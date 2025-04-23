@@ -105,7 +105,7 @@ const SignUpPage = () => {
 								<p className="text-sm text-gray-400 text-center">
 									By continuing you agree to our{" "}
 									<Link
-										href="https://docs.google.com/document/d/1esA4099ZLWFmrBxo_Cs1KWWRvtLeW6pUzl_7hHLEECI/edit?usp=sharing"
+										href="/t&c"
 										target="_blank"
 										className="text-purple-400 hover:text-purple-300"
 									>
@@ -113,7 +113,7 @@ const SignUpPage = () => {
 									</Link>{" "}
 									and{" "}
 									<Link
-										href="/underConstruct"
+										href="/privacyPolicy"
 										className="text-purple-400 hover:text-purple-300"
 									>
 										Privacy Policy
