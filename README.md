@@ -1,346 +1,100 @@
-# API Endpointss
-## Endpoint Description
-Creates a new team with a unique team code and adds the current user as the team leader
-## Request Payload
-```json
-{   "teamName": "HelloHimanish",
-    "newPhoneNumber": "9814956560"
-}
-```
-### Request Parameterr
-- `teamName` (String, Required): Name of the team
-- `newPhoneNumber` (String, Required): User's phone number
+#API Endpoint 
 
-## Responses
-```json
-{
-    "team": {
-        "teamName": "HelloHimanis",
-        "teamLeader": "678a933d0b89cdf0e2dcba3f",
-        "teamCode": "AL7IKK",
-        "teamMembers": [
-            "678a933d0b89cdf0e2dcba3f"
-        ],
-        "maxMembers": 2,
-        "_id": "6791e3a8e87260f8190fd962",
-        "__v": 0
-    },
-    "teamCode": "AL7IKK"
-}
-```
 
-### Response Fields
-- `team`: Created team object
-  - `teamName`: Provided team name
-  - `teamLeader`: ID of team creator
-  - `teamCode`: Unique 6-character code
-  - `teamMembers`: Array of initial team member IDs
-  - `maxMembers`: Maximum allowed team members
-  - `_id`: Unique team identifier
 
-## Authentication
-- Requires user authentication
-- Uses user's email from JWT token
+---
 
-## Validation
-- Validates phone number format
-- Ensures user exists in database
-- Generates unique team code
+## 📘 **Event API Documentation**
 
-## Potential Status Codes
-- 201: Team successfully created
-- 400: Invalid phone number
-- 401: Unauthorized
-- 404: User not found
-- 500: Server error
+###  **Authentication Required**
 
-# Team Join API Endpoint
+Routes below `router.use(auth.verifyToken);` require a valid JWT token.
 
-## Endpoint Description
-Allows a user to join an existing team using a team code.
+---
 
-## Request Payload
+###  Public Endpoints
+
+#### `GET /getEvents`
+
+**Description**: Fetch all events with optional filters, pagination, and sorting.
+**Query Parameters**:
+
+* `page` (default: 1)
+* `limit` (default: 10)
+* `sortBy` (e.g. startDate)
+* `order` (asc | desc)
+* `mode` (e.g. online/offline)
+* `category` (e.g. tech, music)
+* `visibility` (public/private)
+* `search` (searches eventName, description, category)
+* `minPrice`, `maxPrice` (filter by ticket price range)
+
+**Response**:
+
 ```json
 {
-    "teamCode": "AL7IKK",
-    "phoneNumber": "9814956560"
-}
-```
-
-### Request Parameters
-- `teamCode` (String, Required): Unique team invitation code
-- `phoneNumber` (String, Required): User's phone number
-
-## Response
-```json
-{
-    "teamName": "HelloHimanish",
-    "teamLeader": "678a933d0b89cdf0e2dcba3f",
-    "teamCode": "AL7IKK",
-    "teamMembers": [
-        "678a933d0b89cdf0e2dcba3f",
-        "new_user_id"
-    ],
-    "maxMembers": 2,
-    "_id": "6791e3a8e87260f8190fd962"
-}
-```
-
-## Authentication
-- Requires user authentication
-- Uses user's email from JWT token
-
-## Validation Checks
-- Verifies user exists
-- Confirms team exists
-- Checks team is not full
-- Validates phone number
-- Prevents duplicate team membership
-
-## Potential Status Codes
-- 200: Successfully joined team
-- 400: Team full or invalid phone number
-- 404: Team or user not found
-- 500: Server error
-
-
-I'll generate comprehensive documentation for the `bookTicket` function:
-
-# Team Ticket Booking API Documentation
-
-## Overview
-The `bookTicket` function is a critical API endpoint for team ticket booking. It allows team leaders to book event tickets for their entire team, ensuring a streamlined group registration process.
-
-## Endpoint Details
-- **Method**: POST
-- **Authentication**: Required (OAuth middleware)
-- **Access**: Team Leaders Only
-
-## Request Payload
-```json
-{
-    "teamcode": "TEAM123",
-    "name": "Event Name",
-    "slotId": "optional_slot_identifier"
-}
-```
-
-### Request Parameters
-- `teamcode` (String, Required): Unique team code identifying the team
-- `name` (String, Required): Name of the event to book tickets for
-- `slotId` (String, Optional): Specific event slot or time (not utilized in current implementation) (dont do this for now, this feature will be after esports)
-
-## Authentication
-- Requires valid OAuth token
-- User ID is extracted from `req.user.id`
-- Only team leaders can invoke this endpoint
-
-## Business Logic Flow
-1. **Team Validation**
-   - Verify team exists using provided team code
-   - Confirm requesting user is the team leader
-   - Rejects request if team not found or user is not leader
-
-2. **Event Verification**
-   - Locate active and bookable event
-   - Check ticket availability
-   - Reject if event is not found or no tickets remain
-
-3. **Ticket Booking Transaction**
-   - Begins a MongoDB transaction for data integrity
-   - Creates passes for all team members
-   - Updates event ticket count
-   - Tracks booked teams
-
-## Possible Response Scenarios
-
-### Successful Booking
-- **Status Code**: 200 OK
-- **Response Body**:
-```json
-{
-    "message": "Team tickets booked successfully",
-    "teamMembers": 5,
-    "remainingTickets": 45
-}
-```
-
-### Error Scenarios
-1. **Team Not Found**
-   - Status Code: 404
-   - Message: "Team not found"
-
-2. **Unauthorized Booking Attempt**
-   - Status Code: 403
-   - Message: "Only team leader can book tickets"
-
-3. **Event Not Found**
-   - Status Code: 404
-   - Message: "Event not found"
-
-4. **No Tickets Available**
-   - Status Code: 400
-   - Message: "No tickets available"
-
-5. **Server Error**
-   - Status Code: 500
-   - Message: "Internal server error"
-
-## Key Features
-- Atomic transaction ensuring data consistency
-- Team-wide ticket booking
-- Leader-only access control
-- Real-time ticket availability tracking
-
-## Performance Considerations
-- Uses MongoDB transaction for data integrity
-- Efficient database queries
-- Minimal payload requirements
-
-## Potential Improvements
-- Add slot selection logic
-- Implement partial booking capabilities
-- Enhanced error handling for edge cases
-
-## Dependencies
-- MongoDB Mongoose
-- Express.js
-- OAuth Middleware
-- Event Model
-- Team Model
-- Pass Model
-
-## Error Handling
-- Comprehensive error logging
-- Transactional rollback on failures
-- Granular error responses
-
-## Security Considerations
-- Authentication required
-- Team leader verification
-- Transaction-based booking to prevent race conditions
-
-
-## Monitoring & Logging
-- Logs ticket booking attempts
-- Tracks successful and failed bookings
-- Captures detailed error information for debugging
-
-
-
-
-
-# Get Team API Documentation
-**post('/getTeam', Passes.getTeam);**
-## Overview
-Retrieves the team details for the authenticated user.
-
-## Endpoint Details
-- **Method**: post
-- **Authentication**: Required
-
-## Request
-- Requires OAuth token
-
-
-## Response Scenarios
-### Success
-- **Status**: 200 OK
-- **Payload**: Complete team details
-- **Includes**:
-  - Team information
-  - Team leader details
-  - Team members details
-
-### Error Scenarios
-1. **User Not Found**
-   - Status: 404
-   - Message: "User not found"
-
-2. **No Team Found**
-   - Status: 404
-   - Message: "No team found for this user"
-
-3. **Server Error**
-   - Status: 500
-   - Message: Error details
-
-## Key Improvements
-- Added user existence check
-- Added team existence check
-- Populated leader and member details
-- Provides specific error responses
-
-## Security
-- Authenticates via OAuth
-- Scopes data to authenticated user
-
-## Example Response
-```json
-{
-    "teamName": "Tech Innovators",
-    "teamCode": "ABC123",
-    "teamLeader": {
-        "name": "John Doe",
-        "email": "john@example.com"
-    },
-    "teamMembers": [
-        {"name": "Jane Smith", "email": "jane@example.com"},
-        // More members...
-    ]
-}
-
-
-# Event API Documentation for creating event 
-
-## Create a New Event
-
-### Endpoint
-`POST /events`
-
-### Request Body
-- **Name** (String, Required) - The name of the event organizer.
-- **Email** (String, Required) - The email of the organizer.
-- **Phone** (String, Required) - The contact number of the organizer.
-- **isSlotted** (Number, Required) - Indicates if the event has a designated slot (1 for true, 0 for false).
-- **isTeamEvent** (Boolean, Optional, Default: false) - Indicates if the event is a team event.
-- **isPaid** (Boolean, Optional, Default: false) - Indicates if the event requires payment.
-- **date** (Date, Required) - The date of the event.
-
-### Success Response
-```json
-{
-  "message": "Event created successfully",
-  "event": {
-    "_id": "65f2d8e1a5c2b3e0c8e4a1d9",
-    "Name": "John Doe",
-    "Email": "john@example.com",
-    "Phone": "1234567890",
-    "isSlotted": 1,
-    "isTeamEvent": false,
-    "isPaid": true,
-    "date": "2025-03-01T10:00:00Z"
+  "status": "success",
+  "data": {
+    "events": [...],
+    "pagination": {
+      "total": 50,
+      "page": 1,
+      "pages": 5,
+      "limit": 10
+    }
   }
 }
 ```
 
-### Error Response
+---
+
+#### `GET /getEventById/:id`
+
+**Description**: Fetch a single event by its ID.
+**Response**:
+
 ```json
 {
-  "error": "All required fields must be provided."
+  "status": "success",
+  "data": {
+    "_id": "...",
+    "eventName": "...",
+    "availableSeats": 30,
+    ...
+  }
 }
 ```
 
-### Example Request
+---
+
+
+
+### 🔒 Authenticated Endpoints (require JWT)
+
+#### `GET /likeEvent/:id`
+
+**Description**: Like an event by its ID.
+**Response**: `200 OK` on success.
+
+---
+
+#### `GET /unlikeEvent/:id`
+
+**Description**: Unlike an event.
+**Response**: `200 OK` on success.
+
+---
+
+#### `GET /getAllLikedEvents`
+
+**Description**: Fetch list of liked event IDs for the logged-in user.
+**Response**:
+
 ```json
 {
-  "Name": "John Doe",
-  "Email": "john@example.com",
-  "Phone": "1234567890",
-  "isSlotted": 1,
-  "isTeamEvent": false,
-  "isPaid": true,
-  "date": "2025-03-01T10:00:00Z"
+  "status": "success",
+  "likedEvents": ["eventId1", "eventId2"]
 }
 ```
 
+---
