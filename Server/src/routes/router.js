@@ -14,6 +14,7 @@ const {
 } = require("./../controllers/payment.controller.js");
 
 router.get("/getEvents", Events.getEvents);
+router.use("/dashboard", require("./dashboard.routes"));
 
 router.get("/getEventById/:id", Events.getEventById);
 router.post("/verify", authentication.login);
