@@ -94,7 +94,7 @@ const getEvents = asyncHandler(async (req, res) => {
 			];
 		}
 
-		console.log("Generated Query:", JSON.stringify(query, null, 2));
+		// console.log("Generated Query:", JSON.stringify(query, null, 2));
 
 		// Pagination
 		const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -111,8 +111,8 @@ const getEvents = asyncHandler(async (req, res) => {
 
 		const total = await Event.countDocuments(query);
 
-		console.log("Fetched Events:", events);
-		console.log("Total Events:", total);
+		// console.log("Fetched Events:", events);
+		// console.log("Total Events:", total);
 
 		res.status(200).json({
 			status: "success",
