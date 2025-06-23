@@ -7,15 +7,17 @@ const fs = require('fs');
 const logDirectory = path.resolve(__dirname, '../../log');
 
 // ensure log directory exists
-fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory, { recursive: true });
+}
 
 // create a rotating write stream
-const accessLogStream = rfs('access.log', {
-    interval: '1d',
+const accessLogStream = rfs.createStream('access.log', {
+    interval: '1d', // rotate daily
     path: logDirectory
-})
+});
 
 module.exports = {
     dev: morgan('dev'),
     combined: morgan('combined', { stream: accessLogStream })
-}
+};
