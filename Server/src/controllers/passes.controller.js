@@ -14,8 +14,8 @@ const qs = require('qs');
 
 const CONFIG = {
     PRODUCTION: {
-        AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
-        BASE_URL: '	https://api.phonepe.com/apis/pg',
+        AUTH_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
+        BASE_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox',
         CHECKOUT_SCRIPT: 'https://mercury.phonepe.com/web/bundle/checkout.js'
     },
     STAGING: {
@@ -730,38 +730,44 @@ const getPassByUserAndEvent = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-const Accept= async(req, res) => {
-    const passId= req.body.passId;
+
+const Accept = async(req, res) => {
+    const passId = req.body.passId;
     try {
         const pass = await Pass.findById(passId);
         if (!pass) {
             return res.status(404).json({ error: "Pass not found" });
         }
         pass.isScanned = true;
+        pass.timeScanned = new Date();
         await pass.save();
         return res.status(200).json({ message: "Pass scanned successfully" });
     }
     catch (error) {
-        console.error('Get pass error:', error);
+        console.error('Accept pass error:', error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
-const Reject = async(req,res) => {
-    const passId= req.body.passId;
+
+const Reject = async(req, res) => {
+    const passId = req.body.passId;
     try {
         const pass = await Pass.findById(passId);
         if (!pass) {
             return res.status(404).json({ error: "Pass not found" });
         }
         pass.isScanned = false;
+        pass.timeScanned = null;
         await pass.save();
         return res.status(200).json({ message: "Pass rejected successfully" });
     }
     catch (error) {
-        console.error('Get pass error:', error);
+        console.error('Reject pass error:', error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
 
 const canScan = async(req, res) => {
     const user = req.user;
