@@ -32,6 +32,7 @@ const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET || 'ODJjOWFiNDktZGNiZi00
 
 const getPhonePeAccessToken = async () => {
   try {
+    console.log('[PhonePe] Requesting access token...');
     const response = await axios.post(
       'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
       qs.stringify({
@@ -59,6 +60,7 @@ const getPhonePeAccessToken = async () => {
 // Create Payment Order
 const createPhonePeOrder = async (orderData) => {
     try {
+        console.log('Creating PhonePe order with data:', orderData);
         const accessToken = await getPhonePeAccessToken();
 
         const payload = {
@@ -436,23 +438,22 @@ const handlePaymentCallback = async (req, res) => {
     // Step 2: Route based on payment state
     if (paymentState === 'COMPLETED') {
       console.log('[CALLBACK] Payment completed. Redirecting to success');
-      return res.status(200).send(htmlRedirect(
-        `${process.env.FRONTEND_URL}/ticket/success?passId=${pass?._id}&uuid=${pass?.passUUID}`
-      ));
+      return res.redirect(302,`${process.env.FRONTEND_URL}/ticket/success?passId=${pass?._id}&uuid=${pass?.passUUID}`
+      );
     }
 
     if (paymentState === 'FAILED') {
       console.log('[CALLBACK] Payment failed. Redirecting to failure');
-      return res.status(200).send(htmlRedirect(
-        `${process.env.FRONTEND_URL}/ticket/failure?passId=${pass?._id}&orderId=${merchantOrderId}`
-      ));
+      return res.redirect(302, 
+      `${process.env.FRONTEND_URL}/ticket/failure?passId=${pass ? pass._id : ''}&orderId=${merchantOrderId}`
+      );
     }
 
     // PENDING or unknown status
     console.log('[CALLBACK] Payment pending. Redirecting to pending page.');
-    return res.status(200).send(htmlRedirect(
+    return res.redirect(302, 
       `${process.env.FRONTEND_URL}/ticket/pending?orderId=${merchantOrderId}`
-    ));
+    );
 
   } catch (error) {
     console.error('[CALLBACK] Unhandled error:', error);
