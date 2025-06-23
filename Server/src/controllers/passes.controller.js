@@ -8,8 +8,6 @@ const User = require("../models/users.model.js");
 const mongoose = require("mongoose");
 const nodemailer = require('nodemailer');
 
-
-
 const bookTicket = async (req, res) => {
     // Validate input
     if (!req.body.teamCode || !req.body.eventId) {
