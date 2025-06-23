@@ -6,8 +6,8 @@ on:
       - main  # Trigger on push to the main branch
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest  # Use an Ubuntu runner
+  deploy-backend:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -37,11 +37,10 @@ jobs:
           ssh-add ~/.ssh/id_rsa
         shell: bash
 
-      - name: SSH into server and deploy
+      - name: SSH into server and deploy backend
         run: |
-          ssh -o StrictHostKeyChecking=no shrem@34.131.247.65 'cd /home/shreyas/talkeys/Server && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys && sudo docker-compose up --build -d'
+          ssh -o StrictHostKeyChecking=no redacted@example.com 'cd /home/shreyas/talkeys/Server && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys && sudo docker-compose up --build -d'
           echo "Allowing Go Fiber Program to start properly"
-          echo "Entering into sleep for 10 seconds.. Kindly wait..."
           sleep 10
 
       - name: Check and free port 4890
@@ -70,6 +69,11 @@ jobs:
         run: |
           echo y | docker system prune
 
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy-backend  # Waits for backend job to succeed
+
+    steps:
       - name: Clone the repository to a temp directory
         run: |
           git clone https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
@@ -79,6 +83,6 @@ jobs:
           git config --global user.name "himanishpuri"
           git remote add backup https://himanishpuri:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git
           git branch -M himanish
-          git add .  # Stage changes (important for removed files)
+          git add .
           git commit -m "Overriding with latest changes from talkeys repo"
           git push --force backup himanish
