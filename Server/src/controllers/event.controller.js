@@ -76,14 +76,14 @@ const getEvents = asyncHandler(async (req, res) => {
 		// Build query
 		const query = {};
 
-		if (mode) query.mode = mode;
-		if (category) query.category = category;
-		if (visibility) query.visibility = visibility;
+		if (mode) { query.mode = mode; }
+		if (category) { query.category = category; }
+		if (visibility) { query.visibility = visibility; }
 
 		if (minPrice || maxPrice) {
 			query.ticketPrice = {};
-			if (minPrice) query.ticketPrice.$gte = Number(minPrice);
-			if (maxPrice) query.ticketPrice.$lte = Number(maxPrice);
+			if (minPrice) { query.ticketPrice.$gte = Number(minPrice); }
+			if (maxPrice) { query.ticketPrice.$lte = Number(maxPrice); }
 		}
 
 		if (search) {
@@ -94,13 +94,13 @@ const getEvents = asyncHandler(async (req, res) => {
 			];
 		}
 
-		console.log("Generated Query:", JSON.stringify(query, null, 2));
+		// console.log("Generated Query:", JSON.stringify(query, null, 2));
 
 		// Pagination
 		const skip = (parseInt(page) - 1) * parseInt(limit);
 		const sortOptions = { [sortBy]: order === "desc" ? -1 : 1 };
 
-		console.log("Skip:", skip, "Limit:", limit);
+		// console.log("Skip:", skip, "Limit:", limit);
 
 		const events = await Event.find(query)
 			.select("-__v")
@@ -111,8 +111,8 @@ const getEvents = asyncHandler(async (req, res) => {
 
 		const total = await Event.countDocuments(query);
 
-		console.log("Fetched Events:", events);
-		console.log("Total Events:", total);
+		// console.log("Fetched Events:", events);
+		// console.log("Total Events:", total);
 
 		res.status(200).json({
 			status: "success",
