@@ -36,12 +36,6 @@ export default function Footer() {
 
 	const socialLinks = [
 		{
-			name: "Facebook",
-			icon: <Facebook size={24} />,
-			href: "/underConstruct",
-			ariaLabel: "Facebook",
-		},
-		{
 			name: "Instagram",
 			icon: <Instagram size={24} />,
 			href: "https://www.instagram.com/talkeys_?igsh=MWsxZHk0bTQyYmlyag==",
@@ -50,14 +44,8 @@ export default function Footer() {
 		{
 			name: "LinkedIn",
 			icon: <Linkedin size={24} />,
-			href: "/underConstruct",
+			href: "https://www.linkedin.com/company/talkeys/",
 			ariaLabel: "LinkedIn",
-		},
-		{
-			name: "YouTube",
-			icon: <Youtube size={24} />,
-			href: "/underConstruct",
-			ariaLabel: "YouTube",
 		},
 	];
 
