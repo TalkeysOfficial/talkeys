@@ -55,7 +55,7 @@ const Hero = () => {
                 experiences and ideas anonymously.
               </p>
               <div className="flex flex-row justify-center gap-4">
-                <Link href="/underConstruct">
+                <Link href="/exploreCommunities">
                   <Button
                     className="rounded-[8px] bg-purple-600 hover:bg-purple-700 text-white"
                   >
@@ -82,7 +82,7 @@ const Hero = () => {
 			  experiences and ideas anonymously.
               </p>
               <div className="flex flex-col gap-2">
-                <Link href="/underConstruct" className="w-full">
+                <Link href="/exploreCommunities" className="w-full">
                   <Button
                     size="sm"
                     className="rounded-[8px] w-full bg-purple-600 hover:bg-purple-700 text-white"

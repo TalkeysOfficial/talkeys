@@ -37,25 +37,25 @@ export default function Footer() {
 	const socialLinks = [
 		{
 			name: "Facebook",
-			icon: <Facebook size={20} />,
+			icon: <Facebook size={24} />,
 			href: "/underConstruct",
 			ariaLabel: "Facebook",
 		},
 		{
 			name: "Instagram",
-			icon: <Instagram size={20} />,
+			icon: <Instagram size={24} />,
 			href: "https://www.instagram.com/talkeys_?igsh=MWsxZHk0bTQyYmlyag==",
 			ariaLabel: "Instagram",
 		},
 		{
 			name: "LinkedIn",
-			icon: <Linkedin size={20} />,
+			icon: <Linkedin size={24} />,
 			href: "/underConstruct",
 			ariaLabel: "LinkedIn",
 		},
 		{
 			name: "YouTube",
-			icon: <Youtube size={20} />,
+			icon: <Youtube size={24} />,
 			href: "/underConstruct",
 			ariaLabel: "YouTube",
 		},
@@ -125,7 +125,7 @@ export default function Footer() {
 											size={16}
 											className="text-purple-400 flex-shrink-0"
 										/>
-										<p className="text-sm">Patalia, Punjab, India</p>
+										<p className="text-sm">Patiala, Punjab, India</p>
 									</div>
 									<div className="flex items-center gap-2">
 										<Phone
@@ -177,7 +177,7 @@ export default function Footer() {
 									/>
 								</motion.div>
 
-								<div className="flex space-x-4">
+								<div className="flex space-x-6">
 									{socialLinks.map((link) => (
 										<Tooltip key={link.name}>
 											<TooltipTrigger asChild>
@@ -191,7 +191,7 @@ export default function Footer() {
 												>
 													<Link
 														href={link.href}
-														className="p-2 rounded-full bg-gray-800 hover:bg-purple-900/50 border border-purple-500/30 transition-colors duration-300"
+														className="text-gray-300 hover:text-purple-400 transition-colors duration-300"
 														aria-label={link.ariaLabel}
 														target={
 															link.href.startsWith("http")
@@ -211,7 +211,7 @@ export default function Footer() {
 																	: {}
 															}
 															transition={{ duration: 0.5 }}
-															className="text-gray-300 hover:text-white"
+															className="text-2xl"
 														>
 															{link.icon}
 														</motion.div>
@@ -284,7 +284,7 @@ export default function Footer() {
 									/>
 								</motion.div>
 
-								<div className="flex space-x-4">
+								<div className="flex space-x-6">
 									{socialLinks.map((link) => (
 										<motion.div
 											key={link.name}
@@ -293,7 +293,7 @@ export default function Footer() {
 										>
 											<Link
 												href={link.href}
-												className="p-2 rounded-full bg-gray-800 hover:bg-purple-900/50 border border-purple-500/30 transition-colors duration-300"
+												className="text-gray-300 hover:text-purple-400 transition-colors duration-300"
 												aria-label={link.ariaLabel}
 												target={
 													link.href.startsWith("http")
@@ -306,9 +306,7 @@ export default function Footer() {
 														: undefined
 												}
 											>
-												<div className="text-gray-300 hover:text-white">
-													{link.icon}
-												</div>
+												<div className="text-2xl">{link.icon}</div>
 											</Link>
 										</motion.div>
 									))}
@@ -354,7 +352,7 @@ export default function Footer() {
 															className="text-purple-400 flex-shrink-0"
 														/>
 														<p className="text-sm">
-															Patalia, Punjab, India
+															Patiala, Punjab, India
 														</p>
 													</div>
 													<div className="flex items-center gap-2">
@@ -448,7 +446,6 @@ export default function Footer() {
 							variants={itemVariants}
 							className="mt-12 pt-6 border-t border-gray-800 text-center"
 						>
-							<Separator className="mb-6 bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
 							<div className="flex flex-col sm:flex-row justify-center items-center gap-2 text-sm text-gray-400">
 								<p>
 									© {new Date().getFullYear()} Talkeys. All rights

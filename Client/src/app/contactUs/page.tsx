@@ -185,7 +185,7 @@ export default function ContactForm() {
 									<p className="text-gray-300">
 										Location:{" "}
 										<span className="text-purple-300">
-											Patalia, Punjab, India
+											Patiala, Punjab, India
 										</span>
 									</p>
 								</div>

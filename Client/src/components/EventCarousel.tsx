@@ -1,3 +1,6 @@
+// Restore the original styling and ensure responsiveness
+// Replace the entire component with the optimized version
+
 "use client";
 
 import type React from "react";
@@ -11,6 +14,7 @@ import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Heart } from "lucide-react";
 
 interface EventCarouselProps {
 	category?: string;
@@ -24,6 +28,34 @@ interface EventCardProps {
 
 const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 	const [isHovered, setIsHovered] = useState(false);
+	const [isLiked, setIsLiked] = useState(event.isLiked || false);
+
+	const handleLikeUnlikeEvent = async (
+		eventId: string,
+		e: React.MouseEvent,
+	) => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		try {
+			await fetch(
+				`${process.env.BACKEND_URL}/${
+					isLiked ? "unlikeEvent" : "likeEvent"
+				}/${eventId}`,
+				{
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem(
+							"accessToken",
+						)}`,
+					},
+				},
+			);
+			setIsLiked(!isLiked);
+		} catch (error) {
+			console.error("Error liking/unliking event:", error);
+		}
+	};
 
 	return (
 		<motion.div
@@ -77,7 +109,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								className="absolute bottom-0 left-0 right-0 p-3"
 							>
 								<div className="text-sm text-purple-300 font-medium">
-									{new Date(event.endRegistrationDate).toLocaleDateString(
+									{new Date(event.startDate).toLocaleDateString(
 										"en-IN",
 										{
 											day: "numeric",
@@ -101,6 +133,25 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 							>
 								{event.isLive ? "Live" : "Ended"}
 							</CardItem>
+
+							<CardItem
+								translateZ="60"
+								className="absolute top-3 left-3"
+							>
+								<button
+									onClick={(e) => handleLikeUnlikeEvent(event._id, e)}
+									className="p-1.5 bg-black/40 rounded-full hover:bg-black/60 transition-colors"
+									aria-label={isLiked ? "Unlike event" : "Like event"}
+								>
+									<Heart
+										className={`h-4 w-4 ${
+											isLiked
+												? "fill-red-500 text-red-500"
+												: "text-white"
+										}`}
+									/>
+								</button>
+							</CardItem>
 						</CardItem>
 
 						<CardItem
@@ -118,6 +169,16 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 									<Link
 										href={`/event/${event._id}`}
 										scroll={false}
+										onClick={(e) => {
+											e.preventDefault();
+											// Store the origin page in localStorage
+											localStorage.setItem(
+												"eventOrigin",
+												window.location.pathname,
+											);
+											// Navigate to the event detail page
+											window.location.href = `/event/${event._id}`;
+										}}
 									>
 										<Button
 											variant="outline"
