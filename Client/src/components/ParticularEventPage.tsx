@@ -38,8 +38,15 @@ export default function ParticularEventPage({
 	const [errorMessage, setErrorMessage] = useState("");
 	const [pass, setPass] = useState<string | null>(null);
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
+	const [originPage, setOriginPage] = useState<string>("/eventPage");
 
 	useEffect(() => {
+		// Get the origin page from localStorage
+		const storedOrigin = localStorage.getItem("eventOrigin");
+		if (storedOrigin) {
+			setOriginPage(storedOrigin);
+		}
+
 		async function getTeamAndPass() {
 			try {
 				const response = await fetch(`${process.env.BACKEND_URL}/getTeam`, {
@@ -259,7 +266,7 @@ export default function ParticularEventPage({
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				const hasEventYetToCome = !isTimePassed(event.startDate)
+				const hasEventYetToCome = !isTimePassed(event.endRegistrationDate);
 				console.log(hasEventYetToCome);
 				const isRegistrationClosed = isTimePassed(
 					event.endRegistrationDate,
@@ -272,7 +279,7 @@ export default function ParticularEventPage({
 				if (isRegistrationClosed) {
 					buttonText = "Registrations Closed";
 					ariaLabel = "Registrations closed";
-				} else if (!isEventLive || hasEventYetToCome) {
+				} else if (!isEventLive || !hasEventYetToCome) {
 					buttonText = "Coming Soon";
 					ariaLabel = "Event coming soon";
 				} else if (isEventPaid) {
@@ -292,7 +299,11 @@ export default function ParticularEventPage({
 							<Button
 								className="bg-purple-600 hover:bg-purple-700 w-full"
 								onClick={sendBookingID}
-								disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
+								disabled={
+									!isEventLive ||
+									isRegistrationClosed ||
+									!hasEventYetToCome
+								}
 								aria-label={ariaLabel}
 							>
 								{buttonText}
@@ -309,7 +320,11 @@ export default function ParticularEventPage({
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={handleRegisterClick}
-							disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
+							disabled={
+								!isEventLive ||
+								isRegistrationClosed ||
+								hasEventYetToCome
+							}
 							aria-label={ariaLabel}
 						>
 							{buttonText}
@@ -607,7 +622,7 @@ export default function ParticularEventPage({
 			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
 			aria-modal="true"
 		>
-			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto relative">
+			<div className="p-3 pt-6 sm:p-4 md:p-6 max-w-[800px] mx-auto relative">
 				{/* Close button - repositioned for mobile */}
 				<motion.button
 					onClick={onClose}
@@ -765,7 +780,7 @@ export default function ParticularEventPage({
 						>
 							Dates & Deadlines
 						</TabsTrigger>
-						{event.prizes && (
+						{event.prizes && event.category == "Gaming" && (
 							<TabsTrigger
 								value="prizes"
 								className="text-sm data-[state=active]:bg-purple-600"
@@ -773,7 +788,7 @@ export default function ParticularEventPage({
 								Prizes
 							</TabsTrigger>
 						)}
-						{event.paymentQRcode && (
+						{event.paymentQRcode && event.category == "Gaming" && (
 							<TabsTrigger
 								value="Payment QR Code"
 								className="text-sm data-[state=active]:bg-purple-600"
@@ -798,7 +813,7 @@ export default function ParticularEventPage({
 								<h3 className="text-lg font-semibold mb-2 text-purple-300">
 									Details for the Event
 								</h3>
-								<div className="text-gray-300 space-y-2 whitespace-pre-line">
+								<div className="text-gray-300 space-y-2 whitespace-pre-line overflow-auto max-h-[60vh]">
 									{event.eventDescription
 										?.split("\\n")
 										.map((line) => line)
@@ -857,7 +872,7 @@ export default function ParticularEventPage({
 								<h3 className="text-lg font-semibold mb-2 text-purple-300">
 									Prizes
 								</h3>
-								<div className="text-gray-300 space-y-2 whitespace-pre-line">
+								<div className="text-gray-300 space-y-2 whitespace-pre-line overflow-auto max-h-[60vh]">
 									{event.prizes
 										?.split("\\n")
 										.map((line) => line)

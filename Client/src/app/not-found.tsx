@@ -3,12 +3,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import image from "@/public/images/404.png";
 import Image from "next/image";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Component() {
 	return (
 		<motion.div
-			className="flex h-[88.2vh] bg-transparent text-white p-8"
+			className="flex h-screen bg-transparent text-white p-8"
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
 			transition={{ duration: 1.05 }}

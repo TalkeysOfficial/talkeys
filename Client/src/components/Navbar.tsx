@@ -21,7 +21,6 @@ import {
 	LogOut,
 	User,
 	ChevronDown,
-	LayoutDashboard
 } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,7 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import talkey_logo from "@/public/images/talkeyLogo.png";
 
-const baseNavItems = [
+const navItems = [
 	{ name: "Explore", link: "/underConstruct", icon: Search },
 	{ name: "Events", link: "/eventPage", icon: Calendar },
 	{ name: "Communities", link: "/underConstruct", icon: Users },
@@ -114,16 +113,6 @@ const Navbar = () => {
 		setAvatarUrl("");
 		setIsProfileMenuOpen(false);
 	};
-
-	const navItems = [...baseNavItems];
-	
-	  if (isSignedIn) {
-		navItems.unshift({
-		  name: "Dashboard",
-		  link: "/dashboard/profile",      
-		  icon: LayoutDashboard,
-		});
-	  }
 
 	const NavLinks = ({ isMobileView = false }) => (
 		<>
