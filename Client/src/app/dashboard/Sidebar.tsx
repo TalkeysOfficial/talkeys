@@ -1,38 +1,47 @@
-   "use client";
+"use client";
 
-   import Link                        from "next/link";
-   import { usePathname }             from "next/navigation";
-   import { motion, AnimatePresence } from "framer-motion";
-   import {
-     User, Clock3, UserCheck2,
-     Bookmark, FolderKanban, LogOut,
-   } from "lucide-react";
-   import {
-     Avatar, AvatarImage, AvatarFallback,
-   } from "@/components/ui/avatar";
-   import { useAuth } from "@/lib/authContext";
-   
-   const NAV = {
-     general : [
-       { label: "Profile",         href: "/dashboard/profile",          icon: User    },
-       { label: "Recent Activity", href: "/dashboard/recent-activity",  icon: Clock3  },
-     ],
-     events  : [
-       { label: "Registered", href: "/dashboard/registered", icon: UserCheck2   },
-       { label: "Bookmarks",  href: "/dashboard/bookmarks",  icon: Bookmark     },
-       { label: "Hosted",     href: "/dashboard/hosted",     icon: FolderKanban },
-     ],
-   };
-   
-   export default function Sidebar() {
-     const pathname       = usePathname();
-     const { isSignedIn } = useAuth();
-   
-     const name     = localStorage.getItem("name") ?? "Guest User";
-     const seed     = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-     const avatar   = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-     const username = `@${name.toLowerCase().replace(/\s+/g, "")}`;
-   
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  User, Clock3, UserCheck2,
+  Bookmark, FolderKanban, LogOut,
+} from "lucide-react";
+import {
+  Avatar, AvatarImage, AvatarFallback,
+} from "@/components/ui/avatar";
+import { useAuth } from "@/lib/authContext";
+
+const NAV = {
+  general: [
+    { label: "Profile", href: "/dashboard/profile", icon: User },
+    { label: "Recent Activity", href: "/dashboard/recent-activity", icon: Clock3 },
+  ],
+  events: [
+    { label: "Registered", href: "/dashboard/registered", icon: UserCheck2 },
+    { label: "Bookmarks", href: "/dashboard/bookmarks", icon: Bookmark },
+    { label: "Hosted", href: "/dashboard/hosted", icon: FolderKanban },
+  ],
+};
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const { isSignedIn } = useAuth();
+
+  const [name, setName] = useState("Guest User");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("name");
+      if (storedName) setName(storedName);
+    }
+  }, []);
+
+  const seed = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+  const username = `@${name.toLowerCase().replace(/\s+/g, "")}`;
+
      return (
        <aside
          className="fixed top-20 left-0 w-64 h-[calc(100vh-5rem)]
