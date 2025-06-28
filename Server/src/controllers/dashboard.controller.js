@@ -78,7 +78,8 @@ exports.createEvent = async (req, res) => {
 
 exports.editEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     if (event.organizerEmail !== req.user.email) {
@@ -96,14 +97,15 @@ exports.editEvent = async (req, res) => {
 
 exports.viewParticipants = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     if (event.organizerEmail !== req.user.email) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const passes = await Pass.find({ eventId: req.params.id })
+    const passes = await Pass.find({ eventId })
       .populate("userId", "name email phoneNumber");
     res.json({ participants: passes });
   } catch (err) {
@@ -113,7 +115,8 @@ exports.viewParticipants = async (req, res) => {
 
 exports.approveParticipant = async (req, res) => {
   try {
-    const pass = await Pass.findById(req.params.id).populate("eventId");
+    const passId = req.params.id.trim(); // ✅ sanitize ID
+    const pass = await Pass.findById(passId).populate("eventId");
     if (!pass) return res.status(404).json({ message: "Participant not found" });
 
     if (pass.eventId.organizerEmail !== req.user.email) {
@@ -130,14 +133,15 @@ exports.approveParticipant = async (req, res) => {
 
 exports.exportParticipants = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     if (event.organizerEmail !== req.user.email) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const passes = await Pass.find({ eventId: req.params.id })
+    const passes = await Pass.find({ eventId })
       .populate("userId", "name email phoneNumber");
 
     const data = passes.map(p => ({
@@ -158,17 +162,20 @@ exports.exportParticipants = async (req, res) => {
   }
 };
 
+
 exports.getAnalytics = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const eventId = req.params.id.trim(); // ✅ Trim only once
+    const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
     if (event.organizerEmail !== req.user.email) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const total = await Pass.countDocuments({ eventId: req.params.id });
-    const approved = await Pass.countDocuments({ eventId: req.params.id, status: "active" });
+    const total = await Pass.countDocuments({ eventId }); // ✅ Use trimmed
+    const approved = await Pass.countDocuments({ eventId, status: "active" });
+
     res.json({ totalRegistrations: total, approvedCount: approved });
   } catch (err) {
     res.status(500).json({ message: "Analytics failed", error: err.message });
