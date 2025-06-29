@@ -35,6 +35,7 @@ app.use("*", (req, res, next) => {
 });
 
 
+
 app.use("/", require("./routes/router"));
 
 // Handle errors
@@ -44,6 +45,7 @@ app.use(errorHandler());
 app.use("*", (req, res) => {
 	res.status(404).json({ status: false, message: "Endpoint Not Found" });
 });
+
 const mongoose = require("mongoose");
 
 const { DB_URL } = process.env;
