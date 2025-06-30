@@ -11,6 +11,8 @@ import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import locationSvg from "@/public/images/location_on.svg"
+import calendarSvg from "@/public/images/calendar_month.svg"
 
 interface EventCarouselProps {
 	category?: string;
@@ -44,15 +46,19 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 			}}
 			className="h-full"
 		>
+			<Link
+					href={`/event/${event._id}`}
+					scroll={false}
+				>
 			<CardContainer
-				className="w-full h-full py-0"
+				className="w-full h-full py-0 rounded-3xl border border-fuchsia-200"
 				containerClassName="py-0"
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 			>
 				<CardBody
 					className={cn(
-						"w-full h-full rounded-xl overflow-hidden border border-gray-800 bg-gray-900/80",
+						"w-full h-full rounded-3xl overflow-hidden border border-gray-800 bg-gray-900/80",
 						isHovered ? "shadow-lg shadow-purple-500/20" : "",
 					)}
 				>
@@ -72,7 +78,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 							/>
 							<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
 
-							<CardItem
+							{/* <CardItem
 								translateZ="60"
 								className="absolute bottom-0 left-0 right-0 p-3"
 							>
@@ -88,9 +94,9 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 									{" • "}
 									{event.startTime}
 								</div>
-							</CardItem>
+							</CardItem> */}
 
-							<CardItem
+							{/* <CardItem
 								translateZ="60"
 								className={cn(
 									"absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md",
@@ -100,23 +106,40 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								)}
 							>
 								{event.isLive ? "Live" : "Ended"}
-							</CardItem>
+							</CardItem> */}
 						</CardItem>
 
 						<CardItem
 							translateZ={30}
 							className="p-4 flex flex-col flex-grow"
 						>
-							<h3 className="text-lg font-bold mb-2 line-clamp-2 text-white">
+							<h3 className="text-2xl font-bold mb-8 line-clamp-2 text-white">
+								{/* Increased font size */}
 								{event.name}
 							</h3>
-							<p className="text-gray-400 mb-4 line-clamp-1">
-								{event.location ?? "Location not specified"}
+							<p className="text-gray-400 mb-1 line-clamp-1 flex gap-2 items-center">
+								{/* Added location Icon */}
+								<div className="h-5 w-5"><Image alt="location" src={locationSvg}></Image></div>
+								<p className="w-[70vw] sm:w-[35vw] md:w-[33vw] lg:w-[18vw] truncate">{event.location ?? "Location not specified"}</p>
 							</p>
-							<div className="mt-auto">
-								<CardItem translateZ="50">
+							<div className="text-sm text-gray-400 mb-4 flex gap-2 items-center truncate">
+								{/* Added Calendar Icon */}
+								<div className="h-5 w-5"><Image alt="calendar" src={calendarSvg}></Image></div>
+								<div>{new Date(event.endRegistrationDate).toLocaleDateString(
+									"en-IN",
+									{
+										day: "numeric",
+										month: "long",
+										year: "numeric",
+									},
+								)}</div>
+								<div>|</div>
+								<div>{event.startTime}</div>
+							</div>
+							<div className="mt-auto flex gap-4 mb-6">
+								{/* <CardItem translateZ="50">
 									<Link
-										href={`/event/${event._id}`}
+										href={/event/${event._id}}
 										scroll={false}
 									>
 										<Button
@@ -126,12 +149,15 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 											More info
 										</Button>
 									</Link>
-								</CardItem>
+								</CardItem> */}
+								<div className="text-gray-400 border border-fuchsia-200 rounded-3xl pt-1 pb-1 pl-3 pr-3">₹ {event.ticketPrice ?? "--"}</div>
+								<div className="text-gray-400 border border-fuchsia-200 rounded-3xl pt-1 pb-1 pl-3 pr-3">{event.category ?? "--"}</div>
 							</div>
 						</CardItem>
 					</div>
 				</CardBody>
 			</CardContainer>
+			</Link>
 		</motion.div>
 	);
 });
