@@ -118,6 +118,16 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 									<Link
 										href={`/event/${event._id}`}
 										scroll={false}
+										onClick={(e) => {
+											e.preventDefault();
+											// Store the origin page in localStorage
+											localStorage.setItem(
+												"eventOrigin",
+												window.location.pathname,
+											);
+											// Navigate to the event detail page
+											window.location.href = `/event/${event._id}`;
+										}}
 									>
 										<Button
 											variant="outline"
