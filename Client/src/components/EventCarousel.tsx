@@ -51,7 +51,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 					scroll={false}
 				>
 			<CardContainer
-				className="w-full h-full py-0 rounded-3xl border border-fuchsia-200"
+				className="w-full h-full py-0 rounded-3xl border border-[#DCB6FF] hover:border-[#703CA0]"
 				containerClassName="py-0"
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
@@ -113,7 +113,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 							translateZ={30}
 							className="p-4 flex flex-col flex-grow"
 						>
-							<h3 className="text-2xl font-bold mb-8 line-clamp-2 text-white">
+							<h3 className="text-2xl font-normal mb-8 line-clamp-2 text-white">
 								{/* Increased font size */}
 								{event.name}
 							</h3>
@@ -122,7 +122,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								<div className="h-5 w-5"><Image alt="location" src={locationSvg}></Image></div>
 								<p className="w-[70vw] sm:w-[35vw] md:w-[33vw] lg:w-[18vw] truncate">{event.location ?? "Location not specified"}</p>
 							</p>
-							<div className="text-sm text-gray-400 mb-4 flex gap-2 items-center truncate">
+							<div className="text-sm text-gray-400 mb-6 flex gap-2 items-center truncate">
 								{/* Added Calendar Icon */}
 								<div className="h-5 w-5"><Image alt="calendar" src={calendarSvg}></Image></div>
 								<div>{new Date(event.endRegistrationDate).toLocaleDateString(
@@ -136,7 +136,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								<div>|</div>
 								<div>{event.startTime}</div>
 							</div>
-							<div className="mt-auto flex gap-4 mb-6">
+							<div className="mt-auto flex gap-4 mb-2">
 								{/* <CardItem translateZ="50">
 									<Link
 										href={/event/${event._id}}
@@ -150,8 +150,8 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 										</Button>
 									</Link>
 								</CardItem> */}
-								<div className="text-gray-400 border border-fuchsia-200 rounded-3xl pt-1 pb-1 pl-3 pr-3">₹ {event.ticketPrice ?? "--"}</div>
-								<div className="text-gray-400 border border-fuchsia-200 rounded-3xl pt-1 pb-1 pl-3 pr-3">{event.category ?? "--"}</div>
+								<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">₹ {event.ticketPrice ?? "--"}</div>
+								<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">{event.category ?? "--"}</div>
 							</div>
 						</CardItem>
 					</div>
