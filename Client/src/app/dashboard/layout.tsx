@@ -18,10 +18,10 @@ export default function DashboardLayout({
   }, [isSignedIn, router]);
 
   return (
-    <div className="min-h-screen flex bg-[url('/images/texture.png')] bg-cover">
+    <div className="flex bg-[url('/images/texture.png')] bg-cover bg-fixed">
       <Sidebar />
-      {/* left margin = sidebar width (250px) */}
-      <main className="flex-1 min-w-0 p-4 sm:p-8 lg:p-12 ml-[250px]">
+      {/* Main content area with proper scrolling */}
+      <main className="flex-1 min-w-0 min-h-screen p-4 sm:p-8 lg:p-12 ml-[250px] overflow-y-auto">
         {children}
       </main>
     </div>

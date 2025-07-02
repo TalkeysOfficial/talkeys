@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
+import ConditionalFooter from "@/components/ConditionalFooter";
 
 import { AuthProvider } from "@/lib/authContext";
 
@@ -46,7 +47,7 @@ export default function RootLayout({
 					<ScrollProgress className="top-[85px] max-sm:top-[92.31px] h-0.5" />
 					{children}
 					<Analytics />
-					<Footer />
+					<ConditionalFooter />
 				</AuthProvider>
 			</body>
 		</html>

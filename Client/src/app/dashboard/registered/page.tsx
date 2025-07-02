@@ -12,7 +12,7 @@ export default function RegisteredEvents() {
   useEffect(() => {
     (async () => {
       try {
-        const res   = await fetch("http://localhost:8000/getEvents");
+        const res   = await fetch("https://api.talkeys.xyz/getEvents");
         const json  = await res.json() as {
           data: { events: Event[] };
         };
