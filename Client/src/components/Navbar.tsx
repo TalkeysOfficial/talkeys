@@ -323,40 +323,40 @@ const Navbar = () => {
 		if (isMobile && isMenuOpen) {
 			// Store current scroll position
 			const scrollY = window.scrollY;
-			
+
 			// Prevent body scroll
-			document.body.style.overflow = 'hidden';
-			document.body.style.position = 'fixed';
+			document.body.style.overflow = "hidden";
+			document.body.style.position = "fixed";
 			document.body.style.top = `-${scrollY}px`;
-			document.body.style.width = '100%';
-			
+			document.body.style.width = "100%";
+
 			// Store scroll position for restoration
-			document.body.setAttribute('data-scroll-y', scrollY.toString());
+			document.body.setAttribute("data-scroll-y", scrollY.toString());
 		} else {
 			// Restore body scroll
-			const scrollY = document.body.getAttribute('data-scroll-y');
-			document.body.style.overflow = '';
-			document.body.style.position = '';
-			document.body.style.top = '';
-			document.body.style.width = '';
-			
+			const scrollY = document.body.getAttribute("data-scroll-y");
+			document.body.style.overflow = "";
+			document.body.style.position = "";
+			document.body.style.top = "";
+			document.body.style.width = "";
+
 			// Restore scroll position
 			if (scrollY) {
 				window.scrollTo(0, parseInt(scrollY));
-				document.body.removeAttribute('data-scroll-y');
+				document.body.removeAttribute("data-scroll-y");
 			}
 		}
 
 		// Cleanup on unmount
 		return () => {
-			const scrollY = document.body.getAttribute('data-scroll-y');
-			document.body.style.overflow = '';
-			document.body.style.position = '';
-			document.body.style.top = '';
-			document.body.style.width = '';
+			const scrollY = document.body.getAttribute("data-scroll-y");
+			document.body.style.overflow = "";
+			document.body.style.position = "";
+			document.body.style.top = "";
+			document.body.style.width = "";
 			if (scrollY) {
 				window.scrollTo(0, parseInt(scrollY));
-				document.body.removeAttribute('data-scroll-y');
+				document.body.removeAttribute("data-scroll-y");
 			}
 		};
 	}, [isMobile, isMenuOpen]);
@@ -388,7 +388,7 @@ const Navbar = () => {
 			if (isMobile && isMenuOpen && !isScrolling && !menuOpenDelay) {
 				const currentY = e.touches[0].clientY;
 				const deltaY = Math.abs(currentY - startY);
-				
+
 				// If user scrolled more than 20px, close menu
 				if (deltaY > 20) {
 					isScrolling = true;
@@ -421,20 +421,24 @@ const Navbar = () => {
 			}, 500); // 500ms delay before scroll-to-close becomes active
 
 			// Listen for various scroll events
-			window.addEventListener('scroll', handleScroll, { passive: true });
-			document.addEventListener('touchstart', handleTouchStart, { passive: true });
-			document.addEventListener('touchmove', handleTouchMove, { passive: true });
-			document.addEventListener('wheel', handleWheel, { passive: true });
+			window.addEventListener("scroll", handleScroll, { passive: true });
+			document.addEventListener("touchstart", handleTouchStart, {
+				passive: true,
+			});
+			document.addEventListener("touchmove", handleTouchMove, {
+				passive: true,
+			});
+			document.addEventListener("wheel", handleWheel, { passive: true });
 		}
 
 		return () => {
 			if (menuOpenDelay) {
 				clearTimeout(menuOpenDelay);
 			}
-			window.removeEventListener('scroll', handleScroll);
-			document.removeEventListener('touchstart', handleTouchStart);
-			document.removeEventListener('touchmove', handleTouchMove);
-			document.removeEventListener('wheel', handleWheel);
+			window.removeEventListener("scroll", handleScroll);
+			document.removeEventListener("touchstart", handleTouchStart);
+			document.removeEventListener("touchmove", handleTouchMove);
+			document.removeEventListener("wheel", handleWheel);
 		};
 	}, [isMobile, isMenuOpen]);
 
@@ -513,7 +517,6 @@ const Navbar = () => {
 										animate={{ rotate: 0, opacity: 1 }}
 										exit={{ rotate: -90, opacity: 0 }}
 										transition={{ duration: 0.2 }}
-										
 									>
 										<Menu size={28} />
 									</motion.div>

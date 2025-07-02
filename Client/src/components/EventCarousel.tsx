@@ -11,8 +11,8 @@ import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import locationSvg from "@/public/images/location_on.svg"
-import calendarSvg from "@/public/images/calendar_month.svg"
+import locationSvg from "@/public/images/location_on.svg";
+import calendarSvg from "@/public/images/calendar_month.svg";
 
 interface EventCarouselProps {
 	category?: string;
@@ -47,38 +47,38 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 			className="h-full"
 		>
 			<Link
-					href={`/event/${event._id}`}
-					scroll={false}
-				>
-			<CardContainer
-				className="w-full h-full py-0 rounded-3xl border border-[#DCB6FF] hover:border-[#703CA0]"
-				containerClassName="py-0"
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
+				href={`/event/${event._id}`}
+				scroll={false}
 			>
-				<CardBody
-					className={cn(
-						"w-full h-full rounded-3xl overflow-hidden border border-gray-800 bg-gray-900/80",
-						isHovered ? "shadow-lg shadow-purple-500/20" : "",
-					)}
+				<CardContainer
+					className="w-full h-full py-0 rounded-2xl border border-[#DCB6FF] hover:border-[#703CA0]"
+					containerClassName="py-0"
+					onMouseEnter={() => setIsHovered(true)}
+					onMouseLeave={() => setIsHovered(false)}
 				>
-					<div className="relative w-full h-full flex flex-col">
-						<CardItem
-							translateZ={50}
-							className="relative w-full aspect-square overflow-hidden"
-						>
-							<Image
-								src={event.photographs?.[0] ?? placeholderImage}
-								alt={event.name}
-								fill
-								sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-								priority={index < 4}
-								loading={index < 4 ? "eager" : "lazy"}
-								className="object-cover object-center transition-transform duration-500"
-							/>
-							<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
+					<CardBody
+						className={cn(
+							"h-full w-full rounded-2xl overflow-hidden border border-gray-800 bg-gray-900/80",
+							isHovered ? "shadow-md shadow-purple-500/20" : "",
+						)}
+					>
+						<div className="relative w-full h-full flex flex-col">
+							<CardItem
+								translateZ={40}
+								className="relative w-full aspect-square overflow-hidden"
+							>
+								<Image
+									src={event.photographs?.[0] ?? placeholderImage}
+									alt={event.name}
+									fill
+									sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+									priority={index < 4}
+									loading={index < 4 ? "eager" : "lazy"}
+									className="object-cover object-center transition-transform duration-500"
+								/>
+								<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
 
-							{/* <CardItem
+								{/* <CardItem
 								translateZ="60"
 								className="absolute bottom-0 left-0 right-0 p-3"
 							>
@@ -96,7 +96,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								</div>
 							</CardItem> */}
 
-							{/* <CardItem
+								{/* <CardItem
 								translateZ="60"
 								className={cn(
 									"absolute top-3 right-3 px-2 py-1 text-xs font-medium rounded-md",
@@ -107,37 +107,50 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 							>
 								{event.isLive ? "Live" : "Ended"}
 							</CardItem> */}
-						</CardItem>
+							</CardItem>
 
-						<CardItem
-							translateZ={30}
-							className="p-4 flex flex-col flex-grow"
-						>
-							<h3 className="text-2xl font-normal mb-8 line-clamp-2 text-white">
-								{/* Increased font size */}
-								{event.name}
-							</h3>
-							<p className="text-gray-400 mb-1 line-clamp-1 flex gap-2 items-center">
-								{/* Added location Icon */}
-								<div className="h-5 w-5"><Image alt="location" src={locationSvg}></Image></div>
-								<p className="w-[70vw] sm:w-[35vw] md:w-[33vw] lg:w-[18vw] truncate">{event.location ?? "Location not specified"}</p>
-							</p>
-							<div className="text-sm text-gray-400 mb-6 flex gap-2 items-center truncate">
-								{/* Added Calendar Icon */}
-								<div className="h-5 w-5"><Image alt="calendar" src={calendarSvg}></Image></div>
-								<div>{new Date(event.endRegistrationDate).toLocaleDateString(
-									"en-IN",
-									{
-										day: "numeric",
-										month: "long",
-										year: "numeric",
-									},
-								)}</div>
-								<div>|</div>
-								<div>{event.startTime}</div>
-							</div>
-							<div className="mt-auto flex gap-4 mb-2">
-								{/* <CardItem translateZ="50">
+							<CardItem
+								translateZ={30}
+								className="p-4 flex flex-col flex-grow"
+							>
+								<h3 className="text-2xl font-normal mb-8 line-clamp-2 text-white">
+									{/* Increased font size */}
+									{event.name}
+								</h3>
+								<p className="text-gray-400 mb-1 line-clamp-1 flex gap-2 items-center">
+									{/* Added location Icon */}
+									<div className="h-5 w-5">
+										<Image
+											alt="location"
+											src={locationSvg}
+										></Image>
+									</div>
+									<p className="w-[70vw] sm:w-[35vw] md:w-[33vw] lg:w-[18vw] truncate">
+										{event.location ?? "Location not specified"}
+									</p>
+								</p>
+								<div className="text-sm text-gray-400 mb-6 flex gap-2 items-center truncate">
+									{/* Added Calendar Icon */}
+									<div className="h-5 w-5">
+										<Image
+											alt="calendar"
+											src={calendarSvg}
+										></Image>
+									</div>
+									<div>
+										{new Date(
+											event.endRegistrationDate,
+										).toLocaleDateString("en-IN", {
+											day: "numeric",
+											month: "long",
+											year: "numeric",
+										})}
+									</div>
+									<div>|</div>
+									<div>{event.startTime}</div>
+								</div>
+								<div className="mt-auto flex gap-4 mb-2">
+									{/* <CardItem translateZ="50">
 									<Link
 										href={/event/${event._id}}
 										scroll={false}
@@ -160,13 +173,17 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 										</Button>
 									</Link>
 								</CardItem> */}
-								<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">₹ {event.ticketPrice ?? "--"}</div>
-								<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">{event.category ?? "--"}</div>
-							</div>
-						</CardItem>
-					</div>
-				</CardBody>
-			</CardContainer>
+									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
+										₹ {event.ticketPrice ?? "--"}
+									</div>
+									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
+										{event.category ?? "--"}
+									</div>
+								</div>
+							</CardItem>
+						</div>
+					</CardBody>
+				</CardContainer>
 			</Link>
 		</motion.div>
 	);
