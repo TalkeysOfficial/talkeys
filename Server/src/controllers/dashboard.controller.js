@@ -3,6 +3,8 @@ const User = require("../models/users.model");
 const Event = require("../models/events.model");
 const Pass = require("../models/passes.model");
 const { Parser } = require("json2csv");
+const Joi = require("joi");
+const mongoose = require("mongoose");
 
 exports.getProfile = async (req, res) => {
   const { accessToken, refreshToken, __v, ...safeUser } = req.user.toObject();
@@ -62,13 +64,58 @@ exports.recentActivity = async (req, res) => {
 
 // ---------------------- EVENT ORGANIZER EXTENSIONS ---------------------- //
 
+
+// ---------------------------------------------
+// Joi Schemas for Validation
+// ---------------------------------------------
+
+const baseEventSchema = {
+  isTeamEvent: Joi.boolean(),
+  isPaid: Joi.boolean(),
+  isLive: Joi.boolean(),
+  name: Joi.string().trim().min(3).max(100).required(),
+  category: Joi.string().trim().max(50).required(),
+  ticketPrice: Joi.number().min(0),
+  mode: Joi.string().valid("offline", "online").required(), // since model only supports 2 values
+  location: Joi.string().trim().allow(""),
+  duration: Joi.string().required(),
+  slots: Joi.number().min(0),
+  visibility: Joi.string().valid("public", "private").required(),
+  startDate: Joi.date().required(),
+  startTime: Joi.string().required(),
+  endRegistrationDate: Joi.date().required(),
+  totalSeats: Joi.number().min(0).required(),
+  photographs: Joi.array().items(Joi.string().uri()).optional(),
+  prizes: Joi.string().allow(""),
+  eventDescription: Joi.string().allow(""),
+  paymentQRcode: Joi.string().uri().allow(""),
+  registrationLink: Joi.string().uri().allow(""),
+  sponserImages: Joi.array().items(Joi.string().uri()).optional(),
+  organizerContact: Joi.string().pattern(/^[0-9]{10}$/).allow(""),
+};
+
+const createEventSchema = Joi.object(baseEventSchema);
+
+const editEventSchema = Joi.object(
+  Object.fromEntries(Object.entries(baseEventSchema).map(([k, v]) => [k, v.optional()]))
+);
+
+// ---------------------------------------------
+// Controller: Create Event
+// ---------------------------------------------
+
 exports.createEvent = async (req, res) => {
   try {
+    const { error, value } = createEventSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
     const event = new Event({
-      ...req.body,
+      ...value,
       organizerName: req.user.name,
       organizerEmail: req.user.email,
+      organiserId: req.user._id,
     });
+
     await event.save();
     res.status(201).json({ message: "Event created", event });
   } catch (err) {
@@ -76,9 +123,17 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+// ---------------------------------------------
+// Controller: Edit Event
+// ---------------------------------------------
+
 exports.editEvent = async (req, res) => {
   try {
-    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const eventId = req.params.id.trim();
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid Event ID" });
+    }
+
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
@@ -86,7 +141,10 @@ exports.editEvent = async (req, res) => {
       return res.status(403).json({ message: "You are not allowed to edit this event" });
     }
 
-    Object.assign(event, req.body);
+    const { error, value } = editEventSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
+    Object.assign(event, value);
     await event.save();
 
     res.json({ message: "Event updated successfully", event });
@@ -95,9 +153,17 @@ exports.editEvent = async (req, res) => {
   }
 };
 
+// ---------------------------------------------
+// Controller: View Participants
+// ---------------------------------------------
+
 exports.viewParticipants = async (req, res) => {
   try {
-    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const eventId = req.params.id.trim();
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid Event ID" });
+    }
+
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
@@ -105,17 +171,25 @@ exports.viewParticipants = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const passes = await Pass.find({ eventId })
-      .populate("userId", "name email phoneNumber");
+    const passes = await Pass.find({ eventId }).populate("userId", "name email phoneNumber");
+
     res.json({ participants: passes });
   } catch (err) {
     res.status(500).json({ message: "Error loading participants", error: err.message });
   }
 };
 
+// ---------------------------------------------
+// Controller: Approve Participant
+// ---------------------------------------------
+
 exports.approveParticipant = async (req, res) => {
   try {
-    const passId = req.params.id.trim(); // ✅ sanitize ID
+    const passId = req.params.id.trim();
+    if (!mongoose.Types.ObjectId.isValid(passId)) {
+      return res.status(400).json({ message: "Invalid Pass ID" });
+    }
+
     const pass = await Pass.findById(passId).populate("eventId");
     if (!pass) return res.status(404).json({ message: "Participant not found" });
 
@@ -125,15 +199,24 @@ exports.approveParticipant = async (req, res) => {
 
     pass.status = "active";
     await pass.save();
+
     res.json({ message: "Participant approved", pass });
   } catch (err) {
     res.status(500).json({ message: "Approval failed", error: err.message });
   }
 };
 
+// ---------------------------------------------
+// Controller: Export Participants
+// ---------------------------------------------
+
 exports.exportParticipants = async (req, res) => {
   try {
-    const eventId = req.params.id.trim(); // ✅ sanitize ID
+    const eventId = req.params.id.trim();
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid Event ID" });
+    }
+
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
@@ -141,8 +224,7 @@ exports.exportParticipants = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const passes = await Pass.find({ eventId })
-      .populate("userId", "name email phoneNumber");
+    const passes = await Pass.find({ eventId }).populate("userId", "name email phoneNumber");
 
     const data = passes.map(p => ({
       name: p.userId.name,
@@ -162,10 +244,17 @@ exports.exportParticipants = async (req, res) => {
   }
 };
 
+// ---------------------------------------------
+// Controller: Get Analytics
+// ---------------------------------------------
 
 exports.getAnalytics = async (req, res) => {
   try {
-    const eventId = req.params.id.trim(); // ✅ Trim only once
+    const eventId = req.params.id.trim();
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: "Invalid Event ID" });
+    }
+
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
 
@@ -173,7 +262,7 @@ exports.getAnalytics = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const total = await Pass.countDocuments({ eventId }); // ✅ Use trimmed
+    const total = await Pass.countDocuments({ eventId });
     const approved = await Pass.countDocuments({ eventId, status: "active" });
 
     res.json({ totalRegistrations: total, approvedCount: approved });
