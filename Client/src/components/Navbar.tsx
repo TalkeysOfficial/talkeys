@@ -117,7 +117,13 @@ const Navbar = () => {
 
 	const navItems = [...baseNavItems];
 	
-	  
+	  if (isSignedIn) {
+		navItems.unshift({
+		  name: "Dashboard",
+		  link: "/dashboard/profile",      
+		  icon: LayoutDashboard,
+		});
+	  }
 
 	const NavLinks = ({ isMobileView = false }) => (
 		<>
@@ -159,47 +165,38 @@ const Navbar = () => {
 	);
 
 	const ProfileMenu = () => (
-  <AnimatePresence>
-    {isProfileMenuOpen && (
-      <motion.div
-        ref={profileMenuRef}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="absolute right-0 mt-2 w-48 text-white bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50 overflow-hidden"
-      >
-        <div className="py-2 px-4 border-b border-gray-700 font-bold text-sm">
-          Logged in as {name}
-        </div>
-        <Link
-          href="/dashboard/profile"
-          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
-          onClick={() => setIsProfileMenuOpen(false)}
-        >
-          <LayoutDashboard size={16} />
-          <span>Dashboard</span>
-        </Link>
-        <Link
-          href="/profile"
-          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
-          onClick={() => setIsProfileMenuOpen(false)}
-        >
-          <User size={16} />
-          <span>Edit Avatar</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-red-700 transition-colors"
-        >
-          <LogOut size={16} />
-          <span>Logout</span>
-        </button>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
+		<AnimatePresence>
+			{isProfileMenuOpen && (
+				<motion.div
+					ref={profileMenuRef}
+					initial={{ opacity: 0, y: -10 }}
+					animate={{ opacity: 1, y: 0 }}
+					exit={{ opacity: 0, y: -10 }}
+					transition={{ duration: 0.2 }}
+					className="absolute right-0 mt-2 w-48 text-white bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50 overflow-hidden"
+				>
+					<div className="py-2 px-4 border-b border-gray-700 font-bold text-sm">
+						Logged in as {name}
+					</div>
+					<Link
+						href="/profile"
+						className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
+						onClick={() => setIsProfileMenuOpen(false)}
+					>
+						<User size={16} />
+						<span>Edit Avatar</span>
+					</Link>
+					<button
+						onClick={handleLogout}
+						className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-red-700 transition-colors"
+					>
+						<LogOut size={16} />
+						<span>Logout</span>
+					</button>
+				</motion.div>
+			)}
+		</AnimatePresence>
+	);
 
 	const AuthButton = ({ isMobileView = false }) =>
 		isSignedIn ? (
