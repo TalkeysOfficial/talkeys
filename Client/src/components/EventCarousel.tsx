@@ -113,7 +113,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								translateZ={30}
 								className="p-4 flex flex-col flex-grow"
 							>
-								<h3 className="text-2xl font-normal mb-8 line-clamp-2 text-white">
+								<h3 className="text-xl font-normal mb-8 line-clamp-2 text-white">
 									{/* Increased font size */}
 									{event.name}
 								</h3>
@@ -125,7 +125,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 											src={locationSvg}
 										></Image>
 									</div>
-									<p className="w-[70vw] sm:w-[35vw] md:w-[33vw] lg:w-[18vw] truncate">
+									<p className="w-[70vw] sm:w-[35vw] md:w-[20vw] lg:w-[13vw] truncate">
 										{event.location ?? "Location not specified"}
 									</p>
 								</p>
@@ -221,7 +221,7 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 				</div>
 
 				{sortedEvents.length > 0 ? (
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+					<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-6">
 						{sortedEvents.map((event, index) => (
 							<motion.div
 								key={event._id}
@@ -229,7 +229,7 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: -20 }}
 								transition={{ duration: 0.3 }}
-								className="h-full"
+								className="h-full max-sm:w-10/12 m-auto"
 							>
 								<EventCard
 									event={event}
