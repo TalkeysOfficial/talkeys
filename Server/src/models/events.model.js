@@ -130,6 +130,11 @@ const eventSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	organiserId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+},
+
 });
 
 const Event = mongoose.model("Event", eventSchema);

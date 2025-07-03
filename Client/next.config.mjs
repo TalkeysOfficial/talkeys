@@ -24,6 +24,7 @@ const nextConfig = {
 		dangerouslyAllowSVG : true,
 		contentSecurityPolicy : "default-src 'self'; img-src * data:blob:;",
 	},
+	
 };
 
 export default nextConfig;
