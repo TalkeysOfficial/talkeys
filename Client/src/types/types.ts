@@ -63,3 +63,22 @@ export type RegistrationState =
 	| "error"
 	| "booked"
 	| "passCreated";
+
+	export interface BookTicketResponse {
+		success: boolean;
+		message: string;
+		data: {
+			passId: string;
+			merchantOrderId: string;
+			phonePeOrderId: string;
+			amount: number;
+			amountInPaisa: number;
+			totalTickets: number;
+			paymentUrl: string;
+			expiresAt: string;
+			event: {
+				id: string;
+			};
+			friends: any[];
+		};
+	}

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
-import type { EventPageProps, RegistrationState } from "@/types/types";
+import type { BookTicketResponse, EventPageProps, RegistrationState } from "@/types/types";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
@@ -249,7 +249,25 @@ export default function ParticularEventPage({
 
 	async function sendBookingID() {
 		try {
-			window.open(event.registrationLink, "_blank");
+			const res = await fetch(`${process.env.BACKEND_URL}/api/book-ticket`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				},
+				body: JSON.stringify({
+					eventId: event._id,
+					passType: "General",
+				}),
+			});
+			const data = await res.json() as BookTicketResponse;
+			if (res.ok) {
+				console.log("Booking ID sent successfully", data);
+				console.log("Payment URL", data.data.paymentUrl);
+				window.open(data.data.paymentUrl, "_blank");
+			} else {
+				throw new Error(data.message);
+			}
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}
