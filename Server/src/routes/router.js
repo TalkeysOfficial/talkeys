@@ -4,9 +4,7 @@ const auth = require("../middleware/oauth.js");
 const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
-const Team = require("./../controllers/team.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
-const { isTeamOK } = require("../middleware/Team.middleware");
 router.get('/api/payment/callback/:merchantOrderId', Passes.handlePaymentCallback);
 router.use((req, res, next) => {
     const csp = [
@@ -54,10 +52,8 @@ router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
-// Booking & Team Routes
 router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api/book-ticket
 router.post("/getPass", Passes.getPassByUserAndEvent);
-router.post("/getTeam", Team.getTeam);
 router.post("/reqEvent", Events.reqEventt);
 
 router.use(checkRole(["admin"]));

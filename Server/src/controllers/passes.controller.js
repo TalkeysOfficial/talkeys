@@ -1,5 +1,4 @@
 const asyncHandler = require("express-async-handler");
-const TeamSchema = require("../models/teams.model.js");
 const express = require("express");
 const auth = require("../middleware/oauth.js");
 const Event = require("../models/events.model.js");
@@ -785,86 +784,11 @@ const canScan = async (req, res) => {
   }
 }
 
-const Registration = require('../models/registration.model.js');
-const sendMail = async (options) => {
-  try {
-    // Extract email parameters from options
-    const { to, subject, html, teamName, registrationId } = options;
-
-    // Create email content based on whether it's a confirmation email or custom email
-    let emailContent = html;
-
-    // If teamName is provided, assume it's a confirmation email
-    if (teamName) {
-      emailContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Registration Confirmation</title>
-        </head>
-        <body>
-            <p><strong>Dear ${teamName},</strong></p>
-            <p>
-            Thank you for registering for <strong>Startup Ignite</strong> via Talkeys!
-            We're excited to have you onboard for this experience. Your registration has been successfully recorded.
-            </p>
-            <h3>What's Next?</h3>
-            <ul>
-            <li>Stay tuned for further updates and important announcements regarding the event.</li>
-            <li>
-                All relevant details, guidelines, or competition briefs will be shared with you soon via email or on the official Talkeys platform.
-            </li>
-            <li>
-                If you have any questions, feel free to contact us at <a href="mailto:talkeys11@gmail.com">talkeys11@gmail.com</a>
-            </li>
-            </ul>
-            <p>We look forward to seeing you participate and make the most of this event! 🚀</p>
-            <p>
-            Best regards,<br>
-            Team Talkeys<br>
-            <a href="http://www.talkeys.xyz">www.talkeys.xyz</a>
-            </p>
-        </body>
-        </html>
-    `;
-    }
-
-    // Create transporter
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-
-    // Mail options
-    const mailOptions = {
-      from: `"Talkeys" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: subject || "Talkeys Notification",
-      html: emailContent
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
-    return info;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
-  }
-};
-
-
-
 module.exports = {
   getPassByUserAndEvent,
   bookTicket,
   canScan,
   Accept,
-  sendMail,
   Reject,
   handlePaymentWebhook,
   getTicketStatus,

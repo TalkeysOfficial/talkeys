@@ -75,7 +75,7 @@ const passSchema = new mongoose.Schema({
 			required: true,
 		},
 		personName: {
-			type: string,
+			type: String,
 			required: true,
 		},
 		qrScanned: {
