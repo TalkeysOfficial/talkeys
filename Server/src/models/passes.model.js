@@ -1,3 +1,4 @@
+const { bool, boolean } = require("joi");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 
@@ -166,14 +167,20 @@ passSchema.methods.getQRData = function() {
 };
 
 passSchema.methods.markQRScanned = function(qrId) {
+	let flag= true;
 	const qrString = this.qrStrings.find(qr => qr.id === qrId);
 	if (qrString && !qrString.isScanned) {
 		qrString.isScanned = true;
 		qrString.scannedAt = new Date();
-		if (!this.isScanned) {
+		for (let i = 0; i < this.qrStrings.length; i++) {
+			if (this.qrStrings[qrScanned]==false) {
+				flag = false;
+				break;}
+
+		if (!this.isScanned && flag) {
 			this.isScanned = true;
 			this.timeScanned = new Date();
-		}
+		}}
 		
 		return this.save();
 	}
