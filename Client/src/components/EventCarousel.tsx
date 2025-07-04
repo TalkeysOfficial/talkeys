@@ -71,10 +71,10 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 									src={event.photographs?.[0] ?? placeholderImage}
 									alt={event.name}
 									fill
-									sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+									sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 20vw, 25vw"
 									priority={index < 4}
 									loading={index < 4 ? "eager" : "lazy"}
-									className="object-cover object-center transition-transform duration-500"
+									className="object-fit object-center transition-transform duration-500"
 								/>
 								<div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
 
@@ -113,7 +113,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 								translateZ={30}
 								className="p-4 flex flex-col flex-grow"
 							>
-								<h3 className="text-xl font-normal mb-8 line-clamp-2 text-white">
+								<h3 className="text-xl font-normal mb-10 line-clamp-2 text-white">
 									{/* Increased font size */}
 									{event.name}
 								</h3>
@@ -125,11 +125,11 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 											src={locationSvg}
 										></Image>
 									</div>
-									<p className="w-[70vw] sm:w-[35vw] md:w-[20vw] lg:w-[13vw] truncate">
+									<p className="w-[45vw] sm:w-[30vw] md:w-[32vw] lg:w-[20vw] xl:w-[10vw] truncate">
 										{event.location ?? "Location not specified"}
 									</p>
 								</p>
-								<div className="text-sm text-gray-400 mb-6 flex gap-2 items-center truncate">
+								<div className="text-sm text-gray-400 mb-6 flex gap-2 truncate">
 									{/* Added Calendar Icon */}
 									<div className="h-5 w-5">
 										<Image
@@ -137,19 +137,20 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 											src={calendarSvg}
 										></Image>
 									</div>
-									<div>
+									<div className="flex flex-col sm:flex-row xl:flex-row custom-narrow:flex-col justify-center gap-1">
+										<div>
 										{new Date(
 											event.endRegistrationDate,
 										).toLocaleDateString("en-IN", {
 											day: "numeric",
 											month: "long",
 											year: "numeric",
-										})}
+										})} |
 									</div>
-									<div>|</div>
 									<div>{event.startTime}</div>
+									</div>
 								</div>
-								<div className="mt-auto flex gap-4 mb-2">
+								<div className="mt-auto flex gap-4 mb-10">
 									{/* <CardItem translateZ="50">
 									<Link
 										href={/event/${event._id}}
@@ -173,10 +174,10 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 										</Button>
 									</Link>
 								</CardItem> */}
-									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
+									<div className="text-xs sm:text-sm md:text-sm lg:text-sm custom-narrow:text-sm text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
 										₹ {event.ticketPrice ?? "--"}
 									</div>
-									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
+									<div className="text-xs sm:text-sm md:text-sm lg:text-sm custom-narrow:text-sm text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 pl-3 pr-3">
 										{event.category ?? "--"}
 									</div>
 								</div>
@@ -221,7 +222,7 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 				</div>
 
 				{sortedEvents.length > 0 ? (
-					<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 custom-narrow:grid-cols-4 xl:grid-cols-5 gap-6">
 						{sortedEvents.map((event, index) => (
 							<motion.div
 								key={event._id}
@@ -229,7 +230,7 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: -20 }}
 								transition={{ duration: 0.3 }}
-								className="h-full max-sm:w-10/12 m-auto"
+								className="h-full max-sm:w-9/12 ml-2"
 							>
 								<EventCard
 									event={event}
