@@ -15,25 +15,25 @@ const { listeners } = require("../models/registration.model.js");
 const CONFIG = {
   PRODUCTION: {
     AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
-    BASE_URL: '	https://api.phonepe.com/apis/identity-manager',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
     CHECKOUT_SCRIPT: 'https://mercury.phonepe.com/web/bundle/checkout.js'
   },
   STAGING: {
     AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
-    BASE_URL: 'https://api.phonepe.com/apis/identity-manager',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
   },
   CLIENT_VERSION: '1.0'
 };
 
 // Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV || 'STAGING';
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || 'TEST-M22ZDT307F584_25062';
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET || 'ODJjOWFiNDktZGNiZi00MzRjLTg5NzEtM2Y1OWQ3YTEyNzZj';
+const ENVIRONMENT = process.env.PHONEPE_ENV 
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID 
+const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET 
 
 const getPhonePeAccessToken = async () => {
   try {
     console.log('[PhonePe] Requesting access token...');
-    const response = await axios.post(
+    const response = await axios.post(   
       'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
