@@ -15,25 +15,25 @@ const { listeners } = require("../models/registration.model.js");
 const CONFIG = {
   PRODUCTION: {
     AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
-    BASE_URL: '	https://api.phonepe.com/apis/identity-manager',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
     CHECKOUT_SCRIPT: 'https://mercury.phonepe.com/web/bundle/checkout.js'
   },
   STAGING: {
     AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
-    BASE_URL: 'https://api.phonepe.com/apis/identity-manager',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
   },
   CLIENT_VERSION: '1.0'
 };
 
 // Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV || 'STAGING';
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || 'TEST-M22ZDT307F584_25062';
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET || 'ODJjOWFiNDktZGNiZi00MzRjLTg5NzEtM2Y1OWQ3YTEyNzZj';
+const ENVIRONMENT = process.env.PHONEPE_ENV 
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID 
+const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET 
 
 const getPhonePeAccessToken = async () => {
   try {
     console.log('[PhonePe] Requesting access token...');
-    const response = await axios.post(
+    const response = await axios.post(   
       'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
@@ -752,35 +752,40 @@ const getPassByUUID = async (req, res) => {
   }
 };
 
-
-
 const getPassByUserAndEvent = async (req, res) => {
   try {
-    const pass = await Pass.findOne({
+    const passes = await Pass.find({
       userId: req.user._id,
-      eventId: req.body.eventId
-    }, '_id');
-
-    if (!pass) {
-      return res.status(404).json({ error: "Pass not found" });
-    }
-    let qrStrings = pass.qrStrings || [];
-    if (qrStrings.length === 0) {
-      return res.status(404).json({ error: "No QR codes found for this pass" });
-    }
-    printf("QR Strings: %j", qrStrings);
-    return res.status(200).json({
-      passUUID: pass.passUUID,
-      qrStrings: qrStrings,
-      passType: pass.passType,
-      passId: pass._id,
-      email: req.user.email,
       eventId: req.body.eventId,
-      message: "Pass found successfully"
+      paymentStatus: "completed"
+    });
 
+    if (!passes || passes.length === 0) {
+      return res.status(404).json({ error: "No passes found" });
+    }
+
+    // Map through all passes to create the response array
+    const passesData = passes.map(pass => {
+      let qrStrings = pass.qrStrings || [];
+      return {
+        passUUID: pass.passUUID,
+        qrStrings: qrStrings,
+        passType: pass.passType,
+        passId: pass._id,
+        email: req.user.email,
+        eventId: req.body.eventId
+      };
+    });
+
+    console.log("Passes found:", passesData.length);
+    
+    return res.status(200).json({
+      passes: passesData,
+      count: passesData.length,
+      message: "Passes found successfully"
     });
   } catch (error) {
-    console.error('Get pass error:', error);
+    console.error('Get passes error:', error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
