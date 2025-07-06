@@ -1,24 +1,12 @@
 # --- Stage 1: Builder ---
-FROM node:18-alpine AS builder
+FROM node:18-buster-slim AS builder
 
-WORKDIR /app
-
-# Install dependencies
-COPY package*.json ./
-RUN npm install
-
-# Copy application source code
+COPY package.json .
+RUN npm install --production && npm cache clean --force
 COPY . .
 
-# --- Stage 2: Final image ---
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copy production dependencies and source code from builder
-COPY --from=builder /app .
-
-EXPOSE 8000
+# --- Stage 2: Runtime ---
+FROM node:18-buster-slim
+COPY --from=builder . .
 
 CMD ["node", "src/server.js"]
-
