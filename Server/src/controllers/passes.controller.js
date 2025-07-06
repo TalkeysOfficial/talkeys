@@ -752,35 +752,40 @@ const getPassByUUID = async (req, res) => {
   }
 };
 
-
-
 const getPassByUserAndEvent = async (req, res) => {
   try {
-    const pass = await Pass.findOne({
+    const passes = await Pass.find({
       userId: req.user._id,
-      eventId: req.body.eventId
-    }, '_id');
-
-    if (!pass) {
-      return res.status(404).json({ error: "Pass not found" });
-    }
-    let qrStrings = pass.qrStrings || [];
-    if (qrStrings.length === 0) {
-      return res.status(404).json({ error: "No QR codes found for this pass" });
-    }
-    printf("QR Strings: %j", qrStrings);
-    return res.status(200).json({
-      passUUID: pass.passUUID,
-      qrStrings: qrStrings,
-      passType: pass.passType,
-      passId: pass._id,
-      email: req.user.email,
       eventId: req.body.eventId,
-      message: "Pass found successfully"
+      paymentStatus: "completed"
+    });
 
+    if (!passes || passes.length === 0) {
+      return res.status(404).json({ error: "No passes found" });
+    }
+
+    // Map through all passes to create the response array
+    const passesData = passes.map(pass => {
+      let qrStrings = pass.qrStrings || [];
+      return {
+        passUUID: pass.passUUID,
+        qrStrings: qrStrings,
+        passType: pass.passType,
+        passId: pass._id,
+        email: req.user.email,
+        eventId: req.body.eventId
+      };
+    });
+
+    console.log("Passes found:", passesData.length);
+    
+    return res.status(200).json({
+      passes: passesData,
+      count: passesData.length,
+      message: "Passes found successfully"
     });
   } catch (error) {
-    console.error('Get pass error:', error);
+    console.error('Get passes error:', error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
