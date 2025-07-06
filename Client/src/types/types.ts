@@ -82,3 +82,45 @@ export type RegistrationState =
 			friends: any[];
 		};
 	}
+
+	// Pass types for the /getPass API response
+	export interface QRString {
+		id: string;
+		// Add other properties if they exist in the actual response
+	}
+
+	export interface Pass {
+		passUUID: string;
+		qrStrings: QRString[];
+		// Add other properties if they exist in the actual response
+	}
+
+	export interface PassResponse {
+		passes: Pass[];
+		success?: boolean;
+		message?: string;
+	}
+
+
+	export interface PassQRString {
+		id: string;
+		personType: "user" | "friend";
+		qrScanned: boolean;
+		scannedAt: string | null;
+		_id: string;
+	}
+
+	export interface PassDetails {
+		passUUID: string;
+		qrStrings: PassQRString[];
+		passType: string;
+		passId: string;
+		email: string;
+		eventId: string;
+	}
+
+	export interface PassDetailsResponse {
+		passes: PassDetails[];
+		count: number;
+		message: string;
+	}
