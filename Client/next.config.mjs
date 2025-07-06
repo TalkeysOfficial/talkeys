@@ -21,10 +21,10 @@ const nextConfig = {
 	},
 	images: {
 		domains: ["res.cloudinary.com", "api.dicebear.com"],
-		dangerouslyAllowSVG : true,
-		contentSecurityPolicy : "default-src 'self'; img-src * data:blob:;",
+		dangerouslyAllowSVG: true,
+		contentSecurityPolicy: "default-src 'self'; img-src * data:blob:;",
 	},
-	
+
 };
 
 export default nextConfig;

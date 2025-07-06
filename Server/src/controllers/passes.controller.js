@@ -10,30 +10,31 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const qs = require('qs');
+const { listeners } = require("../models/registration.model.js");
 
 const CONFIG = {
   PRODUCTION: {
-    AUTH_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
-    BASE_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox',
+    AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
     CHECKOUT_SCRIPT: 'https://mercury.phonepe.com/web/bundle/checkout.js'
   },
   STAGING: {
-    AUTH_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
-    BASE_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox',
+    AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
+    BASE_URL: '	https://api.phonepe.com/apis/pg',
   },
   CLIENT_VERSION: '1.0'
 };
 
 // Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV || 'STAGING';
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || 'TEST-M22ZDT307F584_25062';
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET || 'ODJjOWFiNDktZGNiZi00MzRjLTg5NzEtM2Y1OWQ3YTEyNzZj';
+const ENVIRONMENT = process.env.PHONEPE_ENV 
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID 
+const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET 
 
 const getPhonePeAccessToken = async () => {
   try {
     console.log('[PhonePe] Requesting access token...');
-    const response = await axios.post(
-      'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
+    const response = await axios.post(   
+      'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
         client_secret: process.env.PHONEPE_CLIENT_SECRET,
@@ -111,6 +112,7 @@ const bookTicket = async (req, res) => {
     console.log('Booking ticket request:', req.body);
 
     // Validation
+    console.log('User:', req.user);
     if (!req.user?._id || !req.body.eventId) {
       return res.status(400).json({
         success: false,
@@ -279,10 +281,7 @@ const processPaymentConfirmation = async (merchantOrderId, paymentStatus, source
     console.log(`[${source}] Processing payment confirmation for:`, merchantOrderId);
 
     // Find pass by merchantOrderId instead of using metadata
-    const pass = await Pass.findOne({
-      merchantOrderId: merchantOrderId,
-      status: 'pending'
-    });
+    const pass = await Pass.findOne({ merchantOrderId });
 
     if (!pass) {
       throw new Error(`Pass not found for merchantOrderId: ${merchantOrderId}`);
@@ -712,34 +711,133 @@ const cleanupExpiredPasses = async () => {
     console.error('Cleanup error:', error);
   }
 };
-
-const getPassByUserAndEvent = async (req, res) => {
+const getPassByUUID = async (req, res) => {
   try {
-    const pass = await Pass.findOne({
-      userId: req.user._id,
-      eventId: req.body.eventId
-    }, '_id');
+    const passUUID = req.params.passUUID;
+    if (!passUUID) {
+      return res.status(400).json({ error: "Pass UUID is required" });
+    }
+
+    const pass = await Pass.findOne({ passUUID: passUUID })
+      .populate('userId', 'name')
+      .populate('eventId', 'name startDate')
+      .select('eventId userId paymentStatus createdAt amount friends passUUID passType');
 
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
 
-    return res.status(200).json(pass);
+    const totalAmount = pass.amount + (pass.friends.length * pass.amount);
+
+    const responseData = {
+      passAmount: totalAmount,
+      passEventName: pass.eventId?.name || "Unknown Event",
+      passEventDate: pass.eventId?.startDate || "Unknown Date",
+      passPaymentStatus: pass.paymentStatus || "ERROR",
+      passCreatedAt: pass.createdAt || "NO",
+      passStatus: pass.paymentStatus || "ERROR",
+      passEnteries: pass.friends.length + 1, // Including the main userP
+      eventId : pass.eventId?._id || "Unknown Event ID",
+      // Additional fields that might be useful
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: responseData
+    });
+
   } catch (error) {
-    console.error('Get pass error:', error);
+    console.error('Get pass by UUID error:', error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const Accept = async (req, res) => {
-  const passId = req.body.passId;
+const getPassByUserAndEvent = async (req, res) => {
   try {
-    const pass = await Pass.findById(passId);
+    const passes = await Pass.find({
+      userId: req.user._id,
+      eventId: req.body.eventId,
+      paymentStatus: "completed"
+    });
+
+    if (!passes || passes.length === 0) {
+      return res.status(404).json({ error: "No passes found" });
+    }
+
+    // Map through all passes to create the response array
+    const passesData = passes.map(pass => {
+      let qrStrings = pass.qrStrings || [];
+      return {
+        passUUID: pass.passUUID,
+        qrStrings: qrStrings,
+        passType: pass.passType,
+        passId: pass._id,
+        email: req.user.email,
+        eventId: req.body.eventId
+      };
+    });
+
+    console.log("Passes found:", passesData.length);
+    
+    return res.status(200).json({
+      passes: passesData,
+      count: passesData.length,
+      message: "Passes found successfully"
+    });
+  } catch (error) {
+    console.error('Get passes error:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+const getPassByQrStringsAndPassUUID = async (req, res) => {
+  try {
+    const pass = await Pass.findOne({
+      passUUID: req.params.passUUID,
+    })
+    person = pass.qrStrings.find(qr => qr.id === req.params.qrId);
+
+    if (!pass) {
+      return res.status(404).json({ error: "Valid pass not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        buyer: pass.userId,
+        event: pass.eventId,
+        person: person,
+        amount: pass.amount
+      }
+    });
+
+  } catch (error) {
+    console.error('Get pass by UUID error:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+const Accept = async (req, res) => {
+  try {
+    let passUUID = req.params.uuid;
+    if (!passUUID) {
+      return res.status(400).json({ error: "Pass UUID is required" });
+    }
+    qrId = req.params.qrId;
+    if (!qrId) {
+      return res.status(400).json({ error: "QR ID is required" });
+    }
+    const pass = await Pass.findById(uuid);
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
-    pass.isScanned = true;
-    pass.timeScanned = new Date();
+    const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+    if (!qrString) {
+      return res.status(404).json({ error: "QR code not found" });
+    }
+    if (qrString.isScanned) {
+      return res.status(400).json({ error: "QR code already scanned" });
+    }
+
+    qrString.scannedAt = new Date();
     await pass.save();
     return res.status(200).json({ message: "Pass scanned successfully" });
   }
@@ -749,28 +847,50 @@ const Accept = async (req, res) => {
   }
 };
 
-const Reject = async (req, res) => {
-  const passId = req.body.passId;
-  try {
-    const pass = await Pass.findById(passId);
-    if (!pass) {
-      return res.status(404).json({ error: "Pass not found" });
-    }
-    pass.isScanned = false;
-    pass.timeScanned = null;
-    await pass.save();
-    return res.status(200).json({ message: "Pass rejected successfully" });
-  }
-  catch (error) {
-    console.error('Reject pass error:', error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
+// const Reject = async (req, res) => {
+//   try{
+//   let passUUID= req.params.uuid;
+//   if (!passUUID) {
+//     return res.status(400).json({ error: "Pass UUID is required" });
+//   }
+//   qrId = req.params.qrId;
+//   if (!qrId) {
+//     return res.status(400).json({ error: "QR ID is required" });
+//   }
+//     const pass = await Pass.findById(uuid);
+//     if (!pass) {
+//       return res.status(404).json({ error: "Pass not found" });
+//     }
+//     const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+//     if (!qrString) {
+//       return res.status(404).json({ error: "QR code not found" });
+//     }
+//     if (qrString.isScanned) {
+//       return res.status(400).json({ error: "QR code already scanned" });
+//     }
+//     qrString.isScanned = ;
+//     qrString.scannedAt = new Date();
+//     await pass.save();
+//     return res.status(200).json({ message: "Pass scanned successfully" });
+//   }
+//   catch (error) {
+//     console.error('Accept pass error:', error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 
 const canScan = async (req, res) => {
-  const user = req.user;
+  let user = req.user;
+  let eventId = req.body.eventId;
+  const event = await Event.findById(eventId);
+  if (user.role !== 'admin' && user.role !== 'event_manager') {
+    return res.status(403).json({ error: "Forbidden: Invalid role" });
+  }
+  if (user.email !== event.organizerEmail) {
+    return res.status(403).json({ error: "Forbidden: Not authorized to scan passes for this event" });
+  }
+
   try {
     if (user.role !== 'admin') {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
@@ -789,7 +909,6 @@ module.exports = {
   bookTicket,
   canScan,
   Accept,
-  Reject,
   handlePaymentWebhook,
   getTicketStatus,
   checkPaymentStatus,
@@ -797,5 +916,6 @@ module.exports = {
   handlePaymentWebhook,
   getTicketStatus,
   checkPaymentStatus,
-  cleanupExpiredPasses
+  cleanupExpiredPasses,
+  getPassByUUID,
 };

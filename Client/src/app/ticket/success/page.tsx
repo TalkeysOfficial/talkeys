@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 const config = {
 	icon: CheckCircle,
@@ -19,7 +19,47 @@ const config = {
 function PaymentStatusContent() {
 	const searchParams = useSearchParams();
 	const passId = searchParams.get("passId") ?? "NULL";
+	const uuid = searchParams.get("uuid") ?? null;
 	const StatusIcon = config.icon;
+	const [passDetails, setPassDetails] = useState({
+		passAmount: 0.0,
+		passEventName: "Unknown Event",
+		passEventDate: "Unknown Date",
+		passPaymentStatus: "ERROR",
+		passCreatedAt: "NULL",
+		passStatus: "ERROR",
+		passEnteries: 0,
+		eventId: null,
+	});
+
+	useEffect(() => {
+		const getPassDetails = async () => {
+			if (!uuid) return;
+
+			try {
+				const response = await fetch(
+					`${process.env.BACKEND_URL}/api/passbyuuid/${uuid}`,
+					{
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem(
+								"accessToken",
+							)}`,
+						},
+					},
+				);
+				if (!response.ok) throw new Error("Failed to fetch pass details");
+
+				const data = await response.json();
+				console.log("Pass details:", data);
+				setPassDetails(data.data);
+			} catch (error) {
+				console.error("Error fetching pass details:", error);
+			}
+		};
+		getPassDetails();
+	}, [uuid]);
 
 	return (
 		<div className="min-h-screen bg-black text-white">
@@ -107,31 +147,73 @@ function PaymentStatusContent() {
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Amount:</span>
-										<span>$29.99</span>
+										<span>₹{passDetails.passAmount.toFixed(2)}</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Date:</span>
-										<span>{new Date().toLocaleDateString()}</span>
+										<span>
+											{passDetails.passEventDate
+												? new Date(
+														passDetails.passEventDate,
+												  ).toLocaleString("en-IN", {
+														year: "numeric",
+														month: "long",
+														day: "numeric",
+												  })
+												: "N/A"}
+										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">
-											Payment Method:
+											Number of Tickets:
 										</span>
-										<span>•••• •••• •••• 1234</span>
+										<span>
+											{passDetails.passEnteries}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">
+											Payment Status:
+										</span>
+										<span>
+											{passDetails.passPaymentStatus
+												.charAt(0)
+												.toUpperCase() +
+												passDetails.passPaymentStatus.slice(1)}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">Event Name:</span>
+										<span>{passDetails.passEventName}</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">Created At:</span>
+										<span>
+											{passDetails.passCreatedAt
+												? new Date(
+														passDetails.passCreatedAt,
+												  ).toLocaleString("en-IN", {
+														year: "numeric",
+														month: "long",
+														day: "numeric",
+														hour: "2-digit",
+														minute: "2-digit",
+												  })
+												: "N/A"}
+										</span>
 									</div>
 								</div>
 							</div>
 
 							{/* Action Buttons */}
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
-								<Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3">
-									Continue to Dashboard
-								</Button>
-								<Button
-									variant="outline"
-									className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 bg-transparent"
-								>
-									Download Receipt
+								<Button asChild>
+									<Link
+										href={`/event/${passDetails.eventId}`}
+										className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+									>
+										Continue to Event Page
+									</Link>
 								</Button>
 							</div>
 
@@ -140,14 +222,14 @@ function PaymentStatusContent() {
 								<p className="text-sm text-gray-400">
 									Need help?{" "}
 									<Link
-										href="/support"
+										href="/contactUs"
 										className="text-purple-400 hover:text-purple-300 underline"
 									>
 										Contact our support team
 									</Link>{" "}
 									or check our{" "}
 									<Link
-										href="/faq"
+										href="/aboutUs"
 										className="text-purple-400 hover:text-purple-300 underline"
 									>
 										FAQ section

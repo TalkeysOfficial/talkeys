@@ -38,14 +38,13 @@ router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
-
-// Payment & Ticket Routes
+   
 router.post('/api/book-ticket', Passes.bookTicket);
 router.post('/payment/webhook', 
     express.raw({ type: 'application/json' }), // For webhook raw body handling
     Passes.handlePaymentWebhook
 );
-
+router.get('/api/passbyuuid/:passUUID', Passes.getPassByUUID);
 
 // Event Interaction Routes
 router.get("/likeEvent/:id", Events.likeEvent);
@@ -60,7 +59,7 @@ router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
-router.post("/reject", Passes.Reject);
+// router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 
 // Event Management Routes
