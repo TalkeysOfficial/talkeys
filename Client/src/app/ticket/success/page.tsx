@@ -25,27 +25,33 @@ function PaymentStatusContent() {
 		passAmount: 0.00,
 		passEventName: "Unknown Event",
 		passEventDate: "Unknown Date",
-		passPaymentDetails: "No details available",
-		passStatus: "Pending",
-	});	
+		passPaymentStatus: "ERROR",
+		passCreatedAt: "NULL",
+		passStatus: "ERROR",
+	});
 
 	useEffect(() => {
 		const getPassDetails = async () => {
 			if (!uuid) return;
 
 			try {
-				const response = await fetch(`${process.env.BACKEND_URL}/api/passbyuuid/${uuid}`, {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				const response = await fetch(
+					`${process.env.BACKEND_URL}/api/passbyuuid/${uuid}`,
+					{
+						method: "GET",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem(
+								"accessToken",
+							)}`,
+						},
 					},
-				});
+				);
 				if (!response.ok) throw new Error("Failed to fetch pass details");
 
 				const data = await response.json();
 				console.log("Pass details:", data);
-				setPassDetails(data);
+				setPassDetails(data.data);
 			} catch (error) {
 				console.error("Error fetching pass details:", error);
 			}
@@ -147,9 +153,21 @@ function PaymentStatusContent() {
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">
-											Payment Method:
+											Payment Status:
 										</span>
-										<span>{passDetails.passPaymentDetails}</span>
+										<span>{passDetails.passPaymentStatus}</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">
+											Event Name:
+										</span>
+										<span>{passDetails.passEventName}</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">
+											Created At:
+										</span>
+										<span>{passDetails.passCreatedAt}</span>
 									</div>
 								</div>
 							</div>
@@ -157,9 +175,12 @@ function PaymentStatusContent() {
 							{/* Action Buttons */}
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild>
-									<Link href="/eventPage" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3">
-									Continue to Event Page
-								</Link>
+									<Link
+										href="/eventPage"
+										className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+									>
+										Continue to Event Page
+									</Link>
 								</Button>
 							</div>
 

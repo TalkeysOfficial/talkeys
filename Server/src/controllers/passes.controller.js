@@ -720,7 +720,7 @@ const getPassByUUID = async (req, res) => {
 
     const pass = await Pass.findOne({ passUUID: passUUID })
       .populate('userId', 'name')
-      .populate('eventId', 'name date') 
+      .populate('eventId', 'name startDate')
       .select('eventId userId paymentStatus createdAt amount friends passUUID passType');
 
     if (!pass) {
@@ -732,11 +732,11 @@ const getPassByUUID = async (req, res) => {
     const responseData = {
       passAmount: totalAmount,
       passEventName: pass.eventId?.name || "Unknown Event",
-      passEventDate: pass.eventId?.date || "Unknown Date",
-      passPaymentDetails: `Payment Status: ${pass.paymentStatus}, Created: ${pass.createdAt}`,
-      passStatus: pass.paymentStatus || "Pending",
+      passEventDate: pass.eventId?.startDate || "Unknown Date",
+      passPaymentStatus: pass.paymentStatus || "ERROR",
+      passCreatedAt: pass.createdAt || "NO",
+      passStatus: pass.paymentStatus || "ERROR",
       // Additional fields that might be useful
-
     };
 
     return res.status(200).json({

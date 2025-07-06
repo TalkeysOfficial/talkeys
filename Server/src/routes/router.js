@@ -45,7 +45,7 @@ router.post('/payment/webhook',
     express.raw({ type: 'application/json' }), // For webhook raw body handling
     Passes.handlePaymentWebhook
 );
-router.get('/api/passbyuuid', Passes.getPassByUUID);
+router.get('/api/passbyuuid/:passUUID', Passes.getPassByUUID);
 
 // Event Interaction Routes
 router.get("/likeEvent/:id", Events.likeEvent);
