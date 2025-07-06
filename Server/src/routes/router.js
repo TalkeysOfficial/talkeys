@@ -39,7 +39,6 @@ router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
    
-// Payment & Ticketing Routesss
 router.post('/api/book-ticket', Passes.bookTicket);
 router.post('/payment/webhook', 
     express.raw({ type: 'application/json' }), // For webhook raw body handling
