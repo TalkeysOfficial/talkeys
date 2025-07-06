@@ -28,6 +28,8 @@ function PaymentStatusContent() {
 		passPaymentStatus: "ERROR",
 		passCreatedAt: "NULL",
 		passStatus: "ERROR",
+		passEnteries: 0,
+		eventId: null,
 	});
 
 	useEffect(() => {
@@ -163,6 +165,14 @@ function PaymentStatusContent() {
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">
+											Number of Tickets:
+										</span>
+										<span>
+											{passDetails.passEnteries}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-400">
 											Payment Status:
 										</span>
 										<span>
@@ -199,7 +209,7 @@ function PaymentStatusContent() {
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild>
 									<Link
-										href="/eventPage"
+										href={`/event/${passDetails.eventId}`}
 										className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
 									>
 										Continue to Event Page
