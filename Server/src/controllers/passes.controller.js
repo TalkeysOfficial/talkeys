@@ -14,13 +14,13 @@ const { listeners } = require("../models/registration.model.js");
 
 const CONFIG = {
   PRODUCTION: {
-    AUTH_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
-    BASE_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox',
+    AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
+    BASE_URL: '	https://api.phonepe.com/apis/identity-manager',
     CHECKOUT_SCRIPT: 'https://mercury.phonepe.com/web/bundle/checkout.js'
   },
   STAGING: {
-    AUTH_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
-    BASE_URL: 'https://api-preprod.phonepe.com/apis/pg-sandbox',
+    AUTH_URL: 'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
+    BASE_URL: 'https://api.phonepe.com/apis/identity-manager',
   },
   CLIENT_VERSION: '1.0'
 };
@@ -34,7 +34,7 @@ const getPhonePeAccessToken = async () => {
   try {
     console.log('[PhonePe] Requesting access token...');
     const response = await axios.post(
-      'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
+      'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
         client_secret: process.env.PHONEPE_CLIENT_SECRET,
