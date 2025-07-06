@@ -711,6 +711,39 @@ const cleanupExpiredPasses = async () => {
     console.error('Cleanup error:', error);
   }
 };
+const getPassByUUID= async(req, res) => {
+  try{
+  const passUUID = req.params.passUUID;
+  if (!passUUID) {
+    return res.status(400).json({ error: "Pass UUID is required" });
+  }
+  const pass = await Pass.findOne({ passUUID: passUUID })
+    .populate('userId', 'name')
+    .populate('eventId', 'name')
+    .select('eventId userId paymentStatus createdAt amount friends passUUID passType');
+if (!pass) {
+    return res.status(404).json({ error: "Pass not found" });
+  }
+  amount= pass.amount+ pass.friends.length * pass.amount; // Assuming each friend adds 100 to the amount
+
+  return res.status(200).json({
+    success: true,
+    data: {amount,
+      passUUID: pass.passUUID,
+      passType: pass.passType,
+      eventId: pass.eventId,
+      paymentStatus: pass.paymentStatus,
+      createdAt: pass.createdAt,
+
+    }
+  });
+  } catch (error) {
+    console.error('Get pass by UUID error:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
 
 const getPassByUserAndEvent = async (req, res) => {
   try {
@@ -869,5 +902,6 @@ module.exports = {
   handlePaymentWebhook,
   getTicketStatus,
   checkPaymentStatus,
-  cleanupExpiredPasses
+  cleanupExpiredPasses,
+  getPassByUUID,
 };
