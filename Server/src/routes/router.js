@@ -60,7 +60,7 @@ router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
-router.post("/reject", Passes.Reject);
+// router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 
 // Event Management Routes

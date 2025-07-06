@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 const qs = require('qs');
+const { listeners } = require("../models/registration.model.js");
 
 const CONFIG = {
   PRODUCTION: {
@@ -723,23 +724,75 @@ const getPassByUserAndEvent = async (req, res) => {
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
+    let qrStrings = pass.qrStrings || [];
+    if (qrStrings.length === 0) {
+      return res.status(404).json({ error: "No QR codes found for this pass" });
+    }
+    printf("QR Strings: %j", qrStrings);
+    return res.status(200).json( { 
+      passUUID: pass.passUUID,
+      qrStrings: qrStrings,
+      passType: pass.passType,
+      passId: pass._id,
+      email: req.user.email,
+      eventId: req.body.eventId,
+      message: "Pass found successfully"
 
-    return res.status(200).json(pass);
+     });
   } catch (error) {
     console.error('Get pass error:', error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-const Accept = async (req, res) => {
-  const passId = req.body.passId;
+const getPassByQrStringsAndPassUUID = async (req, res) => {
   try {
-    const pass = await Pass.findById(passId);
+    const pass = await Pass.findOne({
+      passUUID: req.params.passUUID,
+    })
+    person= pass.qrStrings.find(qr => qr.id === req.params.qrId);
+
+    if (!pass) {
+      return res.status(404).json({ error: "Valid pass not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        buyer: pass.userId,
+        event: pass.eventId,
+        person: person,
+        amount: pass.amount
+      }
+    });
+
+  } catch (error) {
+    console.error('Get pass by UUID error:', error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+const Accept = async (req, res) => {
+  try{
+  let passUUID= req.params.uuid;
+  if (!passUUID) {
+    return res.status(400).json({ error: "Pass UUID is required" });
+  }
+  qrId = req.params.qrId;
+  if (!qrId) {
+    return res.status(400).json({ error: "QR ID is required" });
+  }
+    const pass = await Pass.findById(uuid);
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
-    pass.isScanned = true;
-    pass.timeScanned = new Date();
+    const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+    if (!qrString) {
+      return res.status(404).json({ error: "QR code not found" });
+    }
+    if (qrString.isScanned) {
+      return res.status(400).json({ error: "QR code already scanned" });
+    }
+
+    qrString.scannedAt = new Date();
     await pass.save();
     return res.status(200).json({ message: "Pass scanned successfully" });
   }
@@ -749,28 +802,50 @@ const Accept = async (req, res) => {
   }
 };
 
-const Reject = async (req, res) => {
-  const passId = req.body.passId;
-  try {
-    const pass = await Pass.findById(passId);
-    if (!pass) {
-      return res.status(404).json({ error: "Pass not found" });
-    }
-    pass.isScanned = false;
-    pass.timeScanned = null;
-    await pass.save();
-    return res.status(200).json({ message: "Pass rejected successfully" });
-  }
-  catch (error) {
-    console.error('Reject pass error:', error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
+// const Reject = async (req, res) => {
+//   try{
+//   let passUUID= req.params.uuid;
+//   if (!passUUID) {
+//     return res.status(400).json({ error: "Pass UUID is required" });
+//   }
+//   qrId = req.params.qrId;
+//   if (!qrId) {
+//     return res.status(400).json({ error: "QR ID is required" });
+//   }
+//     const pass = await Pass.findById(uuid);
+//     if (!pass) {
+//       return res.status(404).json({ error: "Pass not found" });
+//     }
+//     const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+//     if (!qrString) {
+//       return res.status(404).json({ error: "QR code not found" });
+//     }
+//     if (qrString.isScanned) {
+//       return res.status(400).json({ error: "QR code already scanned" });
+//     }
+//     qrString.isScanned = ;
+//     qrString.scannedAt = new Date();
+//     await pass.save();
+//     return res.status(200).json({ message: "Pass scanned successfully" });
+//   }
+//   catch (error) {
+//     console.error('Accept pass error:', error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 
 const canScan = async (req, res) => {
-  const user = req.user;
+  let user = req.user;
+  let eventId = req.body.eventId;
+  const event = await Event.findById(eventId);
+  if(user.role !== 'admin' && user.role !== 'event_manager') {
+    return res.status(403).json({ error: "Forbidden: Invalid role" });
+  }
+  if(user.email !== event.organizerEmail) {
+    return res.status(403).json({ error: "Forbidden: Not authorized to scan passes for this event" });
+  }
+  
   try {
     if (user.role !== 'admin') {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
@@ -789,7 +864,6 @@ module.exports = {
   bookTicket,
   canScan,
   Accept,
-  Reject,
   handlePaymentWebhook,
   getTicketStatus,
   checkPaymentStatus,
