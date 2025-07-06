@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 const config = {
 	icon: CheckCircle,
@@ -19,7 +19,33 @@ const config = {
 function PaymentStatusContent() {
 	const searchParams = useSearchParams();
 	const passId = searchParams.get("passId") ?? "NULL";
+	const uuid = searchParams.get("uuid") ?? null;
 	const StatusIcon = config.icon;
+	const [passDetails, setPassDetails] = useState({
+		passAmount: 0.00,
+		passEventName: "Unknown Event",
+		passEventDate: "Unknown Date",
+		passPaymentDetails: "No details available",
+		passStatus: "Pending",
+	});	
+
+	useEffect(() => {
+		const getPassDetails = async () => {
+			if (!uuid) return;
+
+			try {
+				const response = await fetch(`/api/passes/${uuid}`);
+				if (!response.ok) throw new Error("Failed to fetch pass details");
+
+				const data = await response.json();
+				console.log("Pass details:", data);
+				setPassDetails(data);
+			} catch (error) {
+				console.error("Error fetching pass details:", error);
+			}
+		};
+		getPassDetails();
+	}, [uuid]);
 
 	return (
 		<div className="min-h-screen bg-black text-white">
@@ -107,31 +133,27 @@ function PaymentStatusContent() {
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Amount:</span>
-										<span>$29.99</span>
+										<span>₹{passDetails.passAmount.toFixed(2)}</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Date:</span>
-										<span>{new Date().toLocaleDateString()}</span>
+										<span>{passDetails.passEventDate}</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">
 											Payment Method:
 										</span>
-										<span>•••• •••• •••• 1234</span>
+										<span>{passDetails.passPaymentDetails}</span>
 									</div>
 								</div>
 							</div>
 
 							{/* Action Buttons */}
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
-								<Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3">
-									Continue to Dashboard
-								</Button>
-								<Button
-									variant="outline"
-									className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 bg-transparent"
-								>
-									Download Receipt
+								<Button asChild>
+									<Link href="/eventPage" className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3">
+									Continue to Event Page
+								</Link>
 								</Button>
 							</div>
 
