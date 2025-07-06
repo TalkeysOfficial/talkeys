@@ -34,7 +34,13 @@ function PaymentStatusContent() {
 			if (!uuid) return;
 
 			try {
-				const response = await fetch(`/api/passes/${uuid}`);
+				const response = await fetch(`${process.env.BACKEND_URL}/api/passbyuuid/${uuid}`, {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+					},
+				});
 				if (!response.ok) throw new Error("Failed to fetch pass details");
 
 				const data = await response.json();
