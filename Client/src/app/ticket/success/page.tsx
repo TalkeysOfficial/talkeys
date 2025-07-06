@@ -22,7 +22,7 @@ function PaymentStatusContent() {
 	const uuid = searchParams.get("uuid") ?? null;
 	const StatusIcon = config.icon;
 	const [passDetails, setPassDetails] = useState({
-		passAmount: 0.00,
+		passAmount: 0.0,
 		passEventName: "Unknown Event",
 		passEventDate: "Unknown Date",
 		passPaymentStatus: "ERROR",
@@ -149,25 +149,48 @@ function PaymentStatusContent() {
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">Date:</span>
-										<span>{passDetails.passEventDate}</span>
+										<span>
+											{passDetails.passEventDate
+												? new Date(
+														passDetails.passEventDate,
+												  ).toLocaleString("en-IN", {
+														year: "numeric",
+														month: "long",
+														day: "numeric",
+												  })
+												: "N/A"}
+										</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-gray-400">
 											Payment Status:
 										</span>
-										<span>{passDetails.passPaymentStatus}</span>
+										<span>
+											{passDetails.passPaymentStatus
+												.charAt(0)
+												.toUpperCase() +
+												passDetails.passPaymentStatus.slice(1)}
+										</span>
 									</div>
 									<div className="flex justify-between">
-										<span className="text-gray-400">
-											Event Name:
-										</span>
+										<span className="text-gray-400">Event Name:</span>
 										<span>{passDetails.passEventName}</span>
 									</div>
 									<div className="flex justify-between">
-										<span className="text-gray-400">
-											Created At:
+										<span className="text-gray-400">Created At:</span>
+										<span>
+											{passDetails.passCreatedAt
+												? new Date(
+														passDetails.passCreatedAt,
+												  ).toLocaleString("en-IN", {
+														year: "numeric",
+														month: "long",
+														day: "numeric",
+														hour: "2-digit",
+														minute: "2-digit",
+												  })
+												: "N/A"}
 										</span>
-										<span>{passDetails.passCreatedAt}</span>
 									</div>
 								</div>
 							</div>
@@ -189,14 +212,14 @@ function PaymentStatusContent() {
 								<p className="text-sm text-gray-400">
 									Need help?{" "}
 									<Link
-										href="/support"
+										href="/contactUs"
 										className="text-purple-400 hover:text-purple-300 underline"
 									>
 										Contact our support team
 									</Link>{" "}
 									or check our{" "}
 									<Link
-										href="/faq"
+										href="/aboutUs"
 										className="text-purple-400 hover:text-purple-300 underline"
 									>
 										FAQ section
