@@ -736,6 +736,8 @@ const getPassByUUID = async (req, res) => {
       passPaymentStatus: pass.paymentStatus || "ERROR",
       passCreatedAt: pass.createdAt || "NO",
       passStatus: pass.paymentStatus || "ERROR",
+      passEnteries: pass.friends.length + 1, // Including the main userP
+      eventId : pass.eventId?._id || "Unknown Event ID",
       // Additional fields that might be useful
     };
 
