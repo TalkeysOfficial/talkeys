@@ -22,7 +22,7 @@ export default function EventPage() {
 			try {
 				setLoading(true);
 				const response = await fetch(
-					`${process.env.BACKEND_URL}/getEventById/${eventId}`,
+					`${process.env.NEXT_PUBLIC_BACKEND_URL}/getEventById/${eventId}`,
 				);
 
 				if (!response.ok) {

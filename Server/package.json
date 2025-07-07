@@ -7,6 +7,7 @@
     "scripts": {
         "setup": "npm install && npm update",
         "start": "node src/server.js",
+        "seed": "node src/seed.js",
         "dev": "nodemon src/server.js"
     },
     "keywords": [
@@ -37,6 +38,6 @@
         "zod": "^3.24.2"
     },
     "devDependencies": {
-        "nodemon": "^3.1.9"
+        "nodemon": "^3.1.10"
     }
 }

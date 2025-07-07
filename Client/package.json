@@ -50,6 +50,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@types/node": "^22.13.10",
     "@types/react": "^18",
     "tailwindcss": "^3.4.1",
