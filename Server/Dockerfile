@@ -2,7 +2,7 @@
 FROM node:18-buster-slim AS builder
 
 COPY package.json .
-RUN npm install --production && npm cache clean --force
+RUN npm install
 COPY . .
 
 # --- Stage 2: Runtime ---
