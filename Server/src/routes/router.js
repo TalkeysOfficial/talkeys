@@ -4,9 +4,7 @@ const auth = require("../middleware/oauth.js");
 const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
-const Team = require("./../controllers/team.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
-const { isTeamOK } = require("../middleware/Team.middleware");
 router.get('/api/payment/callback/:merchantOrderId', Passes.handlePaymentCallback);
 router.use((req, res, next) => {
     const csp = [
@@ -40,31 +38,28 @@ router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
-
-// Payment & Ticket Routes
+   
 router.post('/api/book-ticket', Passes.bookTicket);
 router.post('/payment/webhook', 
     express.raw({ type: 'application/json' }), // For webhook raw body handling
     Passes.handlePaymentWebhook
 );
-
+router.get('/api/passbyuuid/:passUUID', Passes.getPassByUUID);
 
 // Event Interaction Routes
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
-// Booking & Team Routes
 router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api/book-ticket
 router.post("/getPass", Passes.getPassByUserAndEvent);
-router.post("/getTeam", Team.getTeam);
 router.post("/reqEvent", Events.reqEventt);
 
 router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
-router.post("/reject", Passes.Reject);
+// router.post("/reject", Passes.Reject);
 router.post("/accept", Passes.Accept);
 
 // Event Management Routes

@@ -37,34 +37,28 @@
      const { user, isLoading, error, mutate } = useUser();
      const router = useRouter();
    
-     /* ───────── state for the avatar picker ─────── */
      const [style, setStyle] = useState(AVATAR_STYLES[0]);
      const [bg,    setBg   ] = useState(BACKGROUND_COLORS[0].value);
    
-     /* Load saved avatar prefs on mount */
      useEffect(() => {
        if (typeof window === "undefined") return;
        setStyle(localStorage.getItem("avatarStyle") ?? AVATAR_STYLES[0]);
        setBg   (localStorage.getItem("avatarBg")    ?? BACKGROUND_COLORS[0].value);
      }, []);
    
-     /* build avatar URL from name+prefs */
      const seed = (user?.name ?? "user").toLowerCase().replace(/[^a-z0-9]/g,"");
      const avatarUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=${bg}`;
    
-     /* persist avatar prefs + broadcast change */
      const saveAvatar = () => {
        localStorage.setItem("avatarStyle", style);
        localStorage.setItem("avatarBg",    bg);
-       window.dispatchEvent(new Event("storage"));   // navbar listens to this
-       mutate();                                     // refresh user data
+       window.dispatchEvent(new Event("storage"));   
+       mutate();                                     
      };
    
-     /* ────────── loading / error scaffolding ───── */
      if (isLoading) return <Skeleton text="Loading profile…"/>;
      if (error || !user) return <Skeleton err text="Failed to load profile"/>;
    
-     /* ────────────────────────── UI ────────────── */
      return (
        <div className="min-h-screen flex">
          <Sidebar/>

@@ -16,8 +16,17 @@ export default function EventPage() {
 	const [event, setEvent] = useState<Event | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [returnOrigin, setReturnOrigin] = useState<string>("/eventPage");
 
 	useEffect(() => {
+		window.scrollTo(0, 0);
+
+		// Get the origin page from localStorage
+		const storedOrigin = localStorage.getItem("eventOrigin");
+		if (storedOrigin) {
+			setReturnOrigin(storedOrigin);
+		}
+
 		async function fetchEventDetails() {
 			try {
 				setLoading(true);
@@ -45,7 +54,7 @@ export default function EventPage() {
 	}, [eventId]);
 
 	const handleClose = () => {
-		router.push("/eventPage");
+		router.push(returnOrigin);
 	};
 
 	if (loading) {
@@ -82,12 +91,12 @@ export default function EventPage() {
 				<div className="bg-gray-900/80 rounded-lg p-8 max-w-md w-full text-center">
 					<div className="text-red-500 text-xl">Event not found</div>
 					<Link
-						href="/eventPage"
+						href={returnOrigin}
 						className="mt-6 inline-block"
 					>
 						<Button className="bg-purple-600 hover:bg-purple-700">
 							<ArrowLeft className="mr-2 h-4 w-4" />
-							Back to Events
+							Back to {returnOrigin === "/eventPage" ? "Events" : "Home"}
 						</Button>
 					</Link>
 				</div>
@@ -105,13 +114,13 @@ export default function EventPage() {
 			<div className="max-w-6xl mx-auto">
 				{/* Back button */}
 				<div className="mb-6">
-					<Link href="/eventPage">
+					<Link href={returnOrigin}>
 						<Button
 							variant="ghost"
 							className="text-white hover:bg-gray-800"
 						>
 							<ArrowLeft className="mr-2 h-4 w-4" />
-							Back to Events
+							Back to {returnOrigin === "/eventPage" ? "Events" : "Home"}
 						</Button>
 					</Link>
 				</div>
@@ -127,4 +136,3 @@ export default function EventPage() {
 		</motion.div>
 	);
 }
-
