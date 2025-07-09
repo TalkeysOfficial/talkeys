@@ -65,3 +65,17 @@ body {
     scrollbar-width: none;
   }
 }
+
+/* Custom media query for event card */
+@media (min-width: 1280px) and (max-width: 1370px) {
+  .custom-narrow\:flex-col {
+    flex-direction: column !important;
+  }
+  .custom-narrow\:text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+  .custom-narrow\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
