@@ -16,13 +16,22 @@ import {
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
 import type { EventPageProps, RegistrationState } from "@/types/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+
+import eventImg from "@/public/images/eventimage.jpg";
+import collegeImg from "@/public/images/College.png";
+import dateImg from "@/public/images/Date.png";
+import heartImg from "@/public/images/heart.png";
+import locationImg from "@/public/images/location.png";
+import trophyImg from "@/public/images/trophy.png";
+import vectorImg from "@/public/images/Vector.png";
+import lineImg from "@/public/images/Line 4.png";
 
 export default function ParticularEventPage({
 	event,
