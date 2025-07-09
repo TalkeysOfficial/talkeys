@@ -1,5 +1,3 @@
-// @ts-nocheck
-// @ts-ignore
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -16,15 +14,7 @@ import {
 	Copy,
 } from "lucide-react";
 import Image from "next/image";
-import eventImg from "@/public/images/eventimage.jpg";
-import collegeImg from "@/public/images/College.png";
-import dateImg from "@/public/images/Date.png";
-import heartImg from "@/public/images/heart.png";
-import locationImg from "@/public/images/location.png";
-import trophyImg from "@/public/images/trophy.png";
-import vectorImg from "@/public/images/Vector.png";
-import lineImg from "@/public/images/Line 4.png";
-const placeholderImage = "/images/events.jpg";
+import placeholderImage from "@/public/images/events.jpg";
 import type { EventPageProps, RegistrationState } from "@/types/types";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -46,59 +36,88 @@ export default function ParticularEventPage({
 	const [teamName, setTeamName] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
-	const [pass, setPass] = useState<string | null>(null);
+	const [passQRCodes, setPassQRCodes] = useState<string[]>([]);
+	const [currentQRIndex, setCurrentQRIndex] = useState(0);
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
 
+	// Touch event handling for swipe gestures
+	const touchStartRef = useRef(0);
+	const touchEndRef = useRef(0);
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		touchStartRef.current = e.targetTouches[0].clientX;
+	};
+
+	const handleTouchMove = (e: React.TouchEvent) => {
+		touchEndRef.current = e.targetTouches[0].clientX;
+	};
+
+	const handleTouchEnd = () => {
+		if (
+			touchStartRef.current - touchEndRef.current > 100 &&
+			currentQRIndex < passQRCodes.length - 1
+		) {
+			// Swipe left, show next QR code
+			setCurrentQRIndex(currentQRIndex + 1);
+		}
+
+		if (
+			touchStartRef.current - touchEndRef.current < -100 &&
+			currentQRIndex > 0
+		) {
+			// Swipe right, show previous QR code
+			setCurrentQRIndex(currentQRIndex - 1);
+		}
+	};
+
 	useEffect(() => {
-		async function getTeamAndPass() {
+		async function getPassData() {
 			try {
-				const response = await fetch(`${process.env.BACKEND_URL}/getTeam`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${localStorage.getItem(
-							"accessToken",
-						)}`,
-					},
-					body: JSON.stringify({ eventId: event._id }),
-				});
-				const data = await response.json();
-				if (response.ok) {
-					setTeamName(data.teamName);
-					setTeamCode(data.teamCode);
-					const passResponse = await fetch(
-						`${process.env.BACKEND_URL}/getPass`,
-						{
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								Authorization: `Bearer ${localStorage.getItem(
-									"accessToken",
-								)}`,
-							},
-							body: JSON.stringify({
-								eventId: event._id,
-								userId: data._id,
-							}),
+				const passResponse = await fetch(
+					`${process.env.BACKEND_URL}/getPass`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem(
+								"accessToken",
+							)}`,
 						},
-					);
-					const passData = await passResponse.json();
-					if (passResponse.ok) {
-						setPass(passData._id);
-						setRegistrationState("passCreated");
-					} else {
-						setRegistrationState("teamJoined");
+						body: JSON.stringify({
+							eventId: event._id,
+						}),
+					},
+				);
+				const passData = (await passResponse.json()) as PassDetailsResponse;
+				if (
+					passResponse.ok &&
+					passData.passes &&
+					passData.passes.length > 0
+				) {
+					// Generate QR codes from the pass data
+					const qrCodes: string[] = [];
+
+					for (const passItem of passData.passes) {
+						const passUUID = passItem.passUUID;
+						// Create a separate QR code for each qrString ID
+						for (const qrString of passItem.qrStrings) {
+							const qrCode = `${passUUID}+${qrString.id}`;
+							qrCodes.push(qrCode);
+						}
 					}
+
+					setPassQRCodes(qrCodes);
+					setRegistrationState("passCreated");
 				} else {
 					setRegistrationState("initial");
 				}
 			} catch (error) {
-				console.error("Failed to get team or pass", error);
+				console.error("Failed to get pass data", error);
 				setRegistrationState("initial");
 			}
 		}
 
-		getTeamAndPass();
+		getPassData();
 	}, [event._id]);
 
 	const handleRegisterClick = () => {
@@ -106,9 +125,6 @@ export default function ParticularEventPage({
 			window.open(event.registrationLink, "_blank");
 			return;
 		}
-		/* if (event.isLive) {
-			setRegistrationState("teamOptions");
-		} */
 		router.push("/register");
 	};
 
@@ -221,7 +237,34 @@ export default function ParticularEventPage({
 			});
 			const data = await response.json();
 			if (response.ok) {
-				setPass(data._id);
+				// Fetch the updated passes after booking
+				const passResponse = await fetch(
+					`${process.env.BACKEND_URL}/getPass`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${localStorage.getItem(
+								"accessToken",
+							)}`,
+						},
+						body: JSON.stringify({
+							eventId: event._id,
+						}),
+					},
+				);
+				const passData = (await passResponse.json()) as PassDetailsResponse;
+				if (passData.passes && passData.passes.length > 0) {
+					const qrCodes: string[] = [];
+					for (const passItem of passData.passes) {
+						const passUUID = passItem.passUUID;
+						for (const qrString of passItem.qrStrings) {
+							const qrCode = `${passUUID}+${qrString.id}`;
+							qrCodes.push(qrCode);
+						}
+					}
+					setPassQRCodes(qrCodes);
+				}
 				setRegistrationState("passCreated");
 			} else {
 				throw new Error(data.message);
@@ -259,7 +302,25 @@ export default function ParticularEventPage({
 
 	async function sendBookingID() {
 		try {
-			window.open(event.registrationLink, "_blank");
+			const res = await fetch(`${process.env.BACKEND_URL}/api/book-ticket`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				},
+				body: JSON.stringify({
+					eventId: event._id,
+					passType: "General",
+				}),
+			});
+			const data = (await res.json()) as BookTicketResponse;
+			if (res.ok) {
+				console.log("Booking ID sent successfully", data);
+				console.log("Payment URL", data.data.paymentUrl);
+				window.open(data.data.paymentUrl, "_blank");
+			} else {
+				throw new Error(data.message);
+			}
 		} catch (error) {
 			console.error("Failed to send booking ID", error);
 		}
@@ -269,7 +330,7 @@ export default function ParticularEventPage({
 		switch (registrationState) {
 			case "initial": {
 				const isEventLive = event.isLive;
-				const hasEventYetToCome = !isTimePassed(event.startDate)
+				const hasEventYetToCome = !isTimePassed(event.startDate);
 				console.log(hasEventYetToCome);
 				const isRegistrationClosed = isTimePassed(
 					event.endRegistrationDate,
@@ -302,7 +363,11 @@ export default function ParticularEventPage({
 							<Button
 								className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
 								onClick={sendBookingID}
-								disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
+								disabled={
+									!isEventLive ||
+									isRegistrationClosed ||
+									hasEventYetToCome
+								}
 								aria-label={ariaLabel}
 							>
 								{buttonText}
@@ -319,7 +384,11 @@ export default function ParticularEventPage({
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
 							onClick={handleRegisterClick}
-							disabled={!isEventLive || isRegistrationClosed || hasEventYetToCome}
+							disabled={
+								!isEventLive ||
+								isRegistrationClosed ||
+								hasEventYetToCome
+							}
 							aria-label={ariaLabel}
 						>
 							{buttonText}
@@ -586,19 +655,159 @@ export default function ParticularEventPage({
 				);
 			case "passCreated":
 				return (
-					<div className="space-y-2 w-full max-w-sm mx-auto">
-						<div className="text-green-500">
-							Pass Created: Reload to Get Pass
+					<div className="space-y-6 w-full max-w-sm mx-auto">
+						<div className="text-green-500 text-center">
+							Pass Created Successfully!
 						</div>
-						{pass && (
+
+						{/* Buy Now Button on top */}
+						{event.isPaid && event.ticketPrice > 0 && (
 							<motion.div
-								className="flex justify-center"
-								initial={{ opacity: 0, scale: 0.8 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{ duration: 0.3 }}
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								className="mb-2"
 							>
-								<QRCode value={pass} />
+								<Button
+									className="bg-purple-600 hover:bg-purple-700 w-full flex items-center justify-center gap-2"
+									onClick={sendBookingID}
+								>
+									<span className="text-lg font-bold">Buy Now</span>
+									<span className="text-sm">
+										₹ {event.ticketPrice}
+									</span>
+								</Button>
 							</motion.div>
+						)}
+
+						{/* QR Code Carousel */}
+						{passQRCodes.length > 0 && (
+							<div className="relative w-full mt-4">
+								{/* Current QR display with indicators */}
+								<div className="overflow-hidden">
+									<div
+										className="flex transition-all duration-300"
+										style={{
+											transform: `translateX(-${
+												currentQRIndex * 100
+											}%)`,
+											width: `${passQRCodes.length * 100}%`,
+										}}
+										onTouchStart={handleTouchStart}
+										onTouchMove={handleTouchMove}
+										onTouchEnd={handleTouchEnd}
+									>
+										{passQRCodes.map((qrCode, index) => (
+											<div
+												key={`qr-${qrCode.substring(
+													0,
+													8,
+												)}-${index}`}
+												className="flex-shrink-0 w-full flex flex-col items-center"
+											>
+												<div className="text-sm text-gray-400 mb-2">
+													Pass {index + 1} of {passQRCodes.length}
+												</div>
+												<motion.div
+													className="bg-white p-4 rounded-lg"
+													initial={{ opacity: 0, scale: 0.8 }}
+													animate={{ opacity: 1, scale: 1 }}
+													transition={{ duration: 0.3 }}
+												>
+													<QRCode
+														value={qrCode}
+														size={150}
+														level="M"
+													/>
+												</motion.div>
+											</div>
+										))}
+									</div>
+								</div>
+
+								{/* Navigation arrows for desktop */}
+								{passQRCodes.length > 1 && (
+									<>
+										<button
+											onClick={() =>
+												setCurrentQRIndex(
+													Math.max(0, currentQRIndex - 1),
+												)
+											}
+											className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/70 p-2 rounded-full hidden sm:block"
+											disabled={currentQRIndex === 0}
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="20"
+												height="20"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="2"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="15 18 9 12 15 6"></polyline>
+											</svg>
+										</button>
+										<button
+											onClick={() =>
+												setCurrentQRIndex(
+													Math.min(
+														passQRCodes.length - 1,
+														currentQRIndex + 1,
+													),
+												)
+											}
+											className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/70 p-2 rounded-full hidden sm:block"
+											disabled={
+												currentQRIndex === passQRCodes.length - 1
+											}
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="20"
+												height="20"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="2"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="9 18 15 12 9 6"></polyline>
+											</svg>
+										</button>
+									</>
+								)}
+
+								{/* Swipe indicator text for mobile */}
+								{passQRCodes.length > 1 && (
+									<div className="text-center text-xs text-gray-500 mt-2 sm:hidden">
+										Swipe to view all passes
+									</div>
+								)}
+
+								{/* Dots indicators */}
+								{passQRCodes.length > 1 && (
+									<div className="flex justify-center gap-2 mt-4">
+										{passQRCodes.map((qrCode, index) => (
+											<button
+												key={`dot-${qrCode.substring(
+													0,
+													8,
+												)}-${index}`}
+												onClick={() => setCurrentQRIndex(index)}
+												className={`h-2 rounded-full transition-all ${
+													currentQRIndex === index
+														? "w-4 bg-purple-500"
+														: "w-2 bg-gray-600"
+												}`}
+											/>
+										))}
+									</div>
+								)}
+							</div>
 						)}
 					</div>
 				);

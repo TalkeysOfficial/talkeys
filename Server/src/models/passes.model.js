@@ -1,7 +1,8 @@
+const { bool, boolean } = require("joi");
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require('uuid');
 
 const passSchema = new mongoose.Schema({
-	// User and event details
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User",
@@ -11,17 +12,6 @@ const passSchema = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Event",
 		required: true,
-	},
-	Team: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "TeamSchema",
-	},
-	
-	// Pass status management
-	status: {
-		type: String,
-		enum: ["active", "pending", "cancelled", "expired", "payment_failed"],
-		default: "pending",
 	},
 	passStatus: {	
 		type: String,
@@ -33,12 +23,10 @@ const passSchema = new mongoose.Schema({
 		enum: ["completed", "pending", "failed", "refunded"],
 		default: "pending",
 	},
-
-	// Payment integration fields
 	merchantOrderId: {
 		type: String,
 		unique: true,
-		sparse: true, // Allows null values but ensures uniqueness when present
+		sparse: true, 
 	},
 	phonePeOrderId: {
 		type: String,
@@ -61,10 +49,8 @@ const passSchema = new mongoose.Schema({
 		failedAt: Date,
 		source: String,
 		merchantOrderId: String,
-		reason: String, // For failure reasons
+		reason: String, 
 	},
-
-	// Friends/companions for group bookings
 	friends: [{
 		name: {
 			type: String,
@@ -78,7 +64,31 @@ const passSchema = new mongoose.Schema({
 		}
 	}],
 
-	// Pass details
+	qrStrings: [{
+		id: {
+			type: String,
+			required: true,
+			unique: true,
+		},
+		personType: {
+			type: String,
+			enum: ["user", "friend"],
+			required: true,
+		},
+		personName: {
+			type: String,
+			required: true,
+		},
+		qrScanned: {
+			type: Boolean,
+			default: false,
+		},
+		scannedAt: {
+			type: Date,
+			default: null,
+		}
+	}],
+
 	isScanned: {
 		type: Boolean,
 		default: false,
@@ -92,24 +102,14 @@ const passSchema = new mongoose.Schema({
 		unique: true,
 		sparse: true,
 	},
-
-	// Timestamps and expiry
 	createdAt: {
 		type: Date,
 		default: Date.now,
 	},
-	expiresAt: {
-		type: Date,
-		// Default to 20 minutes from creation for pending payments
-		default: function() {
-			return new Date(Date.now() + 20 * 60 * 1000);
-		}
-	},
+
 	confirmedAt: {
 		type: Date,
 	},
-
-	// Event-specific details
 	slotID: {
 		type: Number,
 		enum: {
@@ -125,14 +125,82 @@ const passSchema = new mongoose.Schema({
 	},
 });
 
-
-// Pre-save middleware to generate UUID if not present
 passSchema.pre('save', function(next) {
 	if (!this.passUUID && this.status === 'active') {
-		this.passUUID = require('uuid').v4();
+		this.passUUID = uuidv4();
 	}
+	if (this.status === 'active' && (!this.qrStrings || this.qrStrings.length === 0)) {
+		this.qrStrings = [];
+		this.qrStrings.push({
+			id: uuidv4(),
+			personType: "user",
+			personIndex: 0,
+			isScanned: false,
+			scannedAt: null
+		});
+		
+		const maxFriends = Math.min(this.friends.length, 9);//9 people at max
+		for (let i = 0; i < maxFriends; i++) {
+			this.qrStrings.push({
+				id: uuidv4(),
+				personType: "friend",
+				isScanned: false,
+				scannedAt: null
+			});
+		}
+	}
+	
 	next();
 });
+
+passSchema.methods.getQRData = function() {
+	return this.qrStrings.map(qr => ({
+		id: qr.id,
+		personType: qr.personType,
+		personName: qr.personName,
+		personName: qr.personType === "user" ? "Main User" : 
+					this.friends[qr.personIndex - 1]?.name || `Friend ${qr.personIndex}`,
+		isScanned: qr.isScanned,
+		scannedAt: qr.scannedAt,
+		qrContent: `${this.eventId}_${this.passUUID}_${qr.id}_${qr.personName}`
+	}));
+};
+
+passSchema.methods.markQRScanned = function(qrId) {
+	let flag= true;
+	const qrString = this.qrStrings.find(qr => qr.id === qrId);
+	if (qrString && !qrString.isScanned) {
+		qrString.isScanned = true;
+		qrString.scannedAt = new Date();
+		for (let i = 0; i < this.qrStrings.length; i++) {
+			if (this.qrStrings[qrScanned]==false) {
+				flag = false;
+				break;}
+
+		if (!this.isScanned && flag) {
+			this.isScanned = true;
+			this.timeScanned = new Date();
+		}}
+		
+		return this.save();
+	}
+	return Promise.resolve(this);
+};
+
+passSchema.statics.validateQRString = async function(qrId) {
+	const pass = await this.findOne({ "qrStrings.id": qrId });
+	if (!pass) {
+		return { valid: false, message: "Invalid QR code" };
+	}
+	const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+	if (qrString.isScanned) {
+		return { valid: false, message: "QR code already scanned" };
+	}
+	if (pass.status !== 'active') {
+		return { valid: false, message: "Pass is not active" };
+	}
+	return { valid: true, pass, qrString };
+};
 
 const Pass = mongoose.model("Pass", passSchema);
 

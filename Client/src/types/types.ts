@@ -63,3 +63,64 @@ export type RegistrationState =
 	| "error"
 	| "booked"
 	| "passCreated";
+
+	export interface BookTicketResponse {
+		success: boolean;
+		message: string;
+		data: {
+			passId: string;
+			merchantOrderId: string;
+			phonePeOrderId: string;
+			amount: number;
+			amountInPaisa: number;
+			totalTickets: number;
+			paymentUrl: string;
+			expiresAt: string;
+			event: {
+				id: string;
+			};
+			friends: any[];
+		};
+	}
+
+	// Pass types for the /getPass API response
+	export interface QRString {
+		id: string;
+		// Add other properties if they exist in the actual response
+	}
+
+	export interface Pass {
+		passUUID: string;
+		qrStrings: QRString[];
+		// Add other properties if they exist in the actual response
+	}
+
+	export interface PassResponse {
+		passes: Pass[];
+		success?: boolean;
+		message?: string;
+	}
+
+
+	export interface PassQRString {
+		id: string;
+		personType: "user" | "friend";
+		qrScanned: boolean;
+		scannedAt: string | null;
+		_id: string;
+	}
+
+	export interface PassDetails {
+		passUUID: string;
+		qrStrings: PassQRString[];
+		passType: string;
+		passId: string;
+		email: string;
+		eventId: string;
+	}
+
+	export interface PassDetailsResponse {
+		passes: PassDetails[];
+		count: number;
+		message: string;
+	}
