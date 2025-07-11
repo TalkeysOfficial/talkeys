@@ -7,16 +7,12 @@ const logger = require("./util/logger");
 require("mandatoryenv").load(["DB_URL", "PORT", "SECRET"]);
 const { PORT } = process.env;
 
-
 // Instantiate an Express Application
 const app = express();
 
 // Configure Express App Instance
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-
-
 
 // Configure custom logger middleware
 app.use(logger.dev, logger.combined);
@@ -33,8 +29,6 @@ app.use("*", (req, res, next) => {
 	res.setHeader("Content-Type", "application/json");
 	next();
 });
-
-
 
 app.use("/", require("./routes/router"));
 
@@ -62,5 +56,24 @@ const connectDB = async () => {
 };
 connectDB();
 
-// Open Server on selected Port
-app.listen(PORT, () => console.info("Server listening on port ", PORT));
+
+
+//  WebSocket Integration 
+const http = require("http");
+const socketIO = require("socket.io");
+const registerSocketHandlers = require("./socketHandler");
+
+const server = http.createServer(app);
+const io = socketIO(server, {
+	cors: {
+		origin: ["http://localhost:3000", "https://www.talkeys.xyz"],
+		credentials: true,
+	},
+});
+
+registerSocketHandlers(io); // initialize socket events
+
+// Start both Express + WebSocket server
+server.listen(PORT, () => {
+	console.info(`🚀 Server listening on port ${PORT}`);
+});
