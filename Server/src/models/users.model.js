@@ -41,6 +41,7 @@ const UserSchema = new mongoose.Schema({
     default: [],
   },
 
+<<<<<<< Updated upstream
   //backend
   accessToken: {
     type: String,
@@ -59,6 +60,30 @@ const UserSchema = new mongoose.Schema({
     enum: ["user", "admin","organizer"],
     default: "user",
   },
+=======
+	// backend information
+	accessToken: {
+		type: String,
+		required: true,
+	},
+	refreshToken: {
+		type: String,
+		required: true,
+	},
+	dateCreated: {
+		type: Date,
+		default: Date.now,
+	},
+	role: {
+		type: String,
+		enum: ["user", "admin"],
+		default: "user",
+	},
+	joinedCommunities: [{
+	type: mongoose.Schema.Types.ObjectId,
+	ref: "Community"
+	}],
+>>>>>>> Stashed changes
 });
 
 const User = mongoose.model("User", UserSchema);
