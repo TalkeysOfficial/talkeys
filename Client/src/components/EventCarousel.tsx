@@ -4,7 +4,6 @@ import type React from "react";
 import { useState, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import placeholderImage from "@/public/images/events.jpg";
 import { Button } from "@/components/ui/button";
 import type { Event } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
@@ -15,17 +14,17 @@ import locationSvg from "@/public/images/location_on.svg";
 import calendarSvg from "@/public/images/calendar_month.svg";
 
 interface EventCarouselProps {
-	category?: string;
-	ev?: Event[];
+  category?: string;
+  ev?: Event[];
 }
 
 interface EventCardProps {
-	event: Event;
-	index: number;
+  event: Event;
+  index: number;
 }
 
 const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
-	const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
 	return (
 		<motion.div
@@ -192,33 +191,33 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 EventCard.displayName = "EventCard";
 
 const EventCarousel: React.FC<EventCarouselProps> = ({
-	category = "ALL Events",
-	ev = [],
+  category = "ALL Events",
+  ev = [],
 }) => {
-	const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
+  const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
 
-	const sortedEvents = [...ev].sort((a, b) => {
-		const dateA = new Date(a.startDate).getTime();
-		const dateB = new Date(b.startDate).getTime();
-		return dateA - dateB;
-	});
+  const sortedEvents = [...ev].sort((a, b) => {
+    const dateA = new Date(a.startDate).getTime();
+    const dateB = new Date(b.startDate).getTime();
+    return dateA - dateB;
+  });
 
 	return (
 		<div className="mb-16 px-4 sm:px-6 lg:px-8">
-			<div className="w-full bg-transparent text-white py-6">
-				<div className="flex justify-between items-center mb-6">
-					<motion.div
-						initial={{ opacity: 0, x: -20 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.5 }}
-						className="flex items-center"
-					>
-						<div className="w-1 h-6 bg-purple-500 mr-3 rounded-full"></div>
-						<h2 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
-							{category ?? "Upcoming Events"}
-						</h2>
-					</motion.div>
-				</div>
+		<div className="w-full bg-transparent text-white py-6">
+			<div className="flex justify-between items-center mb-6">
+			<motion.div
+				initial={{ opacity: 0, x: -30 }}
+				animate={{ opacity: 1, x: 0 }}
+				transition={{ duration: 0.5 }}
+				className="flex items-center"
+			>
+				<div className="w-1 h-6 bg-purple-500 mr-3 rounded-full"></div>
+				<h2 className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
+				{category ?? "Upcoming Events"}
+				</h2>
+			</motion.div>
+			</div>
 
 				{sortedEvents.length > 0 ? (
 					<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5 gap-6">
@@ -250,6 +249,6 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
 			</div>
 		</div>
 	);
-};
+	};
 
 export default memo(EventCarousel);
