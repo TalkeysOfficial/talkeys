@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
-import type { EventPageProps, RegistrationState } from "@/types/types";
+import type { EventPageProps, RegistrationState, PassDetailsResponse, BookTicketResponse } from "@/types/types";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
