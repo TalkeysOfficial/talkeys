@@ -15,17 +15,23 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import placeholderImage from "@/public/images/events.jpg";
-import type {
-	BookTicketResponse,
-	EventPageProps,
-	RegistrationState,
-	PassDetailsResponse,
-} from "@/types/types";
+import type { EventPageProps, RegistrationState, PassDetailsResponse, BookTicketResponse } from "@/types/types";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+
+import eventImg from "@/public/images/eventimage.jpg";
+import collegeImg from "@/public/images/College.png";
+import dateImg from "@/public/images/Date.png";
+import heartImg from "@/public/images/heart.png";
+import locationImg from "@/public/images/location.png";
+import trophyImg from "@/public/images/trophy.png";
+import vectorImg from "@/public/images/Vector.png";
+import lineImg from "@/public/images/Line 4.png";
 
 export default function ParticularEventPage({
 	event,
@@ -364,7 +370,7 @@ export default function ParticularEventPage({
 							whileTap={{ scale: 0.97 }}
 						>
 							<Button
-								className="bg-purple-600 hover:bg-purple-700 w-full"
+								className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
 								onClick={sendBookingID}
 								disabled={
 									!isEventLive ||
@@ -825,290 +831,181 @@ export default function ParticularEventPage({
 	}
 
 	return (
-		<div
-			className="bg-black text-white overflow-y-auto max-h-[90vh] md:max-h-[80vh] rounded-lg shadow-xl w-full mx-auto custom-scrollbar"
-			aria-modal="true"
-		>
-			<div className="p-3 sm:p-4 md:p-6 max-w-[800px] mx-auto relative">
-				{/* Close button - repositioned for mobile */}
-				<motion.button
-					onClick={onClose}
-					className="absolute top-3 right-3 z-50 bg-gray-800 rounded-full p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-					aria-label="Close dialog"
-					whileHover={{ scale: 1.1 }}
-					whileTap={{ scale: 0.9 }}
-				>
-					<X className="w-5 h-5" />
-				</motion.button>
+        <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-background/80 backdrop-blur-md overflow-y-scroll overflow-x-hidden px-2 sm:px-4 py-10 pt-24 no-scrollbar">
+  <Navbar />
 
-				{/* Header Section */}
-				<div className="flex flex-col sm:flex-row gap-6 mb-6 mt-8 sm:mt-0">
-					{/* Left Column - Event Image */}
-					<div className="relative w-full sm:w-1/2 aspect-[4/3] sm:aspect-auto">
-						<Image
-							src={event.photographs?.[0] ?? placeholderImage}
-							alt={`${event.name}-banner`}
-							className="rounded-lg object-scale-down object-center"
-							fill
-							priority
-							sizes="(max-width: 640px) 100vw, 50vw"
-						/>
-					</div>
+  {onClose && (
+    <div className="flex justify-start px-2 sm:px-4 mt-2">
+      <button
+        onClick={onClose}
+        className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
+        aria-label="Close"
+      >
+        ✖
+      </button>
+    </div>
+  )}
 
-					{/* Right Column - Event Details */}
-					<div className="w-full sm:w-1/2 space-y-4">
-						<div>
-							<h1 className="text-2xl font-bold mb-3 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
-								{event.name}
-							</h1>
-							<div className="space-y-1.5 text-gray-400 text-sm">
-								<div className="flex items-center gap-2">
-									<MapPin className="w-4 h-4 text-purple-400" />
-									<span>{event.location ?? "Online Event"}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Calendar className="w-4 h-4 text-purple-400" />
-									<span>
-										{new Date(event.startDate).toLocaleDateString(
-											"en-IN",
-										)}
-										{" at "}
-										{event.startTime}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<User className="w-4 h-4 text-purple-400" />
-									<span>
-										{event.mode === "offline"
-											? "In-person Event"
-											: "Online Event"}
-									</span>
-								</div>
-							</div>
-						</div>
+  <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-screen">
+    <Image
+      src={eventImg?.[0] ?? eventImg}
+      alt={`${event.name}-banner`}
+      width={253}
+      height={320}
+      className="object-cover rounded-xl"
+    />
 
-						{/* Cost Section */}
-						<div className="flex flex-col items-start gap-4">
-							<div className="text-base">
-								Cost:{" "}
-								<span className="font-bold text-purple-300">
-									₹{" "}
-									{event.ticketPrice && event.ticketPrice > 0
-										? event.ticketPrice
-										: "Free"}
-								</span>
-							</div>
-							{renderRegistrationButton()}
-						</div>
+    <div className="flex flex-col gap-4 sm:gap-6 w-full text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0">
+      <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight">
+        {event.name}
+      </span>
 
-						{/* Tags */}
-						<div className="space-y-4">
-							<div className="flex flex-wrap gap-2">
-								<Badge
-									variant="secondary"
-									className="bg-purple-900/50 border border-purple-500/30"
-								>
-									{event.category}
-								</Badge>
-								<Badge
-									variant="secondary"
-									className="bg-blue-900/50 border border-blue-500/30"
-								>
-									{event.mode}
-								</Badge>
-								<Badge
-									variant="secondary"
-									className="bg-pink-900/50 border border-pink-500/30"
-								>
-									{event.visibility}
-								</Badge>
-							</div>
-							<div className="flex gap-4">
-								<motion.button
-									aria-label="Like event"
-									className="hover:text-purple-400 transition-colors"
-									onClick={() => {
-										handleLikeUnlikeEvent(event._id);
-										event.isLiked = !event.isLiked;
-										setIsLike(event.isLiked);
-									}}
-									whileHover={{ scale: 1.2 }}
-									whileTap={{ scale: 0.9 }}
-								>
-									<Heart
-										className="w-5 h-5 text-gray-400"
-										color={isLike ? "red" : "currentColor"}
-									/>
-								</motion.button>
-								<motion.button
-									aria-label="Share event"
-									className="hover:text-purple-400 transition-colors"
-									onClick={() => {
-										if (navigator.share) {
-											navigator
-												.share({
-													title: event.name,
-													text: event.eventDescription,
-													url: `${window.location.origin}/event/${event._id}`,
-												})
-												.catch((err) =>
-													console.error("Error sharing:", err),
-												);
-										} else {
-											console.log("Web Share API not supported");
-										}
-									}}
-									whileHover={{ scale: 1.2 }}
-									whileTap={{ scale: 0.9 }}
-								>
-									<Send className="w-5 h-5 text-gray-400" />
-								</motion.button>
-							</div>
-						</div>
-					</div>
-				</div>
+      <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
+        <div className="flex items-center gap-2">
+          <Image src={collegeImg} alt="college" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.collegeName ?? "College Name"}</span>
+        </div>
 
-				{/* Tabs Section */}
-				<Tabs
-					defaultValue="details"
-					className="w-full mt-6"
-					aria-label="Event information tabs"
-				>
-					<TabsList className="bg-gray-900 border-b border-gray-800 w-full overflow-x-auto flex-nowrap overflow-y-hidden -mx-3 px-3 sm:mx-0 sm:px-0">
-						<TabsTrigger
-							value="details"
-							className="text-sm data-[state=active]:bg-purple-600"
-						>
-							Details
-						</TabsTrigger>
-						<TabsTrigger
-							value="dates"
-							className="text-sm data-[state=active]:bg-purple-600"
-						>
-							Dates & Deadlines
-						</TabsTrigger>
-						{event.prizes && (
-							<TabsTrigger
-								value="prizes"
-								className="text-sm data-[state=active]:bg-purple-600"
-							>
-								Prizes
-							</TabsTrigger>
-						)}
-						{event.paymentQRcode && (
-							<TabsTrigger
-								value="Payment QR Code"
-								className="text-sm data-[state=active]:bg-purple-600"
-							>
-								Payment QR Code
-							</TabsTrigger>
-						)}
-					</TabsList>
+        <div className="flex items-center gap-2">
+          <Image src={locationImg} alt="location" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.location ?? "This Location"}</span>
+        </div>
 
-					<AnimatePresence mode="wait">
-						<TabsContent
-							value="details"
-							className="py-4"
-						>
-							<motion.div
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -10 }}
-								transition={{ duration: 0.2 }}
-								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
-							>
-								<h3 className="text-lg font-semibold mb-2 text-purple-300">
-									Details for the Event
-								</h3>
-								<div className="text-gray-300 space-y-2 whitespace-pre-line">
-									{event.eventDescription
-										?.split("\\n")
-										.map((line) => line)
-										.join("\n")}
-								</div>
-							</motion.div>
-						</TabsContent>
+        <div className="flex items-center gap-2">
+          <Image src={dateImg} alt="date" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+          <span className="text-[14px] sm:text-[16px] font-normal truncate">
+            {new Date(event.startDate).toLocaleDateString("en-IN")} at {formatTime(event.startTime)}
+          </span>
+        </div>
 
-						<TabsContent
-							value="dates"
-							className="py-4"
-						>
-							<motion.div
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -10 }}
-								transition={{ duration: 0.2 }}
-								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
-							>
-								<h3 className="text-lg font-semibold mb-2 text-purple-300">
-									Dates & Deadlines
-								</h3>
-								<p className="text-gray-300">
-									<span className="font-medium">Start Date:</span>{" "}
-									{new Date(event.startDate).toLocaleDateString(
-										"en-IN",
-									)}
-									<br />
-									<span className="font-medium">Start Time:</span>{" "}
-									{formatTime(event.startTime)}
-									<br />
-									<span className="font-medium">Duration:</span>{" "}
-									{event.duration}
-									<br />
-									<span className="font-medium">
-										Registration Deadline:
-									</span>{" "}
-									{new Date(
-										event.endRegistrationDate,
-									).toLocaleDateString("en-IN")}
-								</p>
-							</motion.div>
-						</TabsContent>
+        <div className="flex items-center gap-2">
+          <Image src={trophyImg} alt="fest" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.festName ?? "Fest Name"}</span>
+        </div>
+      </div>
+    </div>
 
-						<TabsContent
-							value="prizes"
-							className="py-4"
-						>
-							<motion.div
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -10 }}
-								transition={{ duration: 0.2 }}
-								className="bg-gray-800/80 p-4 rounded-lg border border-purple-500/20"
-							>
-								<h3 className="text-lg font-semibold mb-2 text-purple-300">
-									Prizes
-								</h3>
-								<div className="text-gray-300 space-y-2 whitespace-pre-line">
-									{event.prizes
-										?.split("\\n")
-										.map((line) => line)
-										.join("\n")}
-								</div>
-							</motion.div>
-						</TabsContent>
+    <div className="flex flex-col justify-center items-end gap-[25px] h-[297.501px] px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full sm:w-[700px]">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
+        <span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
+          Cost for Event
+        </span>
+        <div className="w-full sm:w-auto">{renderRegistrationButton()}</div>
+      </div>
 
-						<TabsContent
-							value="Payment QR Code"
-							className="py-4 flex justify-center items-center"
-						>
-							<motion.div
-								initial={{ opacity: 0, scale: 0.9 }}
-								animate={{ opacity: 1, scale: 1 }}
-								exit={{ opacity: 0, scale: 0.9 }}
-								transition={{ duration: 0.3 }}
-							>
-								<Image
-									src={event.paymentQRcode ?? ""}
-									alt="paymentQRcode"
-									height={300}
-									width={300}
-								/>
-							</motion.div>
-						</TabsContent>
-					</AnimatePresence>
-				</Tabs>
-			</div>
-		</div>
+      <div className="flex justify-end items-center gap-2">
+        <div className="flex items-center gap-2">
+          <Image src={heartImg} alt="likes" width={48} height={20} className="w-12 h-5 object-contain" />
+          <Image src={vectorImg} alt="vector" width={24} height={24} className="w-6 h-6 object-contain" />
+        </div>
+        <br />
+        <span className="block text-neutral-300 text-sm font-urbanist">
+          {event.likes ?? 82} likes
+        </span>
+      </div>
+
+      <Image src={lineImg} alt="line" width={300} height={8} className="w-full h-2 object-contain" />
+
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+            {event.category}
+          </span>
+          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+            {event.mode}
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+            {event.visibility}
+          </span>
+          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+            {event.type ?? "Event Type"}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div className="w-auto max-w-full h-[39px] bg-[#262626] rounded-full inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6">
+    <div className="flex flex-wrap justify-start items-center gap-[8px] sm:gap-[16px]">
+      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">DETAILS</button>
+      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">DATE & DEADLINES</button>
+      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">PRIZES</button>
+      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
+        JOIN DISCUSSION COMMUNITY
+      </button>
+    </div>
+  </div>
+
+  <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px]">
+    {/* Details Section */}
+    <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+      <div className="flex items-center gap-2">
+        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+          Details for the Event
+        </span>
+      </div>
+      <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
+        {event.eventDescription}
+      </span>
+    </div>
+
+    {/* Dates Section */}
+    <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+      <div className="flex items-center gap-2">
+        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+          Dates & Deadlines
+        </span>
+      </div>
+      <span className="text-white text-xs sm:text-sm font-urbanist">
+        <span className="font-medium">Start Date:</span>{" "}
+        {new Date(event.startDate).toLocaleDateString("en-IN")}
+        <br />
+        <span className="font-medium">Start Time:</span> {formatTime(event.startTime)}
+        <br />
+        <span className="font-medium">Duration:</span> {event.duration}
+        <br />
+        <span className="font-medium">Registration Deadline:</span>{" "}
+        {new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}
+      </span>
+    </div>
+
+    {/* Prizes */}
+    {event.prizes && (
+      <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+            Prizes
+          </span>
+        </div>
+        <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
+          {event.prizes}
+        </span>
+      </div>
+    )}
+
+    {/* Community Section */}
+    <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
+      <div className="flex items-center gap-3">
+        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+          Join Discussion Community
+        </span>
+      </div>
+      <span className="text-white text-xs sm:text-sm font-urbanist">
+        Join our vibrant discussion community to connect with like-minded individuals, share ideas, and stay updated on the latest conversations and event updates.
+      </span>
+    </div>
+  </div>
+
+  <Footer />
+</div>
+
+
 	);
 }
