@@ -48,6 +48,8 @@ export default function ParticularEventPage({
 	const [passQRCodes, setPassQRCodes] = useState<string[]>([]);
 	const [currentQRIndex, setCurrentQRIndex] = useState(0);
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
+	const [likes, setLikes] = useState<number>(event.likes ?? 82);
+	const [likeLoading, setLikeLoading] = useState(false);
 
 	// Touch event handling for swipe gestures
 	const touchStartRef = useRef(0);
@@ -302,6 +304,22 @@ export default function ParticularEventPage({
 			},
 		);
 	}
+		const toggleLike = async () => {
+		if (likeLoading) return;
+
+		setLikeLoading(true);
+		try {	
+			await handleLikeUnlikeEvent(event._id);
+			setIsLike(prev => !prev);
+			setLikes(prev => (isLike ? prev - 1 : prev + 1));
+		} catch (err) {
+			console.error("Failed to toggle like", err);
+		} finally {
+			setLikeLoading(false);
+		}
+};
+
+
 
 	function isTimePassed(dateString: string) {
 		const time = new Date(dateString).getTime();
@@ -831,181 +849,197 @@ export default function ParticularEventPage({
 	}
 
 	return (
-        <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-background/80 backdrop-blur-md overflow-y-scroll overflow-x-hidden px-2 sm:px-4 py-10 pt-24 no-scrollbar">
-  <Navbar />
+  <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden px-2 sm:px-4 py-10 pt-24 no-scrollbar">
+    <Navbar />
 
-  {onClose && (
-    <div className="flex justify-start px-2 sm:px-4 mt-2">
-      <button
-        onClick={onClose}
-        className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
-        aria-label="Close"
-      >
-        ✖
-      </button>
-    </div>
-  )}
-
-  <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-screen">
-    <Image
-      src={eventImg} 
-	  alt={`${event.name}-banner`}
-      width={253}
-      height={320}
-      className="object-cover rounded-xl"
-    />
-
-    <div className="flex flex-col gap-4 sm:gap-6 w-full text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0">
-      <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight">
-        {event.name}
-      </span>
-
-      <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
-        <div className="flex items-center gap-2">
-          <Image src={collegeImg} alt="college" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.collegeName ?? "College Name"}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Image src={locationImg} alt="location" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.location ?? "This Location"}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Image src={dateImg} alt="date" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-          <span className="text-[14px] sm:text-[16px] font-normal truncate">
-            {new Date(event.startDate).toLocaleDateString("en-IN")} at {formatTime(event.startTime)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Image src={trophyImg} alt="fest" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-          <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.festName ?? "Fest Name"}</span>
-        </div>
+    {onClose && (
+      <div className="flex justify-start px-2 sm:px-4 mt-2">
+        <button
+          onClick={onClose}
+          className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
+          aria-label="Close"
+        >
+          ✖
+        </button>
       </div>
-    </div>
+    )}
 
-    <div className="flex flex-col justify-center items-end gap-[25px] h-[297.501px] px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full sm:w-[700px]">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
-        <span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
-          Cost for Event
+    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2">
+      <Image
+        src={eventImg}
+        alt={`${event.name}-banner`}
+        width={253}
+        height={320}
+        className="object-cover rounded-xl w-auto max-w-full h-auto"
+      />
+
+      <div className="flex flex-col gap-4 sm:gap-6 w-full text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0">
+        <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight">
+          {event.name}
         </span>
-        <div className="w-full sm:w-auto">{renderRegistrationButton()}</div>
+
+        <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
+          <div className="flex items-center gap-2">
+            <Image src={collegeImg} alt="college" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+            <span className="text-[14px] sm:text-[16px] font-normal truncate">
+              {event.collegeName ?? "College Name"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Image src={locationImg} alt="location" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+            <span className="text-[14px] sm:text-[16px] font-normal truncate">
+              {event.location ?? "This Location"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Image src={dateImg} alt="date" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+            <span className="text-[14px] sm:text-[16px] font-normal truncate">
+              {new Date(event.startDate).toLocaleDateString("en-IN")} at {formatTime(event.startTime)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Image src={trophyImg} alt="fest" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
+            <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.festName ?? "Fest Name"}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="flex justify-end items-center gap-2">
-        <div className="flex items-center gap-2">
-          <Image src={heartImg} alt="likes" width={48} height={20} className="w-12 h-5 object-contain" />
-          <Image src={vectorImg} alt="vector" width={24} height={24} className="w-6 h-6 object-contain" />
-        </div>
-        <br />
-        <span className="block text-neutral-300 text-sm font-urbanist">
-          {event.likes ?? 82} likes
-        </span>
-      </div>
-
-      <Image src={lineImg} alt="line" width={300} height={8} className="w-full h-2 object-contain" />
-
-      <div className="flex flex-col gap-4 w-full">
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-            {event.category}
+      <div className="flex flex-col justify-center items-end gap-[25px] px-4 sm:px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full sm:w-[700px]">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
+          <span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
+            Cost for Event
           </span>
-          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-            {event.mode}
-          </span>
+          <div className="w-full sm:w-auto">{renderRegistrationButton()}</div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-            {event.visibility}
-          </span>
-          <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-            {event.type ?? "Event Type"}
-          </span>
+			<div className="flex justify-end items-center gap-2 w-full">
+  				<div className="flex items-center gap-2">
+				<motion.img
+				src={heartImg.src}
+				alt="likes"
+				className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
+				onClick={toggleLike}
+				animate={{ scale: isLike ? 1.3 : 1 }}
+				transition={{ type: "spring", stiffness: 300, damping: 12 }}
+				/>
+				<img
+				src={vectorImg.src}
+				alt="vector"
+				className="w-6 h-6 object-contain"
+				/>
+  			</div>
+
+			<span className="block text-white text-sm font-urbanist">
+			 {likes} likes
+			</span>
+			</div>
+
+
+
+
+        <Image src={lineImg} alt="line" width={300} height={8} className="w-full h-2 object-contain" />
+
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+              {event.category}
+            </span>
+            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+              {event.mode}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+              {event.visibility}
+            </span>
+            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+              {event.type ?? "Event Type"}
+            </span>
+          </div>
         </div>
       </div>
     </div>
+
+    <div className="w-full h-[39px] bg-[#262626] rounded-full overflow-x-auto sm:overflow-visible whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-2">
+  <div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
+    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
+      DETAILS
+    </button>
+    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
+      DATE & DEADLINES
+    </button>
+    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
+      PRIZES
+    </button>
+    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
+      JOIN DISCUSSION COMMUNITY
+    </button>
   </div>
+</div>
 
-  <div className="w-auto max-w-full h-[39px] bg-[#262626] rounded-full inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6">
-    <div className="flex flex-wrap justify-start items-center gap-[8px] sm:gap-[16px]">
-      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">DETAILS</button>
-      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">DATE & DEADLINES</button>
-      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">PRIZES</button>
-      <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
-        JOIN DISCUSSION COMMUNITY
-      </button>
-    </div>
-  </div>
 
-  <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px]">
-    {/* Details Section */}
-    <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
-      <div className="flex items-center gap-2">
-        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-          Details for the Event
+    <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px]">
+      {/* Details Section */}
+      <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+        <div className="flex items-center gap-2">
+          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+            Details for the Event
+          </span>
+        </div>
+        <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
+          {event.eventDescription}
         </span>
       </div>
-      <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
-        {event.eventDescription}
-      </span>
-    </div>
 
-    {/* Dates Section */}
-    <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
-      <div className="flex items-center gap-2">
-        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-          Dates & Deadlines
+      {/* Dates Section */}
+      <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+        <div className="flex items-center gap-2">
+          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+            Dates & Deadlines
+          </span>
+        </div>
+        <span className="text-white text-xs sm:text-sm font-urbanist">
+          <span className="font-medium">Start Date:</span> {new Date(event.startDate).toLocaleDateString("en-IN")} <br />
+          <span className="font-medium">Start Time:</span> {formatTime(event.startTime)} <br />
+          <span className="font-medium">Duration:</span> {event.duration} <br />
+          <span className="font-medium">Registration Deadline:</span> {new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}
         </span>
       </div>
-      <span className="text-white text-xs sm:text-sm font-urbanist">
-        <span className="font-medium">Start Date:</span>{" "}
-        {new Date(event.startDate).toLocaleDateString("en-IN")}
-        <br />
-        <span className="font-medium">Start Time:</span> {formatTime(event.startTime)}
-        <br />
-        <span className="font-medium">Duration:</span> {event.duration}
-        <br />
-        <span className="font-medium">Registration Deadline:</span>{" "}
-        {new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}
-      </span>
-    </div>
 
-    {/* Prizes */}
-    {event.prizes && (
+      {/* Prizes */}
+      {event.prizes && (
+        <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+            <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+              Prizes
+            </span>
+          </div>
+          <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">{event.prizes}</span>
+        </div>
+      )}
+
+      {/* Community Section */}
       <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
         <div className="flex items-center gap-3">
           <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
           <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-            Prizes
+            Join Discussion Community
           </span>
         </div>
-        <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
-          {event.prizes}
+        <span className="text-white text-xs sm:text-sm font-urbanist">
+          Join our vibrant discussion community to connect with like-minded individuals, share ideas, and stay updated on the latest conversations and event updates.
         </span>
       </div>
-    )}
-
-    {/* Community Section */}
-    <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
-      <div className="flex items-center gap-3">
-        <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-        <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-          Join Discussion Community
-        </span>
-      </div>
-      <span className="text-white text-xs sm:text-sm font-urbanist">
-        Join our vibrant discussion community to connect with like-minded individuals, share ideas, and stay updated on the latest conversations and event updates.
-      </span>
     </div>
+
+    <Footer />
   </div>
-
-  <Footer />
-</div>
-
-
-	);
+);
 }
