@@ -848,8 +848,8 @@ export default function ParticularEventPage({
 
   <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-screen">
     <Image
-      src={eventImg?.[0] ?? eventImg}
-      alt={`${event.name}-banner`}
+      src={eventImg} 
+	  alt={`${event.name}-banner`}
       width={253}
       height={320}
       className="object-cover rounded-xl"
