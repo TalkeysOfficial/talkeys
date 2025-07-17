@@ -44,6 +44,10 @@ export interface Event {
 	organizerName?: string;
 	organizerEmail?: string;
 	organizerContact?: string;
+	collegeName?: string; 
+	festName?: string; 
+	likes: number; 
+	type: "event" | "workshop" | "competition"; 
 }
 
 export interface FormData extends Omit<Event, "photographs" | "sponsorImages"> {
