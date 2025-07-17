@@ -5,10 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-	Facebook,
 	Instagram,
 	Linkedin,
-	Youtube,
+	Github,
 	Mail,
 	Phone,
 	MapPin,
@@ -47,6 +46,12 @@ export default function Footer() {
 			href: "https://www.linkedin.com/company/talkeys/",
 			ariaLabel: "LinkedIn",
 		},
+		{
+			name: "GitHub",
+			icon: <Github size={24} />,
+			href: "/git",
+			ariaLabel: "GitHub",
+		}
 	];
 
 	const navLinks = [
