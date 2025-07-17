@@ -32,6 +32,9 @@ import locationImg from "@/public/images/location.png";
 import trophyImg from "@/public/images/trophy.png";
 import vectorImg from "@/public/images/Vector.png";
 import lineImg from "@/public/images/Line 4.png";
+import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+
 
 export default function ParticularEventPage({
 	event,
@@ -50,6 +53,25 @@ export default function ParticularEventPage({
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
 	const [likes, setLikes] = useState<number>(event.likes ?? 82);
 	const [likeLoading, setLikeLoading] = useState(false);
+
+	//hover on buttons 
+const [hovered, setHovered] = useState<string | null>(null);
+
+
+// pathname use in closing button
+const pathname = usePathname();
+const searchParams = useSearchParams();
+
+const fromHome = searchParams.get("from") === "home";
+
+const handleClose = () => {
+  if (fromHome) {
+    router.push("/"); // go back to home
+  } else {
+    router.back(); // or onClose(), depending on your setup
+  }
+};
+
 
 	// Touch event handling for swipe gestures
 	const touchStartRef = useRef(0);
@@ -849,13 +871,13 @@ export default function ParticularEventPage({
 	}
 
 	return (
-  <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden px-2 sm:px-4 py-10 pt-24 no-scrollbar">
+  <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden py-10 pt-24 no-scrollbar">
     <Navbar />
 
-    {onClose && (
+    {handleClose && (
       <div className="flex justify-start px-2 sm:px-4 mt-2">
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
           aria-label="Close"
         >
@@ -864,9 +886,9 @@ export default function ParticularEventPage({
       </div>
     )}
 
-    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2">
+    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2 pl-8">
       <Image
-        src={eventImg}
+        src={event.photographs?.[0] || "/images/placeholder.jpg"}
         alt={`${event.name}-banner`}
         width={253}
         height={320}
@@ -922,7 +944,7 @@ export default function ParticularEventPage({
 				alt="likes"
 				className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
 				onClick={toggleLike}
-				animate={{ scale: isLike ? 1.3 : 1 }}
+				animate={{ scale: isLike ? 1 : 1 }}
 				transition={{ type: "spring", stiffness: 300, damping: 12 }}
 				/>
 				<img
@@ -964,27 +986,34 @@ export default function ParticularEventPage({
       </div>
     </div>
 
-    <div className="w-full h-[39px] bg-[#262626] rounded-full overflow-x-auto sm:overflow-visible whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-2">
-  <div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
-    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
-      DETAILS
-    </button>
-    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
-      DATE & DEADLINES
-    </button>
-    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
-      PRIZES
-    </button>
-    <button className="text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1">
-      JOIN DISCUSSION COMMUNITY
-    </button>
+
+
+<div className="w-max max-w-full bg-[#262626] overflow-x-auto sm:overflow-visible whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-2 sm:ml-6">	
+	 <div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
+    {["details", "dates", "prizes", "community"].map((key, index) => {
+      const labels = ["DETAILS", "DATE & DEADLINES", "PRIZES", "JOIN DISCUSSION COMMUNITY"];
+      return (
+        <button
+          key={key}
+          onMouseEnter={() => setHovered(key)}
+          onMouseLeave={() => setHovered(null)}
+          className={`text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1 transition-colors duration-200 ${
+            hovered === key ? "bg-[#8A44CB]/30 rounded-md" : ""
+          }`}
+        >
+          {labels[index]}
+        </button>
+      );
+    })}
   </div>
 </div>
 
 
-    <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px]">
+
+   <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px] sm:ml-6">
+
       {/* Details Section */}
-      <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+     <div className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${hovered === "details" ? "bg-[#8A44CB]/20" : ""}`}>
         <div className="flex items-center gap-2">
           <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
           <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
@@ -997,7 +1026,7 @@ export default function ParticularEventPage({
       </div>
 
       {/* Dates Section */}
-      <div className="flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px]">
+		<div className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${hovered === "dates" ? "bg-[#8A44CB]/20" : ""}`}>
         <div className="flex items-center gap-2">
           <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
           <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
@@ -1014,8 +1043,8 @@ export default function ParticularEventPage({
 
       {/* Prizes */}
       {event.prizes && (
-        <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
-          <div className="flex items-center gap-3">
+       <div className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${hovered === "prizes" ? "bg-[#8A44CB]/20" : ""}`}>
+		 <div className="flex items-center gap-3">
             <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
             <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
               Prizes
@@ -1026,8 +1055,8 @@ export default function ParticularEventPage({
       )}
 
       {/* Community Section */}
-      <div className="flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3">
-        <div className="flex items-center gap-3">
+      <div className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${hovered === "community" ? "bg-[#8A44CB]/20" : ""}`}>
+  		<div className="flex items-center gap-3">
           <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
           <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
             Join Discussion Community
