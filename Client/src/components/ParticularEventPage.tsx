@@ -874,7 +874,7 @@ const handleClose = () => {
   <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden py-10 pt-24 no-scrollbar">
     <Navbar />
 
-    {onClose && (
+    {handleClose && (
       <div className="flex justify-start px-2 sm:px-4 mt-2">
         <button
           onClick={handleClose}
