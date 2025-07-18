@@ -20,6 +20,8 @@ router.put("/edit-event/:id", ctrl.editEvent);
 router.get("/participants/:id", ctrl.viewParticipants);
 router.put("/approve-participant/:id", ctrl.approveParticipant);
 router.get("/export-participants/:id", ctrl.exportParticipants);
-router.get("/event-analytics/:id", ctrl.getAnalytics);
+router.get("/attended-events", ctrl.getAttendedEvents);
+
+
 
 module.exports = router;

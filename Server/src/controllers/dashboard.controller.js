@@ -270,3 +270,30 @@ exports.getAnalytics = async (req, res) => {
     res.status(500).json({ message: "Analytics failed", error: err.message });
   }
 };
+
+exports.getAttendedEvents = async (req, res) => {
+  try {
+    const passes = await Pass.find({
+      userId: req.user._id,
+      paymentStatus: "completed",
+      isScanned: true
+    }).populate("eventId");
+
+    const attendedEvents = passes
+      .filter(p => p.eventId) // Remove orphaned records
+      .map(p => ({
+        name: p.eventId.name,
+        category: p.eventId.category,
+        startDate: p.eventId.startDate,
+        mode: p.eventId.mode,
+        location: p.eventId.location,
+        eventId: p.eventId._id
+      }));
+
+    res.json({ events: attendedEvents });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch attended events", error: err.message });
+  }
+};
+
+
