@@ -103,37 +103,50 @@ const ProfileMenu = ({
 	handleLogout,
 	setIsProfileMenuOpen,
 }: ProfileMenuProps) => (
-	<AnimatePresence>
-		{isProfileMenuOpen && (
-			<motion.div
-				ref={profileMenuRef}
-				initial={{ opacity: 0, y: -10 }}
-				animate={{ opacity: 1, y: 0 }}
-				exit={{ opacity: 0, y: -10 }}
-				transition={{ duration: 0.2 }}
-				className="absolute right-0 mt-2 w-48 text-white bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50 overflow-hidden"
+<AnimatePresence>
+	{isProfileMenuOpen && (
+		<motion.div
+			ref={profileMenuRef}
+			initial={{ opacity: 0, y: -10 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -10 }}
+			transition={{ duration: 0.2 }}
+			className="absolute right-0 mt-2 w-48 text-white bg-gray-900 border border-gray-700 rounded-md shadow-lg z-50 overflow-hidden"
+		>
+			<div className="py-2 px-4 border-b border-gray-700 font-bold text-sm">
+				Logged in as {name}
+			</div>
+
+			{/* ✅ Dashboard Link Added */}
+			<Link
+				href="/dashboard/profile"
+				className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
+				onClick={() => setIsProfileMenuOpen(false)}
 			>
-				<div className="py-2 px-4 border-b border-gray-700 font-bold text-sm">
-					Logged in as {name}
-				</div>
-				<Link
-					href="/profile"
-					className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
-					onClick={() => setIsProfileMenuOpen(false)}
-				>
-					<User size={16} />
-					<span>Edit Avatar</span>
-				</Link>
-				<button
-					onClick={handleLogout}
-					className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-red-700 transition-colors"
-				>
-					<LogOut size={16} />
-					<span>Logout</span>
-				</button>
-			</motion.div>
-		)}
-	</AnimatePresence>
+				<LayoutDashboard size={16} />
+				<span>Dashboard</span>
+			</Link>
+
+			<Link
+				href="/profile"
+				className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-purple-700 transition-colors"
+				onClick={() => setIsProfileMenuOpen(false)}
+			>
+				<User size={16} />
+				<span>Edit Avatar</span>
+			</Link>
+
+			<button
+				onClick={handleLogout}
+				className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-red-700 transition-colors"
+			>
+				<LogOut size={16} />
+				<span>Logout</span>
+			</button>
+		</motion.div>
+	)}
+</AnimatePresence>
+
 );
 
 interface AuthButtonProps {
@@ -194,22 +207,34 @@ const AuthButton = ({
 					<span className="font-medium">{firstName}</span>
 				</div>
 				<div className="flex flex-col gap-2 pl-2">
-					<Link
-						href="/profile"
-						className="flex items-center gap-2 text-sm py-2 hover:text-purple-300 transition-colors"
-						onClick={() => setIsMenuOpen(false)}
-					>
-						<User size={16} />
-						<span>Edit Avatar</span>
-					</Link>
-					<button
-						onClick={handleLogout}
-						className="flex items-center gap-2 text-sm py-2 text-left hover:text-red-400 transition-colors"
-					>
-						<LogOut size={16} />
-						<span>Logout</span>
-					</button>
-				</div>
+	{/* ✅ Dashboard Link Added */}
+	<Link
+		href="/dashboard/profile"
+		className="flex items-center gap-2 text-sm py-2 hover:text-purple-300 transition-colors"
+		onClick={() => setIsMenuOpen(false)}
+	>
+		<LayoutDashboard size={16} />
+		<span>Dashboard</span>
+	</Link>
+
+	<Link
+		href="/profile"
+		className="flex items-center gap-2 text-sm py-2 hover:text-purple-300 transition-colors"
+		onClick={() => setIsMenuOpen(false)}
+	>
+		<User size={16} />
+		<span>Edit Avatar</span>
+	</Link>
+
+	<button
+		onClick={handleLogout}
+		className="flex items-center gap-2 text-sm py-2 text-left hover:text-red-400 transition-colors"
+	>
+		<LogOut size={16} />
+		<span>Logout</span>
+	</button>
+</div>
+
 			</div>
 		);
 	}
@@ -457,13 +482,7 @@ const Navbar = () => {
 
 	const navItems = [...baseNavItems];
 
-	if (isSignedIn) {
-		navItems.unshift({
-			name: "Dashboard",
-			link: "/dashboard/profile",
-			icon: LayoutDashboard,
-		});
-	}
+	
 
 	return (
 		<div className="fixed top-0 w-full z-[1000]">

@@ -51,6 +51,7 @@ const createEvent = asyncHandler(async (req, res) => {
 			startTime,
 			endRegistrationDate,
 			eventDescription,
+			organiserId: req.user._id,
 		});
 		await event.save();
 		res.status(201).json(event);
