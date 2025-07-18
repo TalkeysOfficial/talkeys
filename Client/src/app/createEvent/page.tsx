@@ -170,7 +170,7 @@ export default function CreateEventPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("accessToken");
-      await fetch(`https://api.talkeys.xyz/event/create`, {
+      await fetch(`http://localhost:3001/event/create`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(data),
