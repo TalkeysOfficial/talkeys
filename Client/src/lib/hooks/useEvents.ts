@@ -9,12 +9,12 @@ interface Opts {
 	status?: "upcoming" | "past";
 	period?: "1m" | "6m" | "1y";
 }
-
+const API_BASE_URL = process.env.BACKEND_URL;
 const buildUrl = ({ type, status, period }: Opts) => {
 	const p = new URLSearchParams({ type });
 	if (status) p.set("status", status);
 	if (period) p.set("period", period);
-	return `/dashboard/events?${p.toString()}`;
+	return `${API_BASE_URL}/dashboard/events?${p.toString()}`;
 };
 
 export function useEvents(opts: Opts) {
