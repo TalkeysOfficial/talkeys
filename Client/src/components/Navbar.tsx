@@ -486,7 +486,7 @@ const Navbar = () => {
 
 	return (
 		<div className="fixed top-0 w-full z-[1000]">
-			<div className="flex px-2.5 sm:px-5 justify-between bg-black items-center">
+			<div className="flex h-20 px-2.5 sm:px-5 justify-between bg-black items-center">
 				<motion.div
 					initial={{ opacity: 0, x: -20 }}
 					animate={{ opacity: 1, x: 0 }}
