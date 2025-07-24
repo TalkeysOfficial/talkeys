@@ -1,30 +1,27 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import {
-	MapPin,
-	Calendar,
-	User,
-	Heart,
-	Send,
-	Check,
-	X,
-	Copy,
-} from "lucide-react";
+import { Check, X, Copy } from "lucide-react";
 import Image from "next/image";
-import placeholderImage from "@/public/images/events.jpg";
-import type { EventPageProps, RegistrationState, PassDetailsResponse, BookTicketResponse } from "@/types/types";
-import { useState, useEffect, useRef } from "react";
+import type {
+	EventPageProps,
+	RegistrationState,
+	PassDetailsResponse,
+	BookTicketResponse,
+} from "@/types/types";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import QRCode from "react-qr-code";
-import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
-import eventImg from "@/public/images/eventimage.jpg";
 import collegeImg from "@/public/images/College.png";
 import dateImg from "@/public/images/Date.png";
 import heartImg from "@/public/images/heart.png";
@@ -32,9 +29,6 @@ import locationImg from "@/public/images/location.png";
 import trophyImg from "@/public/images/trophy.png";
 import vectorImg from "@/public/images/Vector.png";
 import lineImg from "@/public/images/Line 4.png";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
-
 
 export default function ParticularEventPage({
 	event,
@@ -49,60 +43,25 @@ export default function ParticularEventPage({
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const [passQRCodes, setPassQRCodes] = useState<string[]>([]);
-	const [currentQRIndex, setCurrentQRIndex] = useState(0);
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
 	const [likes, setLikes] = useState<number>(event.likes ?? 82);
 	const [likeLoading, setLikeLoading] = useState(false);
 
-	//hover on buttons 
-const [hovered, setHovered] = useState<string | null>(null);
+	//hover on buttons
+	const [hovered, setHovered] = useState<string | null>(null);
 
+	// pathname use in closing button
+	const searchParams = useSearchParams();
 
-// pathname use in closing button
-const pathname = usePathname();
-const searchParams = useSearchParams();
+	const fromHome = searchParams.get("from") === "home";
 
-const fromHome = searchParams.get("from") === "home";
-
-const handleClose = () => {
-  if (fromHome) {
-    router.push("/"); // go back to home
-  } else {
-    router.back(); // or onClose(), depending on your setup
-  }
-};
-
-
-	// Touch event handling for swipe gestures
-	const touchStartRef = useRef(0);
-	const touchEndRef = useRef(0);
-
-	const handleTouchStart = (e: React.TouchEvent) => {
-		touchStartRef.current = e.targetTouches[0].clientX;
-	};
-
-	const handleTouchMove = (e: React.TouchEvent) => {
-		touchEndRef.current = e.targetTouches[0].clientX;
-	};
-
-	const handleTouchEnd = () => {
-		if (
-			touchStartRef.current - touchEndRef.current > 100 &&
-			currentQRIndex < passQRCodes.length - 1
-		) {
-			// Swipe left, show next QR code
-			setCurrentQRIndex(currentQRIndex + 1);
-		}
-
-		if (
-			touchStartRef.current - touchEndRef.current < -100 &&
-			currentQRIndex > 0
-		) {
-			// Swipe right, show previous QR code
-			setCurrentQRIndex(currentQRIndex - 1);
+	const handleClose = () => {
+		if (fromHome) {
+			router.push("/"); // go back to home
+		} else {
+			router.back(); // or onClose(), depending on your setup
 		}
 	};
-
 	useEffect(() => {
 		async function getPassData() {
 			try {
@@ -326,22 +285,20 @@ const handleClose = () => {
 			},
 		);
 	}
-		const toggleLike = async () => {
+	const toggleLike = async () => {
 		if (likeLoading) return;
 
 		setLikeLoading(true);
-		try {	
+		try {
 			await handleLikeUnlikeEvent(event._id);
-			setIsLike(prev => !prev);
-			setLikes(prev => (isLike ? prev - 1 : prev + 1));
+			setIsLike((prev) => !prev);
+			setLikes((prev) => (isLike ? prev - 1 : prev + 1));
 		} catch (err) {
 			console.error("Failed to toggle like", err);
 		} finally {
 			setLikeLoading(false);
 		}
-};
-
-
+	};
 
 	function isTimePassed(dateString: string) {
 		const time = new Date(dateString).getTime();
@@ -731,28 +688,52 @@ const handleClose = () => {
 						{/* QR Code Carousel */}
 						{passQRCodes.length > 0 && (
 							<div className="relative w-full mt-4">
-								{/* Current QR display with indicators */}
-								<div className="overflow-hidden">
-									<div
-										className="flex transition-all duration-300"
-										style={{
-											transform: `translateX(-${
-												currentQRIndex * 100
-											}%)`,
-											width: `${passQRCodes.length * 100}%`,
-										}}
-										onTouchStart={handleTouchStart}
-										onTouchMove={handleTouchMove}
-										onTouchEnd={handleTouchEnd}
-									>
-										{passQRCodes.map((qrCode, index) => (
-											<div
-												key={`qr-${qrCode.substring(
-													0,
-													8,
-												)}-${index}`}
-												className="flex-shrink-0 w-full flex flex-col items-center"
-											>
+								<style
+									jsx
+									global
+								>{`
+									.qr-swiper .swiper-button-next,
+									.qr-swiper .swiper-button-prev {
+										background: rgba(138, 68, 203, 0.8);
+										border-radius: 50%;
+										width: 40px;
+										height: 40px;
+									}
+									.qr-swiper .swiper-button-next:after,
+									.qr-swiper .swiper-button-prev:after {
+										font-size: 16px;
+										font-weight: bold;
+									}
+									.qr-swiper .swiper-pagination-bullet {
+										background: #666;
+									}
+									.qr-swiper .swiper-pagination-bullet-active {
+										background: #8a44cb;
+									}
+								`}</style>
+								<Swiper
+									modules={[Navigation, Pagination]}
+									spaceBetween={20}
+									slidesPerView={1}
+									navigation={passQRCodes.length > 1}
+									pagination={
+										passQRCodes.length > 1
+											? { clickable: true }
+											: false
+									}
+									className="qr-swiper"
+									style={
+										{
+											"--swiper-navigation-color": "#8A44CB",
+											"--swiper-pagination-color": "#8A44CB",
+										} as React.CSSProperties
+									}
+								>
+									{passQRCodes.map((qrCode, index) => (
+										<SwiperSlide
+											key={`qr-${qrCode.substring(0, 8)}-${index}`}
+										>
+											<div className="flex flex-col items-center space-y-2 py-4">
 												<div className="text-sm text-gray-400 mb-2">
 													Pass {index + 1} of {passQRCodes.length}
 												</div>
@@ -769,93 +750,9 @@ const handleClose = () => {
 													/>
 												</motion.div>
 											</div>
-										))}
-									</div>
-								</div>
-
-								{/* Navigation arrows for desktop */}
-								{passQRCodes.length > 1 && (
-									<>
-										<button
-											onClick={() =>
-												setCurrentQRIndex(
-													Math.max(0, currentQRIndex - 1),
-												)
-											}
-											className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/70 p-2 rounded-full hidden sm:block"
-											disabled={currentQRIndex === 0}
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="20"
-												height="20"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<polyline points="15 18 9 12 15 6"></polyline>
-											</svg>
-										</button>
-										<button
-											onClick={() =>
-												setCurrentQRIndex(
-													Math.min(
-														passQRCodes.length - 1,
-														currentQRIndex + 1,
-													),
-												)
-											}
-											className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/70 p-2 rounded-full hidden sm:block"
-											disabled={
-												currentQRIndex === passQRCodes.length - 1
-											}
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="20"
-												height="20"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="2"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<polyline points="9 18 15 12 9 6"></polyline>
-											</svg>
-										</button>
-									</>
-								)}
-
-								{/* Swipe indicator text for mobile */}
-								{passQRCodes.length > 1 && (
-									<div className="text-center text-xs text-gray-500 mt-2 sm:hidden">
-										Swipe to view all passes
-									</div>
-								)}
-
-								{/* Dots indicators */}
-								{passQRCodes.length > 1 && (
-									<div className="flex justify-center gap-2 mt-4">
-										{passQRCodes.map((qrCode, index) => (
-											<button
-												key={`dot-${qrCode.substring(
-													0,
-													8,
-												)}-${index}`}
-												onClick={() => setCurrentQRIndex(index)}
-												className={`h-2 rounded-full transition-all ${
-													currentQRIndex === index
-														? "w-4 bg-purple-500"
-														: "w-2 bg-gray-600"
-												}`}
-											/>
-										))}
-									</div>
-								)}
+										</SwiperSlide>
+									))}
+								</Swiper>
 							</div>
 						)}
 					</div>
@@ -871,204 +768,272 @@ const handleClose = () => {
 	}
 
 	return (
-  <div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden py-10 pt-24 no-scrollbar">
-    <Navbar />
+		<div className="fixed inset-0 z-[9999] min-h-screen w-full bg-black backdrop-blur-md overflow-y-scroll overflow-x-hidden py-10 pt-24 no-scrollbar">
+			<Navbar />
 
-    {handleClose && (
-      <div className="flex justify-start px-2 sm:px-4 mt-2">
-        <button
-          onClick={handleClose}
-          className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
-          aria-label="Close"
-        >
-          ✖
-        </button>
-      </div>
-    )}
+			{handleClose && (
+				<div className="flex justify-start px-2 sm:px-4 mt-2">
+					<button
+						onClick={handleClose}
+						className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
+						aria-label="Close"
+					>
+						✖
+					</button>
+				</div>
+			)}
 
-    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2 pl-8">
-      <Image
-        src={event.photographs?.[0] || "/images/placeholder.jpg"}
-        alt={`${event.name}-banner`}
-        width={253}
-        height={320}
-        className="object-cover rounded-xl w-auto max-w-full h-auto"
-      />
-
-      <div className="flex flex-col gap-4 sm:gap-6 w-full text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0">
-        <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight">
-          {event.name}
-        </span>
-
-        <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
-          <div className="flex items-center gap-2">
-            <Image src={collegeImg} alt="college" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-            <span className="text-[14px] sm:text-[16px] font-normal truncate">
-              {event.collegeName ?? "College Name"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Image src={locationImg} alt="location" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-            <span className="text-[14px] sm:text-[16px] font-normal truncate">
-              {event.location ?? "This Location"}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Image src={dateImg} alt="date" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-            <span className="text-[14px] sm:text-[16px] font-normal truncate">
-              {new Date(event.startDate).toLocaleDateString("en-IN")} at {formatTime(event.startTime)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Image src={trophyImg} alt="fest" width={20} height={20} className="w-4 sm:w-5 h-4 sm:h-5 object-contain" />
-            <span className="text-[14px] sm:text-[16px] font-normal truncate">{event.festName ?? "Fest Name"}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col justify-center items-end gap-[25px] px-4 sm:px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full sm:w-[700px]">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
-          <span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
-            Cost for Event
-          </span>
-          <div className="w-full sm:w-auto">{renderRegistrationButton()}</div>
-        </div>
-
-			<div className="flex justify-end items-center gap-2 w-full">
-  				<div className="flex items-center gap-2">
-				<motion.img
-				src={heartImg.src}
-				alt="likes"
-				className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
-				onClick={toggleLike}
-				animate={{ scale: isLike ? 1 : 1 }}
-				transition={{ type: "spring", stiffness: 300, damping: 12 }}
+			<div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2 pl-8">
+				<Image
+					src={event.photographs?.[0] || "/images/placeholder.jpg"}
+					alt={`${event.name}-banner`}
+					width={253}
+					height={320}
+					className="object-cover rounded-xl w-auto max-w-full h-auto"
 				/>
-				<img
-				src={vectorImg.src}
-				alt="vector"
-				className="w-6 h-6 object-contain"
-				/>
-  			</div>
 
-			<span className="block text-white text-sm font-urbanist">
-			 {likes} likes
-			</span>
+				<div className="flex flex-col gap-4 sm:gap-6 w-full text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0">
+					<span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight">
+						{event.name}
+					</span>
+
+					<div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
+						<div className="flex items-center gap-2">
+							<Image
+								src={collegeImg}
+								alt="college"
+								width={20}
+								height={20}
+								className="w-4 sm:w-5 h-4 sm:h-5 object-contain"
+							/>
+							<span className="text-[14px] sm:text-[16px] font-normal truncate">
+								{event.collegeName ?? "College Name"}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<Image
+								src={locationImg}
+								alt="location"
+								width={20}
+								height={20}
+								className="w-4 sm:w-5 h-4 sm:h-5 object-contain"
+							/>
+							<span className="text-[14px] sm:text-[16px] font-normal truncate">
+								{event.location ?? "This Location"}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<Image
+								src={dateImg}
+								alt="date"
+								width={20}
+								height={20}
+								className="w-4 sm:w-5 h-4 sm:h-5 object-contain"
+							/>
+							<span className="text-[14px] sm:text-[16px] font-normal truncate">
+								{new Date(event.startDate).toLocaleDateString("en-IN")}{" "}
+								at {formatTime(event.startTime)}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<Image
+								src={trophyImg}
+								alt="fest"
+								width={20}
+								height={20}
+								className="w-4 sm:w-5 h-4 sm:h-5 object-contain"
+							/>
+							<span className="text-[14px] sm:text-[16px] font-normal truncate">
+								{event.festName ?? "Fest Name"}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div className="flex flex-col justify-center items-end gap-[25px] px-4 sm:px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full sm:w-[700px]">
+					<div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
+						<span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
+							Cost for Event
+						</span>
+						<div className="w-full sm:w-auto">
+							{renderRegistrationButton()}
+						</div>
+					</div>
+
+					<div className="flex justify-end items-center gap-2 w-full">
+						<div className="flex items-center gap-2">
+							<motion.img
+								src={heartImg.src}
+								alt="likes"
+								className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
+								onClick={toggleLike}
+								animate={{ scale: isLike ? 1.1 : 1 }}
+								transition={{
+									type: "spring",
+									stiffness: 300,
+									damping: 12,
+								}}
+							/>
+							<img
+								src={vectorImg.src}
+								alt="vector"
+								className="w-6 h-6 object-contain"
+							/>
+						</div>
+
+						<span className="block text-white text-sm font-urbanist">
+							{likes} likes
+						</span>
+					</div>
+
+					<Image
+						src={lineImg}
+						alt="line"
+						width={300}
+						height={8}
+						className="w-full h-2 object-contain"
+					/>
+
+					<div className="flex flex-col gap-4 w-full">
+						<div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+								{event.category}
+							</span>
+							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+								{event.mode}
+							</span>
+						</div>
+
+						<div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+								{event.visibility}
+							</span>
+							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+								{event.type ?? "Event Type"}
+							</span>
+						</div>
+					</div>
+				</div>
 			</div>
 
+			<div className="w-max max-w-full bg-[#262626] overflow-x-auto sm:overflow-visible whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-2 sm:ml-6">
+				<div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
+					{["details", "dates", "prizes", "community"].map(
+						(key, index) => {
+							const labels = [
+								"DETAILS",
+								"DATE & DEADLINES",
+								"PRIZES",
+								"JOIN DISCUSSION COMMUNITY",
+							];
+							return (
+								<button
+									key={key}
+									onMouseEnter={() => setHovered(key)}
+									onMouseLeave={() => setHovered(null)}
+									className={`text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1 transition-colors duration-200 ${
+										hovered === key
+											? "bg-[#8A44CB]/30 rounded-md"
+											: ""
+									}`}
+								>
+									{labels[index]}
+								</button>
+							);
+						},
+					)}
+				</div>
+			</div>
 
+			<div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px] sm:ml-6">
+				{/* Details Section */}
+				<div
+					className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${
+						hovered === "details" ? "bg-[#8A44CB]/20" : ""
+					}`}
+				>
+					<div className="flex items-center gap-2">
+						<div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+						<span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+							Details for the Event
+						</span>
+					</div>
+					<span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
+						{event.eventDescription}
+					</span>
+				</div>
 
+				{/* Dates Section */}
+				<div
+					className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${
+						hovered === "dates" ? "bg-[#8A44CB]/20" : ""
+					}`}
+				>
+					<div className="flex items-center gap-2">
+						<div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+						<span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+							Dates & Deadlines
+						</span>
+					</div>
+					<span className="text-white text-xs sm:text-sm font-urbanist">
+						<span className="font-medium">Start Date:</span>{" "}
+						{new Date(event.startDate).toLocaleDateString("en-IN")} <br />
+						<span className="font-medium">Start Time:</span>{" "}
+						{formatTime(event.startTime)} <br />
+						<span className="font-medium">Duration:</span>{" "}
+						{event.duration} <br />
+						<span className="font-medium">
+							Registration Deadline:
+						</span>{" "}
+						{new Date(event.endRegistrationDate).toLocaleDateString(
+							"en-IN",
+						)}
+					</span>
+				</div>
 
-        <Image src={lineImg} alt="line" width={300} height={8} className="w-full h-2 object-contain" />
+				{/* Prizes */}
+				{event.prizes && (
+					<div
+						className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${
+							hovered === "prizes" ? "bg-[#8A44CB]/20" : ""
+						}`}
+					>
+						<div className="flex items-center gap-3">
+							<div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+							<span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+								Prizes
+							</span>
+						</div>
+						<span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
+							{event.prizes}
+						</span>
+					</div>
+				)}
 
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-              {event.category}
-            </span>
-            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-              {event.mode}
-            </span>
-          </div>
+				{/* Community Section */}
+				<div
+					className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${
+						hovered === "community" ? "bg-[#8A44CB]/20" : ""
+					}`}
+				>
+					<div className="flex items-center gap-3">
+						<div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
+						<span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
+							Join Discussion Community
+						</span>
+					</div>
+					<span className="text-white text-xs sm:text-sm font-urbanist">
+						Join our vibrant discussion community to connect with
+						like-minded individuals, share ideas, and stay updated on the
+						latest conversations and event updates.
+					</span>
+				</div>
+			</div>
 
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-              {event.visibility}
-            </span>
-            <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-              {event.type ?? "Event Type"}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
-<div className="w-max max-w-full bg-[#262626] overflow-x-auto sm:overflow-visible whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-2 sm:ml-6">	
-	 <div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
-    {["details", "dates", "prizes", "community"].map((key, index) => {
-      const labels = ["DETAILS", "DATE & DEADLINES", "PRIZES", "JOIN DISCUSSION COMMUNITY"];
-      return (
-        <button
-          key={key}
-          onMouseEnter={() => setHovered(key)}
-          onMouseLeave={() => setHovered(null)}
-          className={`text-white text-xs sm:text-base whitespace-nowrap font-urbanist px-2 py-1 transition-colors duration-200 ${
-            hovered === key ? "bg-[#8A44CB]/30 rounded-md" : ""
-          }`}
-        >
-          {labels[index]}
-        </button>
-      );
-    })}
-  </div>
-</div>
-
-
-
-   <div className="flex flex-col gap-[14px] sm:gap-[27px] w-full sm:w-[calc(100vw-122px)] mt-[14px] sm:mt-[27px] sm:ml-6">
-
-      {/* Details Section */}
-     <div className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${hovered === "details" ? "bg-[#8A44CB]/20" : ""}`}>
-        <div className="flex items-center gap-2">
-          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-            Details for the Event
-          </span>
-        </div>
-        <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">
-          {event.eventDescription}
-        </span>
-      </div>
-
-      {/* Dates Section */}
-		<div className={`flex flex-col bg-neutral-900 rounded-none w-full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${hovered === "dates" ? "bg-[#8A44CB]/20" : ""}`}>
-        <div className="flex items-center gap-2">
-          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-            Dates & Deadlines
-          </span>
-        </div>
-        <span className="text-white text-xs sm:text-sm font-urbanist">
-          <span className="font-medium">Start Date:</span> {new Date(event.startDate).toLocaleDateString("en-IN")} <br />
-          <span className="font-medium">Start Time:</span> {formatTime(event.startTime)} <br />
-          <span className="font-medium">Duration:</span> {event.duration} <br />
-          <span className="font-medium">Registration Deadline:</span> {new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}
-        </span>
-      </div>
-
-      {/* Prizes */}
-      {event.prizes && (
-       <div className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${hovered === "prizes" ? "bg-[#8A44CB]/20" : ""}`}>
-		 <div className="flex items-center gap-3">
-            <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-            <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-              Prizes
-            </span>
-          </div>
-          <span className="text-white text-xs sm:text-sm font-urbanist whitespace-pre-line">{event.prizes}</span>
-        </div>
-      )}
-
-      {/* Community Section */}
-      <div className={`flex flex-col bg-neutral-900 py-4 px-3 sm:px-[21px] rounded-none w-full gap-3 transition-colors duration-200 ${hovered === "community" ? "bg-[#8A44CB]/20" : ""}`}>
-  		<div className="flex items-center gap-3">
-          <div className="bg-[#8A44CB] w-[4px] sm:w-[5px] h-8 sm:h-10 rounded-full" />
-          <span className="text-white text-base sm:text-lg font-semibold font-urbanist drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]">
-            Join Discussion Community
-          </span>
-        </div>
-        <span className="text-white text-xs sm:text-sm font-urbanist">
-          Join our vibrant discussion community to connect with like-minded individuals, share ideas, and stay updated on the latest conversations and event updates.
-        </span>
-      </div>
-    </div>
-
-    <Footer />
-  </div>
-);
+			<Footer />
+		</div>
+	);
 }
