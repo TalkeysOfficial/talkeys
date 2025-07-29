@@ -7,7 +7,7 @@ import AdminLayoutClient from "./layout-client";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
-		<ProtectedRoute>
+		// <ProtectedRoute>
 			<div className="flex min-h-screen bg-gray-950 text-white pt-20">
 				{/* Desktop Sidebar */}
 				<aside className="hidden md:flex w-64 flex-col bg-gray-900 p-4 min-h-screen fixed left-0 top-0 pt-24">
@@ -40,7 +40,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 				{/* Main Content */}
 				<main className="flex-1 p-4 md:p-8 md:ml-64">{children}</main>
 			</div>
-		</ProtectedRoute>
+		// </ProtectedRoute>
 	);
 };
 
