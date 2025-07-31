@@ -67,17 +67,15 @@ const passSchema = new mongoose.Schema({
 	qrStrings: [{
 		id: {
 			type: String,
-			required: true,
 			unique: true,
 		},
 		personType: {
 			type: String,
 			enum: ["user", "friend"],
-			required: true,
+			
 		},
 		personName: {
 			type: String,
-			required: true,
 		},
 		qrScanned: {
 			type: Boolean,
