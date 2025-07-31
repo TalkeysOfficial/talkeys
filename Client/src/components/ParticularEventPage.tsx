@@ -227,7 +227,7 @@ export default function ParticularEventPage({
 						const passUUID = passItem.passUUID;
 						// Create a separate QR code for each qrString ID
 						for (const qrString of passItem.qrStrings) {
-							const qrCode = `${passUUID}+${qrString.id}`;
+							const qrCode = `${passUUID}+${qrString._id}`;
 							qrCodes.push(qrCode);
 						}
 					}
