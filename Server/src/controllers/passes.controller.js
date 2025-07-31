@@ -202,12 +202,13 @@ const bookTicket = async (req, res) => {
     qrStrings.push({
       personName: user.name || "You",
     });
+    if(friends.length > 0) {
     for (const friend of friends) {
       qrStrings.push({
         personName: friend.name || "Friend",
       });
     }
-
+  }
     return res.status(200).json({
       success: true,
       message: "Payment order created successfully",
