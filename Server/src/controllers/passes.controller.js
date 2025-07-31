@@ -746,7 +746,7 @@ const getPassByUUID = async (req, res) => {
       return res.status(404).json({ error: "Pass not found" });
     }
 
-    const totalAmount = pass.amount + (pass.friends.length * pass.amount);
+    const totalAmount = pass.amount 
 
     const responseData = {
       passAmount: totalAmount,
