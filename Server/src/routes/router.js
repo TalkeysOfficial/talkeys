@@ -45,7 +45,7 @@ router.post('/payment/webhook',
     Passes.handlePaymentWebhook
 );
 router.get('/api/passbyuuid/:passUUID', Passes.getPassByUUID);
-
+router.post('/api/getTix', Passes.getPassByQrStringsAndPassUUID);
 // Event Interaction Routes
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
@@ -54,13 +54,13 @@ router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api/book-ticket
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/reqEvent", Events.reqEventt);
-
+router.post("/accept", Passes.Accept);
 router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
 // router.post("/reject", Passes.Reject);
-router.post("/accept", Passes.Accept);
+
 
 // Event Management Routes
 router.post("/addEvent", Events.addEvent);
