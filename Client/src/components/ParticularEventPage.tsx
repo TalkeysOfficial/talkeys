@@ -957,6 +957,11 @@ export default function ParticularEventPage({
 							Pass Created Successfully!
 						</div>
 
+						{/* Friends Section */}
+						{event.isPaid && event.ticketPrice > 0 && (
+							<div className="space-y-3">{renderFriendsSection()}</div>
+						)}
+
 						{/* Buy Now Button on top */}
 						{event.isPaid && event.ticketPrice > 0 && (
 							<motion.div
@@ -972,6 +977,11 @@ export default function ParticularEventPage({
 									<span className="text-sm">
 										₹ {event.ticketPrice}
 									</span>
+									{friends.length > 0 && (
+										<span className="ml-2 text-xs bg-purple-800 px-2 py-1 rounded-full">
+											+{friends.length}
+										</span>
+									)}
 								</Button>
 							</motion.div>
 						)}
