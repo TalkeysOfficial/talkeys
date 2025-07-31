@@ -1091,7 +1091,7 @@ export default function ParticularEventPage({
 					</span>
 
 					<div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist w-full">
-						<div className="flex items-center gap-2">
+						{/* <div className="flex items-center gap-2">
 							<Image
 								src={collegeImg}
 								alt="college"
@@ -1102,7 +1102,7 @@ export default function ParticularEventPage({
 							<span className="text-[14px] sm:text-[16px] font-normal truncate">
 								{event.collegeName ?? "College Name"}
 							</span>
-						</div>
+						</div> */}
 
 						<div className="flex items-center gap-2">
 							<Image
@@ -1131,7 +1131,7 @@ export default function ParticularEventPage({
 							</span>
 						</div>
 
-						<div className="flex items-center gap-2">
+						{/* <div className="flex items-center gap-2">
 							<Image
 								src={trophyImg}
 								alt="fest"
@@ -1142,7 +1142,7 @@ export default function ParticularEventPage({
 							<span className="text-[14px] sm:text-[16px] font-normal truncate">
 								{event.festName ?? "Fest Name"}
 							</span>
-						</div>
+						</div> */}
 					</div>
 				</div>
 

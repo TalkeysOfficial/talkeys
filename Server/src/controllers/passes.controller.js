@@ -195,25 +195,42 @@ const bookTicket = async (req, res) => {
     console.log("Webhook URL:", `${process.env.BASE_URL}/api/payment/webhook`);
     console.log('Payment order created successfully');
 
+    // Generate QR strings for the user and friends
+    const qrStrings = [{
+      personName: user.name, // Main user
+    }];
+    
+    // Add QR strings for each friend
+    friends.forEach(friend => {
+      qrStrings.push({
+      personName: friend.name || "Friend",
+      });
+    });
+    
+    // Save QR strings to the pass
+    pass.qrStrings = qrStrings;
+    await pass.save();
+
     return res.status(200).json({
       success: true,
       message: "Payment order created successfully",
       data: {
-        passId: pass._id,
-        merchantOrderId: merchantOrderId,
-        phonePeOrderId: paymentOrder.data?.orderId || paymentOrder.orderId,
-        amount: totalAmount,
-        amountInPaisa: amountInPaisa,
-        totalTickets: totalTicketsNeeded,
-        paymentUrl: paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl,
-        expiresAt: pass.expiresAt,
-        event: {
-          id: event._id,
-          title: event.title,
-          date: event.date,
-          venue: event.venue
-        },
-        friends: friends
+      passId: pass._id,
+      merchantOrderId: merchantOrderId,
+      phonePeOrderId: paymentOrder.data?.orderId || paymentOrder.orderId,
+      amount: totalAmount,
+      amountInPaisa: amountInPaisa,
+      totalTickets: totalTicketsNeeded,
+      paymentUrl: paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl,
+      expiresAt: pass.expiresAt,
+      event: {
+        id: event._id,
+        title: event.title,
+        date: event.date,
+        venue: event.venue
+      },
+      qrStrings: qrStrings,
+      friends: friends
       }
     });
 
