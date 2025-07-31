@@ -196,20 +196,17 @@ const bookTicket = async (req, res) => {
     console.log('Payment order created successfully');
 
     // Generate QR strings for the user and friends
-    const qrStrings = [{
-      personName: user.name, // Main user
-    }];
+
     
-    // Add QR strings for each friend
-    friends.forEach(friend => {
-      qrStrings.push({
-      personName: friend.name || "Friend",
-      });
+    const qrStrings = [];
+    qrStrings.push({
+      personName: user.name || "You",
     });
-    
-    // Save QR strings to the pass
-    pass.qrStrings = qrStrings;
-    await pass.save();
+    for (const friend of friends) {
+      qrStrings.push({
+        personName: friend.name || "Friend",
+      });
+    }
 
     return res.status(200).json({
       success: true,
