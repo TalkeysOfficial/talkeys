@@ -26,14 +26,14 @@ const CONFIG = {
 };
 
 // Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV 
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID 
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET 
+const ENVIRONMENT = process.env.PHONEPE_ENV
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID
+const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET
 
 const getPhonePeAccessToken = async () => {
   try {
     console.log('[PhonePe] Requesting access token...');
-    const response = await axios.post(   
+    const response = await axios.post(
       'https://api.phonepe.com/apis/identity-manager/v1/oauth/token',
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
@@ -197,38 +197,42 @@ const bookTicket = async (req, res) => {
 
     // Generate QR strings for the user and friends
 
-    
+
     const qrStrings = [];
     qrStrings.push({
       personName: user.name || "You",
     });
-    if(friends.length > 0) {
-    for (const friend of friends) {
-      qrStrings.push({
-        personName: friend.name || "Friend",
-      });
+    if (friends.length > 0) {
+      for (const friend of friends) {
+        qrStrings.push({
+          personName: friend.name || "Friend",
+
+        });
+      }
     }
-  }
+    pass.qrStrings = qrStrings;
+    await pass.save();
+
     return res.status(200).json({
       success: true,
       message: "Payment order created successfully",
       data: {
-      passId: pass._id,
-      merchantOrderId: merchantOrderId,
-      phonePeOrderId: paymentOrder.data?.orderId || paymentOrder.orderId,
-      amount: totalAmount,
-      amountInPaisa: amountInPaisa,
-      totalTickets: totalTicketsNeeded,
-      paymentUrl: paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl,
-      expiresAt: pass.expiresAt,
-      event: {
-        id: event._id,
-        title: event.title,
-        date: event.date,
-        venue: event.venue
-      },
-      qrStrings: qrStrings,
-      friends: friends
+        passId: pass._id,
+        merchantOrderId: merchantOrderId,
+        phonePeOrderId: paymentOrder.data?.orderId || paymentOrder.orderId,
+        amount: totalAmount,
+        amountInPaisa: amountInPaisa,
+        totalTickets: totalTicketsNeeded,
+        paymentUrl: paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl,
+        expiresAt: pass.expiresAt,
+        event: {
+          id: event._id,
+          title: event.title,
+          date: event.date,
+          venue: event.venue
+        },
+        qrStrings: qrStrings,
+        friends: friends
       }
     });
 
@@ -752,7 +756,7 @@ const getPassByUUID = async (req, res) => {
       passCreatedAt: pass.createdAt || "NO",
       passStatus: pass.paymentStatus || "ERROR",
       passEnteries: pass.friends.length + 1, // Including the main userP
-      eventId : pass.eventId?._id || "Unknown Event ID",
+      eventId: pass.eventId?._id || "Unknown Event ID",
       // Additional fields that might be useful
     };
 
@@ -793,7 +797,7 @@ const getPassByUserAndEvent = async (req, res) => {
     });
 
     console.log("Passes found:", passesData.length);
-    
+
     return res.status(200).json({
       passes: passesData,
       count: passesData.length,
