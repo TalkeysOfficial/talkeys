@@ -746,7 +746,7 @@ const getPassByUUID = async (req, res) => {
       return res.status(404).json({ error: "Pass not found" });
     }
 
-    const totalAmount = pass.amount 
+    const totalAmount = pass.amount
 
     const responseData = {
       passAmount: totalAmount,
@@ -811,22 +811,40 @@ const getPassByUserAndEvent = async (req, res) => {
 const getPassByQrStringsAndPassUUID = async (req, res) => {
   try {
     const pass = await Pass.findOne({
-      passUUID: req.params.passUUID,
+      passUUID: req.body.passUUID,
     })
-    person = pass.qrStrings.find(qr => qr.id === req.params.qrId);
+
+    console.log(req.body.qrId)
+    console.log(pass)
 
     if (!pass) {
       return res.status(404).json({ error: "Valid pass not found" });
     }
+
+    let person = null;
+
+    // Check if qrStrings exists and is an array
+    if (pass.qrStrings && Array.isArray(pass.qrStrings)) {
+      // Use for...of loop to iterate over the actual objects
+      for (const qr of pass.qrStrings) {
+        if (qr._id && qr._id.toString() === req.body.qrId) {
+          console.log("QR found", qr)
+          person = qr;
+          break;
+        }
+      }
+    }
+
+    console.log("Found person:", person)
 
     return res.status(200).json({
       success: true,
       data: {
         buyer: pass.userId,
         event: pass.eventId,
-        person: person,
-        amount: pass.amount
-      }
+        person,
+        amount: pass.amount,
+      },
     });
 
   } catch (error) {
@@ -836,27 +854,33 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
 }
 const Accept = async (req, res) => {
   try {
-    let passUUID = req.params.uuid;
+    let passUUID = req.body.uuid;
     if (!passUUID) {
       return res.status(400).json({ error: "Pass UUID is required" });
     }
-    qrId = req.params.qrId;
+    let qrId = req.body.qrId;
     if (!qrId) {
       return res.status(400).json({ error: "QR ID is required" });
     }
-    const pass = await Pass.findById(uuid);
+
+    // Find pass by passUUID field, not by _id
+    const pass = await Pass.findOne({ passUUID });
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
-    const qrString = pass.qrStrings.find(qr => qr.id === qrId);
+
+    // Find the QR string by _id
+    const qrString = pass.qrStrings.find(qr => qr._id.toString() === qrId);
     if (!qrString) {
       return res.status(404).json({ error: "QR code not found" });
     }
+
     if (qrString.isScanned) {
       return res.status(400).json({ error: "QR code already scanned" });
     }
 
     qrString.scannedAt = new Date();
+    qrString.qrScanned = true;
     await pass.save();
     return res.status(200).json({ message: "Pass scanned successfully" });
   }
@@ -932,9 +956,7 @@ module.exports = {
   getTicketStatus,
   checkPaymentStatus,
   handlePaymentCallback,
-  handlePaymentWebhook,
-  getTicketStatus,
-  checkPaymentStatus,
+  getPassByQrStringsAndPassUUID,
   cleanupExpiredPasses,
   getPassByUUID,
 };

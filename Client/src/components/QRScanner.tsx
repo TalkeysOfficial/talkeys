@@ -19,15 +19,30 @@ interface PassInfo {
 	phoneNumber: string;
 }
 
+type GetTix = {
+	success: boolean,
+	data: {
+		buyer: string,
+		event: string,
+		person: {
+			personName: string,
+			qrScanned: boolean,
+			scannedAt: Date,
+			_id: string
+		},
+		amount: number,
+	}
+};
+
 export default function AdminQRScanner() {
 	const [isScanning, setIsScanning] = useState(false);
 	const [verificationStatus, setVerificationStatus] = useState<string | null>(
 		null,
 	);
 	const [error, setError] = useState<string | null>(null);
-	const [passInfo, setPassInfo] = useState<PassInfo | null>(null);
+	const [passInfo, setPassInfo] = useState<GetTix | null>(null);
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [currentPassId, setCurrentPassId] = useState<string | null>(null);
+	const [currentPassId, setCurrentPassId] = useState<{ passUUID: string; qrId: string } | null>(null);
 	const [isPending, setIsPending] = useState(false);
 	const videoRef = useRef<HTMLVideoElement | null>(null);
 	const scannerRef = useRef<QrScanner | null>(null);
@@ -69,25 +84,47 @@ export default function AdminQRScanner() {
 	const handleScan = async (result: string) => {
 		setIsScanning(false);
 		setIsPending(true);
-		await getPassInfo(result);
+		try {
+			// Split the QR code result at the '+' character
+			const parts = result.trim().split('+');
+			
+			// Ensure we have exactly two parts and remove any extra whitespace
+			if (parts.length === 2) {
+				const passUUID = parts[0].trim();
+				const qrId = parts[1].trim();
+				console.log("Parsed QR Code:", { passUUID, qrId });
+				await getPassInfo(passUUID, qrId);
+			} else {
+				console.error("Invalid QR format. Expected format: 'passId+extraData'");
+				setError("Invalid QR code format");
+				setIsPending(false);
+				return;
+			}
+		} catch (error) {
+			console.error("Error parsing QR code:", error);
+			setError("Failed to process QR code");
+			setIsPending(false);
+			return;
+		}
+		
 		setIsPending(false);
 	};
 
-	const getPassInfo = async (passId: string): Promise<void> => {
+	const getPassInfo = async (passUUID: string, qrId: string): Promise<void> => {
 		try {
-			const response = await fetch(`${process.env.BACKEND_URL}/verifyPass`, {
+			const response = await fetch(`${process.env.BACKEND_URL}/api/getTix`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
-				body: JSON.stringify({ passId }),
+				body: JSON.stringify({ passUUID, qrId }),
 			});
 
 			if (response.ok) {
-				const data = await response.json();
+				const data = await response.json() as GetTix;
 				setPassInfo(data);
-				setCurrentPassId(passId);
+				setCurrentPassId({ passUUID, qrId });
 				setIsDialogOpen(true);
 			} else if (response.status === 404) {
 				setVerificationStatus("Invalid Pass");
@@ -103,29 +140,29 @@ export default function AdminQRScanner() {
 		}
 	};
 
-	const handleAcceptReject = async (action: "accept" | "reject") => {
+	const handleAccept = async () => {
 		try {
-			const response = await fetch(`${process.env.BACKEND_URL}/${action}`, {
+			const response = await fetch(`${process.env.BACKEND_URL}/Accept`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 				},
-				body: JSON.stringify({ passId: currentPassId }),
+				body: JSON.stringify({ uuid: currentPassId?.passUUID, qrId: currentPassId?.qrId }),
 			});
 
 			if (response.ok) {
 				setVerificationStatus(
-					`Pass ${action === "accept" ? "Accepted" : "Rejected"}`,
+					`Pass accepted for ${passInfo?.data.person.personName}`,
 				);
 			} else {
 				throw new Error(
-					`${action.charAt(0).toUpperCase() + action.slice(1)} failed`,
+					`Accept failed`,
 				);
 			}
 		} catch (error) {
-			console.error(`Error ${action}ing pass:`, error);
-			setError(`Failed to ${action} pass. Please try again.`);
+			console.error(`Error accepting pass:`, error);
+			setError(`Failed to accept pass. Please try again.`);
 		} finally {
 			setIsDialogOpen(false);
 			resetScanner();
@@ -200,31 +237,43 @@ export default function AdminQRScanner() {
 					{passInfo && (
 						<div className="py-4">
 							<p>
-								<strong>Name:</strong> {passInfo.name}
+								<strong>Name:</strong> {passInfo.data.person.personName}
 							</p>
 							<p>
-								<strong>Email:</strong> {passInfo.email}
+								<strong>Event:</strong> {passInfo.data.amount}
 							</p>
-							<p>
-								<strong>Phone:</strong> {passInfo.phoneNumber}
-							</p>
+							{passInfo.data.person.qrScanned && (
+								<div className="mt-4 p-3 bg-red-900/50 border border-red-500 rounded-md">
+									<p className="text-red-300 font-semibold">
+										⚠️ This pass has already been scanned
+									</p>
+									{passInfo.data.person.scannedAt && (
+										<p className="text-red-200 text-sm mt-1">
+											Scanned at: {new Date(passInfo.data.person.scannedAt).toLocaleString()}
+										</p>
+									)}
+								</div>
+							)}
 						</div>
 					)}
 					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => handleAcceptReject("reject")}
-							className="bg-red-500 text-white"
-						>
-							Reject
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() => handleAcceptReject("accept")}
-							className="bg-green-500 text-white"
-						>
-							Accept
-						</Button>
+						{passInfo && !passInfo.data.person.qrScanned ? (
+							<Button
+								variant="outline"
+								onClick={() => handleAccept()}
+								className="bg-green-500 text-white"
+							>
+								Accept
+							</Button>
+						) : (
+							<Button
+								variant="outline"
+								onClick={() => setIsDialogOpen(false)}
+								className="bg-gray-500 text-white"
+							>
+								Close
+							</Button>
+						)}
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
