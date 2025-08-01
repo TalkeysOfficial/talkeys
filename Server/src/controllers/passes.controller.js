@@ -930,10 +930,6 @@ const canScan = async (req, res) => {
   if (user.role !== 'admin' && user.role !== 'event_manager') {
     return res.status(403).json({ error: "Forbidden: Invalid role" });
   }
-  if (user.email !== event.organizerEmail) {
-    return res.status(403).json({ error: "Forbidden: Not authorized to scan passes for this event" });
-  }
-
   try {
     if (user.role !== 'admin') {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
