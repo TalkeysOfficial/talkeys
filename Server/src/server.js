@@ -67,7 +67,7 @@
 
 require('dotenv').config();
 const { inject, errorHandler } = require("express-custom-error");
-inject(); 
+inject();
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -91,11 +91,21 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
-const cors_options = {
-	origin: ["http://localhost:3000", "https://www.talkeys.xyz"],
-	credentials: true,
-};
-app.use(cors(cors_options));
+// const cors_options = {
+// 	origin: [
+// 		"http://localhost:3000",
+// 		"https://www.talkeys.xyz",
+// 		"http://localhost:3001",
+// 		"https://talkeys.vercel.app",
+// 	],
+// 	credentials: true,
+// 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+// 	allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+// };
+app.use(cors());
+
+// Handle preflight requests
+app.options('*', cors());
 
 // This middleware adds the json header to every response
 app.use("*", (req, res, next) => {
