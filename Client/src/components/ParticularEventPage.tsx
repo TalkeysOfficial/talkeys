@@ -72,7 +72,7 @@ export default function ParticularEventPage({
 	const [errorMessage, setErrorMessage] = useState("");
 	const [passQRCodes, setPassQRCodes] = useState<string[]>([]);
 	const [isLike, setIsLike] = useState<boolean | null>(event.isLiked);
-	const [likes, setLikes] = useState<number>(event.likes ?? 82);
+	const [likes, setLikes] = useState<number>(event.likes ?? 73);
 	const [likeLoading, setLikeLoading] = useState(false);
 	const [friends, setFriends] = useState<Friend[]>([]);
 	const [newFriendName, setNewFriendName] = useState("");
@@ -1160,6 +1160,9 @@ export default function ParticularEventPage({
 					<div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
 						<span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
 							Cost for Event
+							<span className="text-purple-500 ml-2">
+								₹ {event.ticketPrice}
+							</span>
 						</span>
 						<div className="w-full sm:w-auto">
 							{renderRegistrationButton()}
@@ -1214,9 +1217,9 @@ export default function ParticularEventPage({
 							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
 								{event.visibility}
 							</span>
-							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+							{/* <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
 								{event.type ?? "Event Type"}
-							</span>
+							</span> */}
 						</div>
 					</div>
 				</div>
