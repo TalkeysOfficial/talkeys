@@ -10,6 +10,8 @@ import type {
 	BookTicketResponse,
 } from "@/types/types";
 import { z } from "zod";
+import { toast } from "sonner";
+import Link from "next/link";
 
 type Friend = {
 	name: string;
@@ -50,18 +52,19 @@ import "swiper/css/pagination";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
-import collegeImg from "@/public/images/College.png";
 import dateImg from "@/public/images/Date.png";
 import heartImg from "@/public/images/heart.png";
 import locationImg from "@/public/images/location.png";
-import trophyImg from "@/public/images/trophy.png";
 import vectorImg from "@/public/images/Vector.png";
 import lineImg from "@/public/images/Line 4.png";
+
+import { useAuth } from "@/lib/authContext";
 
 export default function ParticularEventPage({
 	event,
 	onClose,
 }: Readonly<EventPageProps>) {
+	const { isSignedIn } = useAuth();
 	const router = useRouter();
 	const [registrationState, setRegistrationState] =
 		useState<RegistrationState>("initial");
@@ -465,7 +468,7 @@ export default function ParticularEventPage({
 				setNewFriendPhone("");
 				setFriendValidationErrors({});
 				setShowFriendsSection(false);
-				window.open(data.data.paymentUrl, "_blank");
+				window.location.href = data.data.paymentUrl;
 			} else {
 				throw new Error(data.message);
 			}
@@ -473,6 +476,15 @@ export default function ParticularEventPage({
 			console.error("Failed to send booking ID", error);
 		}
 	}
+
+	const handlePayNowClick = () => {
+		if (!isSignedIn) {
+			toast.error("Please log in first to proceed with payment.");
+			console.error("User is not signed in");
+			return;
+		}
+		sendBookingID();
+	};
 
 	// Helper function for team joined case
 	const renderTeamJoinedCase = () => (
@@ -484,7 +496,7 @@ export default function ParticularEventPage({
 			>
 				<Button
 					className="bg-purple-600 hover:bg-purple-700 w-full"
-					onClick={sendBookingID}
+					onClick={handlePayNowClick}
 				>
 					Pay Now
 					{friends.length > 0 && (
@@ -633,7 +645,6 @@ export default function ParticularEventPage({
 	const renderInitialCase = () => {
 		const isEventLive = event.isLive;
 		const hasEventYetToCome = !isTimePassed(event.startDate);
-		console.log(hasEventYetToCome);
 		const isRegistrationClosed = isTimePassed(event.endRegistrationDate);
 		const isEventPaid = event.isPaid;
 
@@ -664,7 +675,7 @@ export default function ParticularEventPage({
 					>
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
-							onClick={sendBookingID}
+							onClick={handlePayNowClick}
 							disabled={
 								!isEventLive ||
 								isRegistrationClosed ||
@@ -971,7 +982,7 @@ export default function ParticularEventPage({
 							>
 								<Button
 									className="bg-purple-600 hover:bg-purple-700 w-full flex items-center justify-center gap-2"
-									onClick={sendBookingID}
+									onClick={handlePayNowClick}
 								>
 									<span className="text-lg font-bold">Buy Now</span>
 									<span className="text-sm">

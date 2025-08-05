@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import { Toaster } from "@/components/ui/sonner";
 
 import { AuthProvider } from "@/lib/authContext";
 
@@ -49,6 +50,12 @@ export default function RootLayout({
 					<Analytics />
 					<ConditionalFooter />
 				</AuthProvider>
+				<Toaster
+					position="top-center"
+					richColors
+					theme="dark"
+					closeButton
+				/>
 			</body>
 		</html>
 	);
