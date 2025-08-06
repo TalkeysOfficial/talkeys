@@ -133,7 +133,7 @@ const EventCarousel: React.FC<EventCarouselProps> = ({
     const dateA = new Date(a.startDate).getTime();
     const dateB = new Date(b.startDate).getTime();
     return dateA - dateB;
-  });
+  }).reverse();
 
   return (
     <div className="mb-16 px-4 sm:px-6 lg:px-8">
