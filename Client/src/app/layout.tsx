@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import image from "@/public/images/bg.webp";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Analytics } from "@vercel/analytics/react";
 import { urbanist } from "@/components/fonts/fonts";
 import { ScrollProgress } from "@/components/magicui/scroll-progress";
@@ -44,7 +43,6 @@ export const metadata: Metadata = {
 		description: "Talkeys",
 		siteName: "Talkeys",
 	},
-
 };
 
 export default function RootLayout({
@@ -64,7 +62,7 @@ export default function RootLayout({
 			>
 				<AuthProvider>
 					<Navbar />
-					<ScrollProgress className="top-[85px] max-sm:top-[92.31px] h-0.5" />
+					<ScrollProgress className="top-[80px] h-0.5" />
 					{children}
 					<Analytics />
 					<ConditionalFooter />

@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
 	Instagram,
 	Linkedin,
-	Github,
 	Mail,
 	Phone,
 	MapPin,
@@ -16,7 +15,6 @@ import {
 	Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
 	Tooltip,
 	TooltipContent,
@@ -46,12 +44,6 @@ export default function Footer() {
 			href: "https://www.linkedin.com/company/talkeys/",
 			ariaLabel: "LinkedIn",
 		},
-		{
-			name: "GitHub",
-			icon: <Github size={24} />,
-			href: "/git",
-			ariaLabel: "GitHub",
-		}
 	];
 
 	const navLinks = [
