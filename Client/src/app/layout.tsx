@@ -26,6 +26,25 @@ const geistMono = localFont({
 export const metadata: Metadata = {
 	title: "Talkeys",
 	description: "Talkeys",
+	metadataBase: new URL("https://talkeys.xyz"),
+	keywords: ["talkeys", "talkeys.xyz"],
+	authors: [
+		{
+			name: "Himanish Puri",
+			url: "https://himanishpuri.tech",
+		},
+		//TODO add all the authors
+	],
+	creator: "Himanish Puri",
+	openGraph: {
+		type: "website",
+		locale: "en_US",
+		url: new URL("https://talkeys.xyz"),
+		title: "Talkeys",
+		description: "Talkeys",
+		siteName: "Talkeys",
+	},
+
 };
 
 export default function RootLayout({
