@@ -812,7 +812,7 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
   try {
     const pass = await Pass.findOne({
       passUUID: req.body.passUUID,
-    })
+    }).populate("eventId")
 
     console.log(req.body.qrId)
     console.log(pass)
@@ -840,8 +840,8 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        buyer: pass.userId,
-        event: pass.eventId,
+        buyer: pass.userId.name,
+        event: pass.eventId.name,
         person,
         amount: pass.amount,
       },
