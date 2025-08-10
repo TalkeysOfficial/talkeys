@@ -1,6 +1,11 @@
 import dotenv from "dotenv";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 dotenv.config();
+
+const withBundleAnalyzer = bundleAnalyzer({
+	enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -8,15 +13,9 @@ const nextConfig = {
 		// ignoreDuringBuilds: true,
 	},
 	typescript: {
-		// !! WARN !!
-		// Dangerously allow production builds to successfully complete even if
-		// your project has type errors.
-		// !! WARN !!
 		// ignoreBuildErrors: true,
 	},
 	env: {
-		// You can add your environment variables here
-		// Example: CUSTOM_VAR: process.env.CUSTOM_VAR
 		BACKEND_URL: process.env.BACKEND_URL,
 	},
 	images: {
@@ -24,7 +23,7 @@ const nextConfig = {
 		dangerouslyAllowSVG: true,
 		contentSecurityPolicy: "default-src 'self'; img-src * data:blob:;",
 	},
-
 };
 
-export default nextConfig;
+// Wrap config with analyzer
+export default withBundleAnalyzer(nextConfig);
