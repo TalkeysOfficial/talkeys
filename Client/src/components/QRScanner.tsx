@@ -185,7 +185,7 @@ export default function QRScannerComponent() {
 
       console.log("Accepting pass:", currentPassId.passUUID)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/Accept`, {
+      const response = await fetch(`${process.env.BACKEND_URL}/Accept`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
