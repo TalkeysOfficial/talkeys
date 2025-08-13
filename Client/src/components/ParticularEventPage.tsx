@@ -643,29 +643,38 @@ export default function ParticularEventPage({
 
 	// Helper function for initial case rendering
 	const renderInitialCase = () => {
-		const isEventLive = event.isLive;
-		const hasEventYetToCome = !isTimePassed(event.startDate);
-		const isRegistrationClosed = isTimePassed(event.endRegistrationDate);
-		const isEventPaid = event.isPaid;
+		const { status, isPaid, isLive } = event;
 
 		let buttonText;
 		let ariaLabel;
 
-		if (isRegistrationClosed) {
-			buttonText = "Registrations Closed";
-			ariaLabel = "Registrations closed";
-		} else if (!isEventLive || hasEventYetToCome) {
-			buttonText = "Coming Soon";
-			ariaLabel = "Event coming soon";
-		} else if (isEventPaid) {
-			buttonText = "Pay NOW";
-			ariaLabel = "Pay for tickets for event";
-		} else {
-			buttonText = "Pay Now";
-			ariaLabel = "Register for event";
+		switch (status) {
+			case "registration_closed":
+				buttonText = "Registrations Closed";
+				ariaLabel = "Registrations closed";
+				break;
+			case "coming_soon":
+				buttonText = "Coming Soon";
+				ariaLabel = "Event coming soon";
+				break;
+			case "live":
+				buttonText = isPaid ? "Pay NOW" : "Register Now";
+				ariaLabel = isPaid
+					? "Pay for tickets for event"
+					: "Register for event";
+				break;
+			default:
+				buttonText = "Event Ended";
+				ariaLabel = "Event ended";
 		}
 
-		if (event.isPaid) {
+		const isDisabled =
+			status === "registration_closed" ||
+			status === "coming_soon" ||
+			status === "ended" ||
+			!isLive;
+
+		if (isPaid) {
 			return (
 				<div className="space-y-3 w-full">
 					{renderFriendsSection()}
@@ -676,11 +685,7 @@ export default function ParticularEventPage({
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
 							onClick={handlePayNowClick}
-							disabled={
-								!isEventLive ||
-								isRegistrationClosed ||
-								hasEventYetToCome
-							}
+							disabled={isDisabled}
 							aria-label={ariaLabel}
 						>
 							{buttonText}
@@ -703,9 +708,7 @@ export default function ParticularEventPage({
 				<Button
 					className="bg-purple-600 hover:bg-purple-700 w-full"
 					onClick={handleRegisterClick}
-					disabled={
-						!isEventLive || isRegistrationClosed || hasEventYetToCome
-					}
+					disabled={isDisabled}
 					aria-label={ariaLabel}
 				>
 					{buttonText}
