@@ -59,6 +59,30 @@ const createEvent = asyncHandler(async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 });
+// Helper: Convert startDate + startTime to a Date object in UTC
+function mergeDateTime(date, timeStr) {
+	if (!date) return null;
+	if (!timeStr) return new Date(date); // fallback if no time given
+
+	const [hours, minutes] = timeStr.split(":").map(Number);
+	const merged = new Date(date);
+	merged.setUTCHours(hours, minutes, 0, 0);
+	return merged;
+}
+
+// Helper: Determine event status
+function getEventStatus(event) {
+	const now = new Date();
+
+	const startDT = mergeDateTime(event.startDate, event.startTime);
+	const endRegDT = event.endRegistrationDate || event.startDate;
+
+	if (now > endRegDT) return "registration_closed";
+	if (now < startDT) return "coming_soon";
+	if (now >= startDT && event.isLive) return "live";
+	return "ended";
+}
+
 const getEvents = asyncHandler(async (req, res) => {
 	try {
 		const {
@@ -74,46 +98,51 @@ const getEvents = asyncHandler(async (req, res) => {
 			maxPrice,
 		} = req.query;
 
-		// Build query
 		const query = {};
-
-		if (mode) { query.mode = mode; }
-		if (category) { query.category = category; }
-		if (visibility) { query.visibility = visibility; }
+		if (mode) query.mode = mode;
+		if (category) query.category = category;
+		if (visibility) query.visibility = visibility;
 
 		if (minPrice || maxPrice) {
 			query.ticketPrice = {};
-			if (minPrice) { query.ticketPrice.$gte = Number(minPrice); }
-			if (maxPrice) { query.ticketPrice.$lte = Number(maxPrice); }
+			if (minPrice) query.ticketPrice.$gte = Number(minPrice);
+			if (maxPrice) query.ticketPrice.$lte = Number(maxPrice);
 		}
 
 		if (search) {
 			query.$or = [
-				{ eventName: { $regex: search, $options: "i" } },
+				{ name: { $regex: search, $options: "i" } }, // fixed from eventName to name
 				{ eventDescription: { $regex: search, $options: "i" } },
 				{ category: { $regex: search, $options: "i" } },
 			];
 		}
 
-		// console.log("Generated Query:", JSON.stringify(query, null, 2));
-
-		// Pagination
 		const skip = (parseInt(page) - 1) * parseInt(limit);
 		const sortOptions = { [sortBy]: order === "desc" ? -1 : 1 };
 
-		// console.log("Skip:", skip, "Limit:", limit);
-
-		const events = await Event.find(query)
+		let events = await Event.find(query)
 			.select("-__v")
 			.sort(sortOptions)
 			.skip(skip)
 			.limit(parseInt(limit))
 			.lean();
 
-		const total = await Event.countDocuments(query);
+		// Attach computed fields
+		events = events.map(event => {
+			const startDateTime = mergeDateTime(event.startDate, event.startTime);
+			const endRegistrationDateTime = event.endRegistrationDate;
+			const availableSeats = event.totalSeats - (event.registrationCount || 0);
 
-		// console.log("Fetched Events:", events);
-		// console.log("Total Events:", total);
+			return {
+				...event,
+				startDateTime,
+				endRegistrationDateTime,
+				availableSeats,
+				status: getEventStatus(event),
+			};
+		});
+
+		const total = await Event.countDocuments(query);
 
 		res.status(200).json({
 			status: "success",
@@ -136,12 +165,12 @@ const getEvents = asyncHandler(async (req, res) => {
 		});
 	}
 });
+
 const getEventById = async (req, res) => {
 	try {
 		const { id } = req.params;
-
 		const event = await Event.findById(id).select("-__v").lean();
-		console.log(id);
+
 		if (!event) {
 			return res.status(404).json({
 				status: "error",
@@ -149,14 +178,18 @@ const getEventById = async (req, res) => {
 			});
 		}
 
-		// Calculate available seats
-		const availableSeats = event.totalSeats; // You'll need to subtract booked seats here when you implement booking
+		const startDateTime = event.startDateTime || mergeDateTime(event.startDate, event.startTime);
+		const endRegistrationDateTime = event.endRegistrationDateTime || event.endRegistrationDate;
+		const availableSeats = event.totalSeats - (event.registrationCount || 0);
 
 		res.status(200).json({
 			status: "success",
 			data: {
 				...event,
+				startDateTime,
+				endRegistrationDateTime,
 				availableSeats,
+				status: getEventStatus(event),
 			},
 		});
 	} catch (error) {
@@ -304,31 +337,31 @@ const deleteSpecificEvent = asyncHandler(async (req, res) => {
 	}
 });
 const reqEventt = asyncHandler(async (req, res) => {
-		try {
-			const { Name, Email, Phone, isSlotted, isTeamEvent, isPaid, date } = req.body;
-	
-			if (!Name || !Email || !Phone || isSlotted === undefined || !date) {
-				return res.status(400).json({ error: "All required fields must be provided." });
-			}
-	
-			const newEvent = new reqEvent({
-				Name,
-				Email,
-				Phone,
-				isSlotted,
-				isTeamEvent: isTeamEvent || false, 
-				isPaid: isPaid || false, 
-				date
-			});
-	
-			await newEvent.save();
-			res.status(201).json({ message: "Event requested successfully", event: newEvent });
-		} catch (error) {
-			console.error(error);
-			res.status(500).json({ error: "Internal server error" });
+	try {
+		const { Name, Email, Phone, isSlotted, isTeamEvent, isPaid, date } = req.body;
+
+		if (!Name || !Email || !Phone || isSlotted === undefined || !date) {
+			return res.status(400).json({ error: "All required fields must be provided." });
 		}
-	});
-	
+
+		const newEvent = new reqEvent({
+			Name,
+			Email,
+			Phone,
+			isSlotted,
+			isTeamEvent: isTeamEvent || false,
+			isPaid: isPaid || false,
+			date
+		});
+
+		await newEvent.save();
+		res.status(201).json({ message: "Event requested successfully", event: newEvent });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+});
+
 module.exports = {
 	createEvent,
 	getEvents,

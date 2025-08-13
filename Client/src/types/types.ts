@@ -48,6 +48,7 @@ export interface Event {
 	festName?: string; 
 	likes: number; 
 	type: "event" | "workshop" | "competition"; 
+	status: "registration_closed" | "coming_soon" | "live" | "ended";
 }
 
 export interface FormData extends Omit<Event, "photographs" | "sponsorImages"> {
