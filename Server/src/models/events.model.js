@@ -38,14 +38,18 @@ const eventSchema = new mongoose.Schema({
 			message: "Invalid time format (HH:MM)",
 		},
 	},
-	endRegistrationDate: {
+	isRegistrationOpen: {
+		type: Boolean,
+		default: false
+	},
+	startRegistrationDate: {
 		type: Date,
 		required: true,
 		validate: {
 			validator(val) {
 				return this.startDate ? val <= this.startDate : true;
 			},
-			message: "End registration date must be before start date",
+			message: "Start registration date must be before start date",
 		},
 	},
 
@@ -95,13 +99,13 @@ const eventSchema = new mongoose.Schema({
 eventSchema.methods.getStatus = function () {
 	const now = new Date();
 
-	if (now > this.endRegistrationDateTime) {
+	if (!this.startRegistrationDate) {
 		return "registration_closed";
 	}
 	if (now < this.startDateTime) {
 		return "coming_soon";
 	}
-	if (now >= this.startDateTime && this.isLive) {
+	if (now >= this.startRegistrationDate && this.isLive) {
 		return "live";
 	}
 	return "ended";

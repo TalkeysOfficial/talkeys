@@ -258,9 +258,7 @@ export default function ParticularEventPage({
 							<span className="font-medium">
 								Registration Deadline:
 							</span>{" "}
-							{new Date(event.endRegistrationDate).toLocaleDateString(
-								"en-IN",
-							)}
+							{new Date(event.startDate).toLocaleDateString("en-IN")}
 						</span>
 					</div>
 

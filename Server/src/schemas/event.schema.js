@@ -32,7 +32,7 @@ const eventSchema = z.object({
 	visibility: z.enum(["public", "private"]),
 	startDate: z.date(),
 	startTime: z.string(),
-	endRegistrationDate: z.date(),
+	startRegistrationDate: z.date(),
 	totalSeats: z.number().refine((val) => val >= 0, {
 		message: "Total Seats must NOT be negative number",
 	}),
@@ -61,9 +61,9 @@ const validateEvent = (eventData) => {
 		if (eventData.startDate) {
 			eventData.startDate = new Date(eventData.startDate);
 		}
-		if (eventData.endRegistrationDate) {
-			eventData.endRegistrationDate = new Date(
-				eventData.endRegistrationDate,
+		if (eventData.startRegistrationDate) {
+			eventData.startRegistrationDate = new Date(
+				eventData.startRegistrationDate,
 			);
 		}
 

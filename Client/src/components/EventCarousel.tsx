@@ -114,7 +114,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 									</div>
 									<div>
 										{new Date(
-											event.endRegistrationDate,
+											event.startDate,
 										).toLocaleDateString("en-IN", {
 											day: "numeric",
 											month: "long",

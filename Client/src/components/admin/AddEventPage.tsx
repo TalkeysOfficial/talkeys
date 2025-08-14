@@ -46,7 +46,7 @@ const AddEventPage: React.FC = () => {
 			duration: "Variable",
 			startDate: new Date().toString(),
 			startTime: new Date().getTime().toString(),
-			endRegistrationDate: new Date().toString(),
+			startRegistrationDate: new Date().toString(),
 			totalSeats: 0,
 			photographs: null,
 			prizes: undefined,
@@ -444,27 +444,27 @@ const AddEventPage: React.FC = () => {
 						</motion.div>
 
 						<motion.div variants={inputAnimation}>
-							<Label htmlFor="endRegistrationDate">
-								End Registration Date *
+							<Label htmlFor="startRegistrationDate">
+								Start Registration Date *
 							</Label>
 							<Controller
-								name="endRegistrationDate"
+								name="startRegistrationDate"
 								control={control}
 								rules={{
-									required: "End registration date is required",
+									required: "Start registration date is required",
 								}}
 								render={({ field }) => (
 									<Input
-										id="endRegistrationDate"
+										id="startRegistrationDate"
 										type="date"
 										{...field}
 										className="mt-1 bg-gray-800"
 									/>
 								)}
 							/>
-							{errors.endRegistrationDate && (
+							{errors.startRegistrationDate && (
 								<span className="text-red-500 text-sm">
-									{errors.endRegistrationDate.message}
+									{errors.startRegistrationDate.message}
 								</span>
 							)}
 						</motion.div>
