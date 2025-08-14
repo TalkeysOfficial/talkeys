@@ -37,7 +37,7 @@ exports.login = async (req, res) => {
       const accessToken = jwt.sign(
         { email: payload.email }, 
         secret, 
-        { expiresIn: '24h' }
+        { expiresIn: '7d' }
       );
 
       user = new User({
@@ -53,7 +53,7 @@ exports.login = async (req, res) => {
       const accessToken = jwt.sign(
         { email: payload.email }, 
         secret, 
-        { expiresIn: '24h' }
+        { expiresIn: '7d' }
       );
       
       const refreshToken = jwt.sign(
