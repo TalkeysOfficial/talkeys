@@ -45,12 +45,6 @@ const eventSchema = new mongoose.Schema({
 	startRegistrationDate: {
 		type: Date,
 		required: true,
-		validate: {
-			validator(val) {
-				return this.startDate ? val <= this.startDate : true;
-			},
-			message: "Start registration date must be before start date",
-		},
 	},
 
 	totalSeats: {
@@ -98,14 +92,16 @@ const eventSchema = new mongoose.Schema({
 
 eventSchema.methods.getStatus = function () {
 	const now = new Date();
+	console.log("Current Date:", now);
+	console.log("Start Registration Date:", this.startRegistrationDate);
 
-	if (!this.startRegistrationDate) {
+	if (!this.isRegistrationOpen) {
 		return "registration_closed";
 	}
-	if (now < this.startDateTime) {
+	if (now < new Date(this.startRegistrationDate)) {
 		return "coming_soon";
 	}
-	if (now >= this.startRegistrationDate && this.isLive) {
+	if (now >= new Date(this.startRegistrationDate) && this.isLive) {
 		return "live";
 	}
 	return "ended";

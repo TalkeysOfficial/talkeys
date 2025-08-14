@@ -141,6 +141,7 @@ export default function ParticularEventPage({
 						isPaid={!!event.isPaid}
 						ticketPrice={event.ticketPrice}
 						status={event.status}
+						isRegistrationOpen={event.isRegistrationOpen}
 						isLive={event.isLive}
 						phone={phone}
 						setPhone={setPhone}

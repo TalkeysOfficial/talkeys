@@ -44,11 +44,12 @@ export interface Event {
 	organizerName?: string;
 	organizerEmail?: string;
 	organizerContact?: string;
-	collegeName?: string; 
-	festName?: string; 
-	likes: number; 
-	type: "event" | "workshop" | "competition"; 
+	collegeName?: string;
+	festName?: string;
+	likes: number;
+	type: "event" | "workshop" | "competition";
 	status: "registration_closed" | "coming_soon" | "live" | "ended";
+	isRegistrationOpen: boolean;
 }
 
 export interface FormData extends Omit<Event, "photographs" | "sponsorImages"> {
@@ -69,63 +70,62 @@ export type RegistrationState =
 	| "booked"
 	| "passCreated";
 
-	export interface BookTicketResponse {
-		success: boolean;
-		message: string;
-		data: {
-			passId: string;
-			merchantOrderId: string;
-			phonePeOrderId: string;
-			amount: number;
-			amountInPaisa: number;
-			totalTickets: number;
-			paymentUrl: string;
-			expiresAt: string;
-			event: {
-				id: string;
-			};
-			friends: any[];
-		};
-	}
-
-	// Pass types for the /getPass API response
-	export interface QRString {
-		id: string;
-		// Add other properties if they exist in the actual response
-	}
-
-	export interface Pass {
-		passUUID: string;
-		qrStrings: QRString[];
-		// Add other properties if they exist in the actual response
-	}
-
-	export interface PassResponse {
-		passes: Pass[];
-		success?: boolean;
-		message?: string;
-	}
-
-
-	export interface PassQRString {
-		id: string;
-		personType: "user" | "friend";
-		qrScanned: boolean;
-		scannedAt: string | null;
-		_id: string;
-	}
-
-	export interface PassDetails {
-		passUUID: string;
-		qrStrings: PassQRString[];
-		passType: string;
+export interface BookTicketResponse {
+	success: boolean;
+	message: string;
+	data: {
 		passId: string;
-		email: string;
-		eventId: string;
-	}
+		merchantOrderId: string;
+		phonePeOrderId: string;
+		amount: number;
+		amountInPaisa: number;
+		totalTickets: number;
+		paymentUrl: string;
+		expiresAt: string;
+		event: {
+			id: string;
+		};
+		friends: any[];
+	};
+}
 
-	export interface PassDetailsResponse {
-		passes: PassDetails[];
-		count: number;
-		message: string;
-	}
+// Pass types for the /getPass API response
+export interface QRString {
+	id: string;
+	// Add other properties if they exist in the actual response
+}
+
+export interface Pass {
+	passUUID: string;
+	qrStrings: QRString[];
+	// Add other properties if they exist in the actual response
+}
+
+export interface PassResponse {
+	passes: Pass[];
+	success?: boolean;
+	message?: string;
+}
+
+export interface PassQRString {
+	id: string;
+	personType: "user" | "friend";
+	qrScanned: boolean;
+	scannedAt: string | null;
+	_id: string;
+}
+
+export interface PassDetails {
+	passUUID: string;
+	qrStrings: PassQRString[];
+	passType: string;
+	passId: string;
+	email: string;
+	eventId: string;
+}
+
+export interface PassDetailsResponse {
+	passes: PassDetails[];
+	count: number;
+	message: string;
+}
