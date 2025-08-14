@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import ParticularEventPage from "@/components/ParticularEventPage";
+import ParticularEventPage from "@/components/Events/ParticularEventPage";
 import type { Event } from "@/types/types";
 
 export default function InterceptedEventPage() {
