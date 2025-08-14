@@ -59,7 +59,7 @@ const createEvent = asyncHandler(async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 });
-// Helper: Convert startDate + startTime to a Date object in UTC
+
 function mergeDateTime(date, timeStr) {
 	if (!date) return null;
 	if (!timeStr) return new Date(date); // fallback if no time given
@@ -68,19 +68,6 @@ function mergeDateTime(date, timeStr) {
 	const merged = new Date(date);
 	merged.setUTCHours(hours, minutes, 0, 0);
 	return merged;
-}
-
-// Helper: Determine event status
-function getEventStatus(event) {
-	const now = new Date();
-
-	const startDT = mergeDateTime(event.startDate, event.startTime);
-	const startRegDT = event.startDate;
-
-	if (!event?.isRegistrationOpen) return "registration_closed";
-	if (now < startDT) return "coming_soon";
-	if (now >= startRegDT && event.isLive) return "live";
-	return "ended";
 }
 
 const getEvents = asyncHandler(async (req, res) => {
@@ -111,7 +98,7 @@ const getEvents = asyncHandler(async (req, res) => {
 
 		if (search) {
 			query.$or = [
-				{ name: { $regex: search, $options: "i" } }, // fixed from eventName to name
+				{ name: { $regex: search, $options: "i" } },
 				{ eventDescription: { $regex: search, $options: "i" } },
 				{ category: { $regex: search, $options: "i" } },
 			];
@@ -124,8 +111,7 @@ const getEvents = asyncHandler(async (req, res) => {
 			.select("-__v")
 			.sort(sortOptions)
 			.skip(skip)
-			.limit(parseInt(limit))
-			.lean();
+			.limit(parseInt(limit));
 
 		// Attach computed fields
 		events = events.map(event => {
@@ -134,11 +120,11 @@ const getEvents = asyncHandler(async (req, res) => {
 			const availableSeats = event.totalSeats - (event.registrationCount || 0);
 
 			return {
-				...event,
+				...event.toObject(),
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
-				status: getEventStatus(event),
+				status: event.getStatus(), // Now this will work and console.log
 			};
 		});
 
@@ -169,7 +155,7 @@ const getEvents = asyncHandler(async (req, res) => {
 const getEventById = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const event = await Event.findById(id).select("-__v").lean();
+		const event = await Event.findById(id).select("-__v");
 
 		if (!event) {
 			return res.status(404).json({
@@ -185,11 +171,11 @@ const getEventById = async (req, res) => {
 		res.status(200).json({
 			status: "success",
 			data: {
-				...event,
+				...event.toObject(),
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
-				status: getEventStatus(event),
+				status: event.getStatus(), // Now this will work and console.log
 			},
 		});
 	} catch (error) {
@@ -361,6 +347,7 @@ const reqEventt = asyncHandler(async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 });
+
 
 module.exports = {
 	createEvent,

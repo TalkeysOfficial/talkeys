@@ -15,6 +15,7 @@ type CommonProps = {
 	ticketPrice?: number;
 	status: string;
 	isLive?: boolean;
+	isRegistrationOpen: boolean;
 
 	// team / phone
 	phone: string;

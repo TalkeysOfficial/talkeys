@@ -31,10 +31,10 @@ export default function Home() {
 
 				const now = new Date();
 				const upcoming = events.filter(
-					(event) => new Date(event.startRegistrationDate) >= now,
+					(event) => new Date(event.startDate) >= now,
 				);
 				const past = events.filter(
-					(event) => new Date(event.startRegistrationDate) < now,
+					(event) => new Date(event.startDate) < now,
 				);
 
 				setUpcomingEvents(upcoming);
