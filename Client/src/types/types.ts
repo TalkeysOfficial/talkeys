@@ -37,7 +37,7 @@ export interface Event {
 	location: string;
 	startDate: string;
 	startTime: string;
-	endRegistrationDate: string;
+	startRegistrationDate: string;
 	photographs: string[];
 	sponsorImages: string[];
 	registrationCount: number;

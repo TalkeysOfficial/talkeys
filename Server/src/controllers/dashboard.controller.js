@@ -83,7 +83,7 @@ const baseEventSchema = {
   visibility: Joi.string().valid("public", "private").required(),
   startDate: Joi.date().required(),
   startTime: Joi.string().required(),
-  endRegistrationDate: Joi.date().required(),
+  startRegistrationDate: Joi.date().required(),
   totalSeats: Joi.number().min(0).required(),
   photographs: Joi.array().items(Joi.string().uri()).optional(),
   prizes: Joi.string().allow(""),

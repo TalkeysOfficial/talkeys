@@ -33,7 +33,7 @@ const createEvent = asyncHandler(async (req, res) => {
 			photographs,
 			startDate,
 			startTime,
-			endRegistrationDate,
+			startRegistrationDate,
 			eventDescription,
 		} = req.body;
 		const event = new Event({
@@ -49,7 +49,7 @@ const createEvent = asyncHandler(async (req, res) => {
 			photographs,
 			startDate,
 			startTime,
-			endRegistrationDate,
+			startRegistrationDate,
 			eventDescription,
 			organiserId: req.user._id,
 		});
@@ -75,11 +75,11 @@ function getEventStatus(event) {
 	const now = new Date();
 
 	const startDT = mergeDateTime(event.startDate, event.startTime);
-	const endRegDT = event.endRegistrationDate || event.startDate;
+	const startRegDT = event.startDate;
 
-	if (now > endRegDT) return "registration_closed";
+	if (!event?.isRegistrationOpen) return "registration_closed";
 	if (now < startDT) return "coming_soon";
-	if (now >= startDT && event.isLive) return "live";
+	if (now >= startRegDT && event.isLive) return "live";
 	return "ended";
 }
 
@@ -130,13 +130,13 @@ const getEvents = asyncHandler(async (req, res) => {
 		// Attach computed fields
 		events = events.map(event => {
 			const startDateTime = mergeDateTime(event.startDate, event.startTime);
-			const endRegistrationDateTime = event.endRegistrationDate;
+			const startRegistrationDate = event.startRegistrationDate;
 			const availableSeats = event.totalSeats - (event.registrationCount || 0);
 
 			return {
 				...event,
 				startDateTime,
-				endRegistrationDateTime,
+				startRegistrationDate,
 				availableSeats,
 				status: getEventStatus(event),
 			};
@@ -179,7 +179,7 @@ const getEventById = async (req, res) => {
 		}
 
 		const startDateTime = event.startDateTime || mergeDateTime(event.startDate, event.startTime);
-		const endRegistrationDateTime = event.endRegistrationDateTime || event.endRegistrationDate;
+		const startRegistrationDate = event.startRegistrationDate;
 		const availableSeats = event.totalSeats - (event.registrationCount || 0);
 
 		res.status(200).json({
@@ -187,7 +187,7 @@ const getEventById = async (req, res) => {
 			data: {
 				...event,
 				startDateTime,
-				endRegistrationDateTime,
+				startRegistrationDate,
 				availableSeats,
 				status: getEventStatus(event),
 			},
