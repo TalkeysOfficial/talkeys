@@ -8,7 +8,7 @@ import HostEventSection from "@/components/HostEventSection";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
-import PreviusCollabs from "@/components/PreviusCollabs";
+import PreviusCollabs from "@/components/PreviousCollabs";
 
 export default function Home() {
 	const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);

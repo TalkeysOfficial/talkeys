@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,8 +9,8 @@ import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 import contactImage from "@/public/images/contact.png";
 import { urbanist } from "@/components/fonts/fonts";
-import { formSchema } from "@/components/ContactUs/formvalidator";
-import AnimatedBackgroundElements from "@/components/ContactUs/AnimatedBackgroundElements";
+import { formSchema } from "@/lib/utils/validation";
+import AnimatedBackgroundElements from "@/components/AnimatedBackgroundElements";
 import SubmittedSuccess from "@/components/ContactUs/SubmittedSuccess";
 import ContactUsForm from "@/components/ContactUs/ContactUsForm";
 

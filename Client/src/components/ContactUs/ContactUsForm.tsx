@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { formSchema } from "@/components/ContactUs/formvalidator";
+import { formSchema } from "@/lib/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, Send } from "lucide-react";
