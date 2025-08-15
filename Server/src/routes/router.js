@@ -29,6 +29,7 @@ router.use((req, res, next) => {
     
     next();
 });
+router.get("/temp", Events.temp);
 router.get('/api/ticket-status/:passId', Passes.getTicketStatus);
 router.get("/getEvents", Events.getEvents);
 router.use("/dashboard", require("./dashboard.routes"));
