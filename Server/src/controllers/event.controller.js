@@ -250,6 +250,15 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 	}
 });
 
+const temp = async(req, res) => {
+	689c7e7c0c0776b656732f87
+	const event = await Event.findById("689c7e7c0c0776b656732f87");
+	event.ticketPrice = 249;
+	event.save();
+	res.sendStatus(200);
+	return;
+};
+
 const getAllLikedEvents = asyncHandler(async (req, res) => {
 	try {
 		if (!req.user) {
