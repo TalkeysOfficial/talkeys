@@ -1,12 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
 const reqEvent = require("../models/reqEvent.model.js");
-const Pass = require("../models/passes.model.js");
-const {
-	validateEmail,
-	validatePhoneNumber,
-} = require("../helpers/validatorHelper");
-const User = require("../models/users.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
 
 const createEvent = asyncHandler(async (req, res) => {
@@ -250,14 +244,6 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 	}
 });
 
-const temp = async(req, res) => {
-	const event = await Event.findById("689c7e7c0c0776b656732f87");
-	event.ticketPrice = 249;
-	event.save();
-	res.sendStatus(200);
-	return;
-};
-
 const getAllLikedEvents = asyncHandler(async (req, res) => {
 	try {
 		if (!req.user) {
@@ -367,5 +353,4 @@ module.exports = {
 	addEvent,
 	deleteSpecificEvent,
 	reqEventt,
-	temp,
 };
