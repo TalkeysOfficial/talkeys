@@ -49,7 +49,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 					},
 				}),
 			}}
-			className="h-full min-w-[260px] sm:min-w-[280px] md:min-w-[300px] lg:min-w-[280px] xl:min-w-[260px]"
+			className="h-full min-w-[160px] sm:min-w-[240px] md:min-w-[280px] lg:min-w-[280px] xl:min-w-[260px]"
 		>
 			<Link
 				href={`/event/${event._id}`}
@@ -89,46 +89,49 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
 
 							<CardItem
 								translateZ={30}
-								className="p-4 flex flex-col flex-grow"
+								className="p-2 sm:p-4 flex flex-col flex-grow"
 							>
-								<h3 className="text-xl font-normal mb-8 line-clamp-2 text-white">
+								<h3 className="text-sm sm:text-xl font-normal mb-4 sm:mb-8 line-clamp-2 text-white">
 									{event.name}
 								</h3>
-								<p className="text-gray-400 mb-1 line-clamp-1 flex gap-2 items-center">
-									<div className="h-5 w-5">
+								<p className="text-gray-400 mb-1 line-clamp-1 flex gap-1 sm:gap-2 items-center text-xs sm:text-sm">
+									<div className="h-3 w-3 sm:h-5 sm:w-5 flex-shrink-0">
 										<Image
 											alt="location"
 											src={locationSvg}
 										/>
 									</div>
-									<p className="w-[70vw] sm:w-[35vw] md:w-[20vw] lg:w-[13vw] truncate">
+									<p className="truncate flex-1">
 										{event.location ?? "Location not specified"}
 									</p>
 								</p>
-								<div className="text-sm text-gray-400 mb-6 flex gap-2 items-center truncate">
-									<div className="h-5 w-5">
+								<div className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-6 flex gap-1 sm:gap-2 items-center">
+									<div className="h-3 w-3 sm:h-5 sm:w-5 flex-shrink-0">
 										<Image
 											alt="calendar"
 											src={calendarSvg}
 										/>
 									</div>
-									<div>
-										{new Date(
-											event.startDate,
-										).toLocaleDateString("en-IN", {
-											day: "numeric",
-											month: "long",
-											year: "numeric",
-										})}
+									<div className="truncate">
+										{new Date(event.startDate).toLocaleDateString(
+											"en-IN",
+											{
+												day: "numeric",
+												month: "short",
+												year: "numeric",
+											},
+										)}
 									</div>
-									<div>|</div>
-									<div>{formatTime(event.startTime)}</div>
+									<div className="hidden sm:block">|</div>
+									<div className="hidden sm:block">
+										{formatTime(event.startTime)}
+									</div>
 								</div>
-								<div className="mt-auto flex gap-4 mb-2">
-									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-3">
+								<div className="mt-auto flex gap-2 sm:gap-4 mb-2">
+									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-2 sm:px-3 text-xs sm:text-sm">
 										₹ {event.ticketPrice ?? "--"}
 									</div>
-									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-3">
+									<div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-2 sm:px-3 text-xs sm:text-sm truncate">
 										{event.category ?? "--"}
 									</div>
 								</div>
