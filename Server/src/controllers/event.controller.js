@@ -1,12 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
 const reqEvent = require("../models/reqEvent.model.js");
-const Pass = require("../models/passes.model.js");
-const {
-	validateEmail,
-	validatePhoneNumber,
-} = require("../helpers/validatorHelper");
-const User = require("../models/users.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
 
 const createEvent = asyncHandler(async (req, res) => {

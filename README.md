@@ -1,6 +1,3 @@
-#API Endpoint
-
-
 ---
 
 ## 📘 **Event API Documentation**
