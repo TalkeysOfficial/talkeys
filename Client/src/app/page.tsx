@@ -67,9 +67,10 @@ export default function Home() {
 				/>
 			)}
 
-			<PreviusCollabs />
+			
 			<CommunityCarousel />
 			<InfluencerCarousal />
+			<PreviusCollabs />
 			<HostEventSection />
 		</GoogleOAuthProvider>
 	);
