@@ -8,7 +8,7 @@
 
 2. Install Dependencies
 
-> npm run setup
+> npm run setu
 
 3. Create .env with following content
 
