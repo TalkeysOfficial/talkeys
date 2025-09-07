@@ -1,113 +1,180 @@
-"use client";
+"use-client";
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+// Using Swiper for all views now
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/swiper-bundle.css";
-import Image from "next/image";
-import image from "@/public/images/influencer.png";
 
-interface InfluencerCard {
-	date: string;
-	title: string;
-	performer: string;
-	image: any;
+// Interface and data remain the same
+interface CertificationCard {
+    title: string;
+    issuedBy: string;
+    tags: string[];
+    price?: number;
+    questions: number;
+    duration: number; // in minutes
+    passingScore: number; // percentage
+    providesBadge: boolean;
 }
 
-const influencerCards: InfluencerCard[] = [
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
-	{
-		date: "",
-		title: "",
-		performer: "Coming Soon",
-		image: image,
-	},
+const certificationCards: CertificationCard[] = [
+    {
+        title: "Advanced React Developer",
+        issuedBy: "Meta",
+        tags: ["React", "Next.js", "Advanced"],
+        price: 4999,
+        questions: 60,
+        duration: 90,
+        passingScore: 75,
+        providesBadge: true,
+    },
+    {
+        title: "AWS Cloud Practitioner",
+        issuedBy: "Amazon Web Services",
+        tags: ["Cloud", "AWS", "Foundational"],
+        price: 7500,
+        questions: 65,
+        duration: 90,
+        passingScore: 72,
+        providesBadge: true,
+    },
+    {
+        title: "UX Design Principles",
+        issuedBy: "Google",
+        tags: ["UX/UI", "Design"],
+        questions: 40,
+        duration: 60,
+        passingScore: 80,
+        providesBadge: false,
+    },
+    {
+        title: "Python for Data Science",
+        issuedBy: "DataCamp",
+        tags: ["Python", "Data", "AI/ML"],
+        price: 3000,
+        questions: 50,
+        duration: 120,
+        passingScore: 80,
+        providesBadge: true,
+    },
+    {
+        title: "Agile Project Management",
+        issuedBy: "PMI",
+        tags: ["Agile", "Scrum", "Management"],
+        price: 6500,
+        questions: 50,
+        duration: 60,
+        passingScore: 70,
+        providesBadge: true,
+    },
 ];
 
-export default function InfluencerCarousel() {
-	return (
-		<div className="influencer w-full bg-transparent text-white p-10 pb-3">
-			<div className="w-full bg-transparent text-white p-4">
-				<div className="flex justify-between items-center mb-4">
-					<h2 className="text-2xl font-bold">
-						Influencers Shaping the Community
-					</h2>
-					{/* <Button variant="outline" onClick={handleShowAllInfluencers}>Show All Influencers</Button> */}
-				</div>
-				<Swiper
-					modules={[Autoplay]}
-					autoplay={{ delay: 3500, disableOnInteraction: false }}
-					loop
-					spaceBetween={30}
-					slidesPerView={1}
-					breakpoints={{
-						640: { slidesPerView: 1 },
-						768: { slidesPerView: 2 },
-						1024: { slidesPerView: 3 },
-					}}
-				>
-					{influencerCards.map((card, index) => (
-						<SwiperSlide key={card.date + index}>
-							<Card className="bg-gray-950 border-none">
-								<CardContent className="p-0">
-									<Image
-										src={card.image}
-										alt={card.title}
-										width={300}
-										height={400}
-										className="w-full h-64 object-cover object-center rounded-xl"
-									/>
-									<div className="p-4">
-										<div className="flex justify-between items-center">
-											<h1 className="text-xl font-bold mb-2">
-												{card.performer}
-											</h1>
-											<h4>{card.title}</h4>
-										</div>
-										<Button
-											className="w-[100px] mt-3 bg-[#8A44CB] text-white font-bold rounded-[15px]"
-											disabled
-										>
-											More Info
-										</Button>
-									</div>
-								</CardContent>
-							</Card>
-						</SwiperSlide>
-					))}
-				</Swiper>
-			</div>
-		</div>
-	);
+// Reusable Card Component to keep the main component clean
+const CertificationCardComponent = ({ card }: { card: CertificationCard }) => (
+    <Card className="bg-white border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 h-full">
+        <CardContent className="p-6 flex flex-col h-full">
+            <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{card.issuedBy}</p>
+                <h3 className="text-xl font-bold text-[#102542] mb-4">
+                    {card.title}
+                </h3>
+                <div className="space-y-3 text-sm text-gray-800 border-t border-gray-200 py-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg w-5 text-center text-[#F87060]">❓</span>
+                        <span>{card.questions} Questions</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg w-5 text-center">🕒</span>
+                        <span>{card.duration} Minute Time Limit</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg w-5 text-center">🎯</span>
+                        <span>{card.passingScore}% Passing Score</span>
+                    </div>
+                    {card.providesBadge && (
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg w-5 text-center">🎖️</span>
+                            <span>Official Badge on Completion</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex-grow" />
+
+            <div className="mt-4">
+                <div className="flex flex-wrap gap-2 border-t border-gray-200 py-4">
+                    {card.tags.map((tag) => (
+                        <span
+                            key={tag}
+                            className="bg-gray-100 text-gray-800 rounded-full px-3 py-1 text-xs font-medium"
+                        >
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-4">
+                    <div className="text-xl font-semibold text-[#102542]">
+                        {card.price && card.price > 0
+                            ? `₹ ${card.price} / ${card.price / 100} Credits`
+                            : "Free"
+                        }
+                    </div>
+                    <Button
+                        className="w-full sm:w-auto bg-[#F87060] text-white font-bold rounded-lg hover:bg-[#F87060]/90 text-base py-3 px-5 shrink-0"
+                    >
+                        Take Test
+                    </Button>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+export default function CertificationsSection() {
+    // REMOVED: Conditional rendering logic is no longer needed.
+    return (
+        <div
+            className="w-full p-4 sm:p-6 lg:p-8"
+            style={{
+                background: "linear-gradient(135deg, #FFFFFF 0%, #F0F2F5 100%)",
+            }}
+        >
+            <div className="w-full bg-transparent">
+                <div className="flex items-center mb-8">
+                    <div className="w-1.5 h-8 bg-[#F87060] mr-4 rounded-full"></div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[#102542]">
+                        Validate Your Skills
+                    </h2>
+                </div>
+
+                {/* MODIFIED: Using Swiper carousel for all screen sizes */}
+                <Swiper
+                    modules={[Autoplay]}
+                    autoplay={{ delay: 4000, disableOnInteraction: false }}
+                    loop
+                    spaceBetween={24}
+                    slidesPerView={1.2} // Base for mobile
+                    breakpoints={{
+                        640: { slidesPerView: 2.2 },  // sm
+                        768: { slidesPerView: 2.5 },  // md
+                        1024: { slidesPerView: 3.5 }, // lg
+                        1280: { slidesPerView: 4.5 }, // xl
+                    }}
+                    className="pb-4"
+                >
+                    {certificationCards.map((card, index) => (
+                        <SwiperSlide key={index} className="h-full py-2">
+                            <CertificationCardComponent card={card} />
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            </div>
+        </div>
+    );
 }

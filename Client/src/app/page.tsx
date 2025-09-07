@@ -9,6 +9,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
 import PreviusCollabs from "@/components/PreviousCollabs";
+import Room from "@/components/Room";
 
 export default function Home() {
 	const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
@@ -72,6 +73,7 @@ export default function Home() {
 			<InfluencerCarousal />
 			<PreviusCollabs />
 			<HostEventSection />
+			<Room />
 		</GoogleOAuthProvider>
 	);
 }
