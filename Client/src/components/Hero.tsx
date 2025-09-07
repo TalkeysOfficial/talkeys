@@ -46,9 +46,9 @@ const Hero = () => {
                             </Button>
                         </Link>
                         {/* UPDATED: Secondary Button for educators, using Bittersweet outline */}
-                        <Link href="/educators">
+                        <Link href="https://ccs-doubts-portal.vercel.app/">
                             <Button className="rounded-[8px] bg-transparent text-[#F87060] border-2 border-[#F87060] hover:bg-[#F87060] hover:text-white px-8 py-6 text-lg transition-colors duration-300">
-                                For Educators
+                                Discussions
                             </Button>
                         </Link>
                     </div>

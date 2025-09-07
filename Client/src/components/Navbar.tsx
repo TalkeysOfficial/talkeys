@@ -37,7 +37,7 @@ import talkey_logo from "@/public/images/talkeyLogo.png";
 const baseNavItems = [
     { name: "Courses", link: "/eventPage", icon: BookOpen },
     { name: "AI Tutor", link: "http://localhost:8501/", icon: Sparkles },
-    { name: "Discussions", link: "/discussions", icon: MessagesSquare },
+    { name: "Discussions", link: "https://ccs-doubts-portal.vercel.app/", icon: MessagesSquare },
     { name: "Leaderboards", link: "/leaderboards", icon: Trophy },
     { name: "For Educators", link: "/educators", icon: PenSquare },
 ];
