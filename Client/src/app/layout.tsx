@@ -64,7 +64,7 @@ export default function RootLayout({
             >
                 <AuthProvider>
                     <Navbar />
-                    <ScrollProgress className="top-[80px] h-0.5" />
+                    
                     {children}
                     <Analytics />
                     <ConditionalFooter />
