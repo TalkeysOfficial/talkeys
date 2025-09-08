@@ -31,23 +31,6 @@ const RegistrationSchema = new Schema(
       required: [true, 'Attendance selection is required'],
       enum: ['Yes', 'No', 'Maybe'],
     },
-    proposalSubmitted: {
-      type: Boolean,
-      default: false,
-    },
-    proposalUrl: {
-      type: String,
-      trim: true,
-    },
-    registrationDate: {
-      type: Date,
-      default: Date.now,
-    },
-    status: {
-      type: String,
-      enum: ['Pending', 'Approved', 'Rejected'],
-      default: 'Pending',
-    },
   },
   { timestamps: true }
 );
