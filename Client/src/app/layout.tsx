@@ -29,8 +29,8 @@ export const metadata: Metadata = {
 	keywords: ["talkeys", "talkeys.xyz"],
 	authors: [
 		{
-			name: "Himanish Puri",
-			url: "https://himanishpuri.tech",
+			name: "Aaryan Beniwal",
+			url: "www.aaryan.codes",
 		},
 		//TODO add all the authors
 	],
@@ -46,34 +46,37 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-	children,
+    children,
 }: Readonly<{
-	children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased ${urbanist.className}`}
-				style={{
-					backgroundImage: `url(${image.src})`,
-					backgroundAttachment: "fixed",
-					width: "100%",
-				}}
-			>
-				<AuthProvider>
-					<Navbar />
-					<ScrollProgress className="top-[80px] h-0.5" />
-					{children}
-					<Analytics />
-					<ConditionalFooter />
-				</AuthProvider>
-				<Toaster
-					position="top-center"
-					richColors
-					theme="dark"
-					closeButton
-				/>
-			</body>
-		</html>
-	);
+    return (
+        <html lang="en">
+            <body
+                className={`${geistSans.variable} ${geistMono.variable} antialiased ${urbanist.className}`}
+                // We're replacing the dark background image with a light color
+                style={{
+                    backgroundColor: '#F9FAFB', // A light gray color
+                    // backgroundImage: `url(${image.src})`, // Commented out for now
+                    backgroundAttachment: "fixed",
+                    width: "100%",
+                }}
+            >
+                <AuthProvider>
+                    <Navbar />
+                    <ScrollProgress className="top-[80px] h-0.5" />
+                    {children}
+                    <Analytics />
+                    <ConditionalFooter />
+                </AuthProvider>
+                <Toaster
+                    position="top-center"
+                    richColors
+                    // Changed the theme for notifications to light
+                    theme="light"
+                    closeButton
+                />
+            </body>
+        </html>
+    );
 }
