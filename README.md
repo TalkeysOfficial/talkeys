@@ -1,6 +1,4 @@
----
-
-## 📘 **Event API Documentation**
+# 📘 **Event API Documentation**
 
 ###  **Authentication Required**
 
