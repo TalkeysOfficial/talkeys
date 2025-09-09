@@ -2,6 +2,9 @@ const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
 const reqEvent = require("../models/reqEvent.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
+const { validationResult } = require("express-validator");
+const InfluencerRegistration = require("../models/InfluencerRegistration.model.js");
+
 
 const createEvent = asyncHandler(async (req, res) => {
 	if (!req.body) {
@@ -343,6 +346,37 @@ const reqEventt = asyncHandler(async (req, res) => {
 });
 
 
+const registerForInfluencer = asyncHandler(async (req, res) => {
+	try {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({ errors: errors.array() });
+		}
+
+		const { name, instaId, phone, followersCount, attendance } = req.body;
+
+		const newRegistration = InfluencerRegistration.create({
+			name,
+			instaId,
+			phone,
+			followersCount,
+			attendance,
+			userId: req.user._id,
+		});
+
+		res.status(201).json({
+			message: "Registration successful",
+			registration: newRegistration,
+		});
+	} catch (error) {
+		res.status(500).json({
+			status: "error",
+			message: "Registration failed",
+			error: error.message,
+		});
+	}
+});
+
 module.exports = {
 	createEvent,
 	getEvents,
@@ -353,4 +387,5 @@ module.exports = {
 	addEvent,
 	deleteSpecificEvent,
 	reqEventt,
+	registerForInfluencer,
 };

@@ -5,6 +5,7 @@ const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
+const { influencerValidation } = require("../helpers/validatorHelper.js");
 router.get('/api/payment/callback/:merchantOrderId', Passes.handlePaymentCallback);
 router.use((req, res, next) => {
     const csp = [
@@ -18,15 +19,15 @@ router.use((req, res, next) => {
         "worker-src 'self' blob:",
         "form-action 'self'"
     ].join("; ");
-    
+
     res.setHeader('Content-Security-Policy', csp);
-    
+
     // Additional security headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
+
     next();
 });
 router.get('/api/ticket-status/:passId', Passes.getTicketStatus);
@@ -38,9 +39,10 @@ router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
-   
+router.post("/register", influencerValidation, Events.registerForInfluencer);
+
 router.post('/api/book-ticket', Passes.bookTicket);
-router.post('/payment/webhook', 
+router.post('/payment/webhook',
     express.raw({ type: 'application/json' }), // For webhook raw body handling
     Passes.handlePaymentWebhook
 );
