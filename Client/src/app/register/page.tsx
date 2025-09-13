@@ -52,7 +52,7 @@ const itemVariants = {
 
 export default function RegisterPage() {
 	const [loading, setLoading] = useState(false);
-	console.log("Backend URL:", BACKEND_URL);
+	
 
   const {
     register,
@@ -71,28 +71,39 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch(`https://api.talkeys.xyz/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-      await response.json();
-      alert("Successfully registered!");
-    } catch (error) {
-      alert("Registration failed!");
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("accessToken");
+
+    const payload = {
+      teamName: data.teamName?.trim(),
+      contactEmail: data.contactEmail?.trim(),
+      contactPhone: data.contactPhone?.trim(),
+    };
+
+    const response = await fetch(`https://api.talkeys.xyz/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.text().catch(() => "");
+      throw new Error(`Request failed ${response.status}: ${err}`);
     }
-  };
+
+    await response.json();
+    alert("Successfully registered!");
+  } catch (error) {
+    alert("Registration failed!");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-900 text-white flex flex-col items-center pt-24 pb-10 px-4">
@@ -149,7 +160,7 @@ export default function RegisterPage() {
                 },
               })}
             />
-            {errors.domain && <p className="text-red-500 text-sm mt-1">{errors.domain.message}</p>}
+            {errors.contactEmail && <p className="text-red-500 text-sm mt-1">{errors.contactEmail.message}</p>}
           </motion.div>
 
           <motion.div variants={itemVariants}>
