@@ -4,6 +4,7 @@ const reqEvent = require("../models/reqEvent.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
 const { validationResult } = require("express-validator");
 const InfluencerRegistration = require("../models/InfluencerRegistration.model.js");
+const Registration = require("../models/registration.model.js");
 
 
 const createEvent = asyncHandler(async (req, res) => {
@@ -347,35 +348,38 @@ const reqEventt = asyncHandler(async (req, res) => {
 
 
 const registerForInfluencer = asyncHandler(async (req, res) => {
-	try {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {
-			return res.status(400).json({ errors: errors.array() });
-		}
+  try {
+    const { teamName, contactEmail, contactPhone } = req.body;
 
-		const { name, instaId, phone, followersCount, attendance } = req.body;
+    if (!teamName || !contactEmail || !contactPhone) {
+      return res.status(400).json({
+        status: "error",
+        message: "teamName, contactEmail, and contactPhone are required",
+      });
+    }
 
-		const newRegistration = InfluencerRegistration.create({
-			name,
-			instaId,
-			phone,
-			followersCount,
-			attendance,
-			userId: req.user._id,
-		});
+    const registration = await Registration.create({
+      teamName,
+      contactEmail,
+      contactPhone,
+      userId: req.user?._id,
+    });
 
-		res.status(201).json({
-			message: "Registration successful",
-			registration: newRegistration,
-		});
-	} catch (error) {
-		res.status(500).json({
-			status: "error",
-			message: "Registration failed",
-			error: error.message,
-		});
-	}
+    return res.status(201).json({
+      status: "success",
+      message: "Registration successful",
+      registration,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Registration failed",
+      error: error.message,
+    });
+  }
 });
+
+
 
 module.exports = {
 	createEvent,

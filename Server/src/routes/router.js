@@ -6,6 +6,7 @@ const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { influencerValidation } = require("../helpers/validatorHelper.js");
+const registerationControlloer = require('../controllers/registeration.controller.js');
 router.get('/api/payment/callback/:merchantOrderId', Passes.handlePaymentCallback);
 router.use((req, res, next) => {
     const csp = [
