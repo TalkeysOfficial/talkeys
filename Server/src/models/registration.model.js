@@ -3,33 +3,23 @@ const Schema = mongoose.Schema;
 
 const RegistrationSchema = new Schema(
   {
-    name: {
+    teamName: {
       type: String,
       required: [true, 'Name is required'],
       trim: true,
     },
-    instaId: {
+    contactEmail: {
       type: String,
-      required: [true, 'Insta id is required'],
+      required: [true, 'Email is required'],
       trim: true,
-      match: [/^@?[A-Za-z0-9._]{1,30}$/, 'Please provide a valid Instagram handle'],
-      set: v => (typeof v === 'string' ? v.trim() : v),
+      lowercase: true,
+      match: [/^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, 'Please provide a valid email address'],
     },
-    phoneNumber: {
+    contactPhone: {
       type: String,
       required: [true, 'Phone number is required'],
       trim: true,
       match: [/^[+]?[(]?\d{1,4}[)]?[-\s.]?\d{3,}([-.\s]?\d{2,})*$/, 'Please provide a valid phone number'],
-    },
-    followerCount: {
-      type: Number,
-      required: [true, 'Follower count is required'],
-      min: [0, 'Follower count cannot be negative'],
-    },
-    attendance: {
-      type: String,
-      required: [true, 'Attendance selection is required'],
-      enum: ['Yes', 'No', 'Maybe'],
     },
   },
   { timestamps: true }
