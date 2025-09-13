@@ -7,6 +7,9 @@ import { Users, Globe2, Phone, Lightbulb, FileText, ArrowUpRight, Mail } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const BACKEND_URL = process.env.BACKEND_URL;
+
+
 type Member = {
   name: string;
   email: string;
@@ -24,31 +27,32 @@ type FormData = {
 };
 
 const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 50,
-      damping: 10,
-      delayChildren: 0.2,
-      staggerChildren: 0.1,
-    },
-  },
+	hidden: { opacity: 0, y: 20 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: {
+			type: "spring",
+			stiffness: 50,
+			damping: 10,
+			delayChildren: 0.2,
+			staggerChildren: 0.1,
+		},
+	},
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 50, damping: 10 },
-  },
+	hidden: { opacity: 0, y: 10 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { type: "spring", stiffness: 50, damping: 10 },
+	},
 };
 
 export default function RegisterPage() {
-  const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
+	console.log("Backend URL:", BACKEND_URL);
 
   const {
     register,
