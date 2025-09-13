@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Users, Globe2, Phone, Lightbulb, FileText, ArrowUpRight } from "lucide-react";
+import { Users, Globe2, Phone, Lightbulb, FileText, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -131,13 +131,19 @@ export default function RegisterPage() {
 
           <motion.div variants={itemVariants}>
             <label className="block mb-1 text-gray-300 flex items-center gap-2">
-              <Globe2 className="w-4 h-4 text-purple-400" />
-              Insta id
+              <Mail className="w-4 h-4 text-purple-400" />
+              Email id
             </label>
             <Input
               className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="@yourhandle"
-              {...register("domain", { required: "Insta id is required" })}
+              placeholder="you@gmail.com"
+              {...register("contactEmail", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
+                  message: "Please enter a valid email address",
+                },
+              })}
             />
             {errors.domain && <p className="text-red-500 text-sm mt-1">{errors.domain.message}</p>}
           </motion.div>
@@ -155,38 +161,8 @@ export default function RegisterPage() {
             {errors.contactPhone && <p className="text-red-500 text-sm mt-1">{errors.contactPhone.message}</p>}
           </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <label className="block mb-1 text-gray-300 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-purple-400" />
-              Follower count
-            </label>
-            <Input
-              type="number"
-              className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              placeholder="e.g., 12000"
-              {...register("projectTitle", { required: "Follower count is required" })}
-            />
-            {errors.projectTitle && <p className="text-red-500 text-sm mt-1">{errors.projectTitle.message}</p>}
-          </motion.div>
-
-          <motion.div variants={itemVariants}>
-            <label className="block mb-1 text-gray-300 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-purple-400" />
-              Will you be able to attend the event on 11th August?
-            </label>
-            <select
-              className="bg-gray-700 text-white w-full rounded-md px-3 py-2 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              {...register("projectDescription", { required: "Please select an option" })}
-            >
-              <option value="">-- Select --</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-              <option value="Maybe">Maybe</option>
-            </select>
-            {errors.projectDescription && (
-              <p className="text-red-500 text-sm mt-1">{errors.projectDescription.message}</p>
-            )}
-          </motion.div>
+          
+          
 
           <motion.div variants={itemVariants}>
             <Button
