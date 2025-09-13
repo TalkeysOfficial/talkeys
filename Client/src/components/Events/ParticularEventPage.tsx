@@ -175,6 +175,7 @@ export default function ParticularEventPage({
 						removeFriend={removeFriend}
 						onEnter={handleEnter}
 						passQRCodes={passQRCodes}
+						registrationLink={event.registrationLink}
 					/>
 				</EventHeader>
 

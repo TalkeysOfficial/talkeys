@@ -16,6 +16,7 @@ type CommonProps = {
 	status: string;
 	isLive?: boolean;
 	isRegistrationOpen: boolean;
+	registrationLink?: string;
 
 	// team / phone
 	phone: string;
@@ -60,64 +61,82 @@ type CommonProps = {
 };
 
 export default function RegistrationControls(props: CommonProps) {
-	const isDisabled =
-		props.status === "registration_closed" ||
-		props.status === "coming_soon" ||
-		props.status === "ended" ||
-		!props.isLive;
+	// Check for registrationLink first, before other status conditions
+	const hasExternalRegistration = !!props.registrationLink;
 
-	const initialButtonText =
-		props.status === "registration_closed"
-			? "Registrations Closed"
-			: props.status === "coming_soon"
-			? "Coming Soon"
-			: props.status === "live"
-			? props.isPaid
-				? "Pay NOW"
-				: "Register Now"
-			: "Event Ended";
+	const isDisabled = hasExternalRegistration
+		? false
+		: props.status === "registration_closed" ||
+		  props.status === "coming_soon" ||
+		  props.status === "ended" ||
+		  !props.isLive;
 
-	const initialAria =
-		props.status === "registration_closed"
-			? "Registrations closed"
-			: props.status === "coming_soon"
-			? "Event coming soon"
-			: props.status === "live"
-			? props.isPaid
-				? "Pay for tickets for event"
-				: "Register for event"
-			: "Event ended";
+	const initialButtonText = hasExternalRegistration
+		? "Register Now"
+		: props.status === "registration_closed"
+		? "Registrations Closed"
+		: props.status === "coming_soon"
+		? "Coming Soon"
+		: props.status === "live"
+		? props.isPaid
+			? "Pay NOW"
+			: "Register Now"
+		: "Event Ended";
+
+	const initialAria = hasExternalRegistration
+		? "Register for event via external link"
+		: props.status === "registration_closed"
+		? "Registrations closed"
+		: props.status === "coming_soon"
+		? "Event coming soon"
+		: props.status === "live"
+		? props.isPaid
+			? "Pay for tickets for event"
+			: "Register for event"
+		: "Event ended";
+
+	const handleInitialClick = () => {
+		if (hasExternalRegistration) {
+			window.open(props.registrationLink, "_blank");
+		} else if (props.isPaid) {
+			props.payNow();
+		} else {
+			props.goRegister();
+		}
+	};
 
 	const InitialPaidBlock = (
 		<div className="space-y-3 w-full">
-			<FriendsSection
-				show={props.showFriends}
-				toggle={() => props.setShowFriends(!props.showFriends)}
-				name={props.name}
-				setName={props.setName}
-				email={props.email}
-				setEmail={props.setEmail}
-				phone={props.phoneFriend}
-				setPhone={props.setPhoneFriend}
-				errors={props.errors}
-				validateField={props.validateField}
-				onEnter={props.onEnter}
-				add={props.addFriend}
-				remove={props.removeFriend}
-				friends={props.friends}
-			/>
+			{!hasExternalRegistration && (
+				<FriendsSection
+					show={props.showFriends}
+					toggle={() => props.setShowFriends(!props.showFriends)}
+					name={props.name}
+					setName={props.setName}
+					email={props.email}
+					setEmail={props.setEmail}
+					phone={props.phoneFriend}
+					setPhone={props.setPhoneFriend}
+					errors={props.errors}
+					validateField={props.validateField}
+					onEnter={props.onEnter}
+					add={props.addFriend}
+					remove={props.removeFriend}
+					friends={props.friends}
+				/>
+			)}
 			<motion.div
 				whileHover={{ scale: 1.03 }}
 				whileTap={{ scale: 0.97 }}
 			>
 				<Button
 					className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
-					onClick={props.payNow}
+					onClick={handleInitialClick}
 					disabled={isDisabled}
 					aria-label={initialAria}
 				>
 					{initialButtonText}
-					{props.friends.length > 0 && (
+					{!hasExternalRegistration && props.friends.length > 0 && (
 						<span className="ml-2 text-xs bg-purple-800 px-2 py-1 rounded-full">
 							+{props.friends.length}
 						</span>
@@ -134,7 +153,7 @@ export default function RegistrationControls(props: CommonProps) {
 		>
 			<Button
 				className="bg-purple-600 hover:bg-purple-700 w-full"
-				onClick={props.goRegister}
+				onClick={handleInitialClick}
 				disabled={isDisabled}
 				aria-label={initialAria}
 			>
