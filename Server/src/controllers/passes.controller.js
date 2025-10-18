@@ -201,7 +201,7 @@ const bookTicket = async (req, res) => {
 
     const qrStrings = [];
     qrStrings.push({
-      personName: user.name || "You",
+      personName: req.user.name || "You",
     });
     if (friends.length > 0) {
       for (const friend of friends) {
@@ -382,7 +382,7 @@ const bookTicketApp = async (req, res) => {
 
     const qrStrings = [];
     qrStrings.push({
-      personName: user.name || "You",
+      personName: req.user.name || "You",
     });
     if (friends.length > 0) {
       for (const friend of friends) {
