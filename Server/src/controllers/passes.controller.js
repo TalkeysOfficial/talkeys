@@ -178,7 +178,7 @@ const bookTicket = async (req, res) => {
       eventName: event.name,
       passType: req.body.passType || "General",
       friends,
-      mobileNumber: user.phoneNumber,
+      mobileNumber: req.user.phoneNumber,
     };
 
     const paymentOrder = await createPhonePeOrder(orderData);
@@ -364,7 +364,7 @@ const bookTicketApp = async (req, res) => {
       eventName: event.name,
       passType: req.body.passType || "General",
       friends,
-      mobileNumber: user.phoneNumber,
+      mobileNumber: req.user.phoneNumber,
     };
 
     const paymentOrder = await createPhonePeOrderApp(orderData);
