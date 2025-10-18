@@ -154,7 +154,7 @@ const bookTicket = async (req, res) => {
 
     // Create temporary pass
     const pass = new Pass({
-      userId: , // mongo object id
+      userId: req.user._id, // mongo object id
       eventId: req.body.eventId,
       passType: req.body.passType || "General",
       status: "pending",
@@ -173,7 +173,7 @@ const bookTicket = async (req, res) => {
     const orderData = {
       merchantOrderId,
       amount: amountInPaisa,
-      userId: req.user.userId,
+      userId: req.user._id,
       eventId: req.body.eventId,
       eventName: event.name,
       passType: req.body.passType || "General",
@@ -359,7 +359,7 @@ const bookTicketApp = async (req, res) => {
     const orderData = {
       merchantOrderId,
       amount: amountInPaisa,
-      userId: req.user.userId,
+      userId: req.user._id,
       eventId: req.body.eventId,
       eventName: event.name,
       passType: req.body.passType || "General",
