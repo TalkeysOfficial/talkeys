@@ -180,12 +180,12 @@ const bookTicket = async (req, res) => {
     const orderData = {
       merchantOrderId,
       amount: amountInPaisa,
-      userId: req.body.userId,
+      userId: req.user.userId,
       eventId: req.body.eventId,
-      eventName: event.title,
+      eventName: event.name,
       passType: req.body.passType || "General",
       friends,
-      mobileNumber: user.phone,
+      mobileNumber: user.phoneNumber,
     };
 
     const paymentOrder = await createPhonePeOrder(orderData);
@@ -372,12 +372,12 @@ const bookTicketApp = async (req, res) => {
     const orderData = {
       merchantOrderId,
       amount: amountInPaisa,
-      userId: req.body.userId,
+      userId: req.user.userId,
       eventId: req.body.eventId,
-      eventName: event.title,
+      eventName: event.name,
       passType: req.body.passType || "General",
       friends,
-      mobileNumber: user.phone,
+      mobileNumber: user.phoneNumber,
     };
 
     const paymentOrder = await createPhonePeOrderApp(orderData);
