@@ -8,6 +8,7 @@ const { checkRole } = require("../middleware/role.middleware.js");
 const { influencerValidation } = require("../helpers/validatorHelper.js");
 const registerationControlloer = require('../controllers/registeration.controller.js');
 router.get('/api/payment/callback/:merchantOrderId', Passes.handlePaymentCallback);
+router.get('/api/payment/app-status-check/:merchantOrderId', Passes.handleAppStatusCheck);
 router.use((req, res, next) => {
     const csp = [
         "default-src 'self'",
@@ -31,6 +32,7 @@ router.use((req, res, next) => {
 
     next();
 });
+
 router.get('/api/ticket-status/:passId', Passes.getTicketStatus);
 router.get("/getEvents", Events.getEvents);
 router.use("/dashboard", require("./dashboard.routes"));
@@ -43,10 +45,12 @@ router.use(auth.verifyToken);
 router.post("/register", influencerValidation, Events.registerForInfluencer);
 
 router.post('/api/book-ticket', Passes.bookTicket);
+router.post('/api/book-ticket-app', Passes.bookTicketApp);
 router.post('/payment/webhook',
     express.raw({ type: 'application/json' }), // For webhook raw body handling
     Passes.handlePaymentWebhook
 );
+
 router.get('/api/passbyuuid/:passUUID', Passes.getPassByUUID);
 router.post('/api/getTix', Passes.getPassByQrStringsAndPassUUID);
 // Event Interaction Routes
