@@ -123,13 +123,6 @@ const bookTicket = async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user?._id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
-    }
 
     const event = await Event.findById(req.body.eventId);
     if (!event) {
@@ -161,7 +154,7 @@ const bookTicket = async (req, res) => {
 
     // Create temporary pass
     const pass = new Pass({
-      userId: req.user?._id,
+      userId: , // mongo object id
       eventId: req.body.eventId,
       passType: req.body.passType || "General",
       status: "pending",
@@ -315,13 +308,7 @@ const bookTicketApp = async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.user?._id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: "User not found",
-      });
-    }
+    console.log("User:", req.user);
 
     const event = await Event.findById(req.body.eventId);
     if (!event) {
