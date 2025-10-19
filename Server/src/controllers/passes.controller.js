@@ -22,11 +22,15 @@ const CONFIG = {
     AUTH_URL: "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
     BASE_URL: "	https://api.phonepe.com/apis/pg",
   },
+  UAT: {
+    AUTH_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token",
+    BASE_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox",
+  },
   CLIENT_VERSION: "1.0",
 };
 
 // Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV;
+const ENVIRONMENT = process.env.PHONEPE_ENV==="production"? "PRODUCTION" : "UAT";
 const CLIENT_ID = process.env.PHONEPE_CLIENT_ID;
 const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
 
@@ -34,7 +38,7 @@ const getPhonePeAccessToken = async () => {
   try {
     console.log("[PhonePe] Requesting access token...");
     const response = await axios.post(
-      "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
+      CONFIG[ENVIRONMENT].AUTH_URL,
       qs.stringify({
         client_id: process.env.PHONEPE_CLIENT_ID,
         client_secret: process.env.PHONEPE_CLIENT_SECRET,
@@ -274,7 +278,7 @@ const createPhonePeOrderApp = async (orderData) => {
 
     const options = {
       method: "POST",
-      url: "https://api.phonepe.com/apis/pg/checkout/v2/sdk/order",
+      url: `${CONFIG[ENVIRONMENT].BASE_URL}/checkout/v2/sdk/order`,
       headers: requestHeaders,
       data: requestBody,
     };
@@ -400,11 +404,11 @@ const bookTicketApp = async (req, res) => {
       data: {
         passId: pass._id,
         merchantOrderId: merchantOrderId,
-        phonePeOrderId: paymentOrder.data?.orderId || paymentOrder.orderId,
+        orderId: paymentOrder.data?.orderId || paymentOrder.orderId,
         amount: totalAmount,
         amountInPaisa: amountInPaisa,
         totalTickets: totalTicketsNeeded,
-        paymentUrl: paymentOrder.data?.token || paymentOrder.token,
+        token: paymentOrder.data?.token || paymentOrder.token,
         expiresAt: pass.expiresAt,
         event: {
           id: event._id,
