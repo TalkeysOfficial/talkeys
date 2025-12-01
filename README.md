@@ -229,4 +229,3 @@ Routes below `router.use(auth.verifyToken);` require a valid JWT token.
   }
 }
 ```
-
