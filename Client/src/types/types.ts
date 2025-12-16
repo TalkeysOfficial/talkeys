@@ -38,6 +38,7 @@ export interface Event {
 	startDate: string;
 	startTime: string;
 	startRegistrationDate: string;
+	endRegistrationDate: string;
 	photographs: string[];
 	sponsorImages: string[];
 	registrationCount: number;

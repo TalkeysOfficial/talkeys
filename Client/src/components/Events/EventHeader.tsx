@@ -94,29 +94,35 @@ export default function EventHeader({
 						<div className="w-full sm:w-auto">{children}</div>
 					</div>
 
-					<div className="flex justify-end items-center gap-2 w-full">
-						<div className="flex items-center gap-2">
-							<motion.img
-								src={heartImg.src}
-								alt="likes"
-								className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
-								onClick={toggleLike}
-								animate={{ scale: isLike ? 1.1 : 1 }}
-								transition={{
-									type: "spring",
-									stiffness: 300,
-									damping: 12,
-								}}
-							/>
-							<img
-								src={vectorImg.src}
-								alt="vector"
-								className="w-6 h-6 object-contain"
-							/>
-						</div>
-						<span className="block text-white text-sm font-urbanist">
-							{likes} likes
+					<div className="flex justify-between items-center gap-2 w-full">
+						<span className="text-white text-base sm:text-lg font-bold font-urbanist">
+							Rs. {event.ticketPrice}
 						</span>
+						
+						<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2">
+								<motion.img
+									src={heartImg.src}
+									alt="likes"
+									className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
+									onClick={toggleLike}
+									animate={{ scale: isLike ? 1.1 : 1 }}
+									transition={{
+										type: "spring",
+										stiffness: 300,
+										damping: 12,
+									}}
+								/>
+								<img
+									src={vectorImg.src}
+									alt="vector"
+									className="w-6 h-6 object-contain"
+								/>
+							</div>
+							<span className="block text-white text-sm font-urbanist">
+								{likes} likes
+							</span>
+						</div>
 					</div>
 
 					<Image
@@ -136,15 +142,17 @@ export default function EventHeader({
 								{event.mode}
 							</span>
 						</div>
-
-						<div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-								{event.visibility}
-							</span>
-							<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-								{event.type ?? "Event Type"}
-							</span>
-						</div>
+						{event.visibility && event.type && (
+							<div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
+								<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+									{event.visibility}
+								</span>
+								<span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
+									{event.type ?? "Event Type"}
+								</span>
+							</div>	
+						)}
+						
 					</div>
 				</div>
 			</div>

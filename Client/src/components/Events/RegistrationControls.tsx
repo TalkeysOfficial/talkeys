@@ -73,7 +73,7 @@ export default function RegistrationControls(props: CommonProps) {
 			? "Coming Soon"
 			: props.status === "live"
 			? props.isPaid
-				? "Pay NOW"
+				? "Pay Now"
 				: "Register Now"
 			: "Event Ended";
 
@@ -90,7 +90,7 @@ export default function RegistrationControls(props: CommonProps) {
 
 	const InitialPaidBlock = (
 		<div className="space-y-3 w-full">
-			<FriendsSection
+			{/* <FriendsSection
 				show={props.showFriends}
 				toggle={() => props.setShowFriends(!props.showFriends)}
 				name={props.name}
@@ -105,7 +105,7 @@ export default function RegistrationControls(props: CommonProps) {
 				add={props.addFriend}
 				remove={props.removeFriend}
 				friends={props.friends}
-			/>
+			/> */}
 			<motion.div
 				whileHover={{ scale: 1.03 }}
 				whileTap={{ scale: 0.97 }}
@@ -423,11 +423,8 @@ export default function RegistrationControls(props: CommonProps) {
 		case "passCreated":
 			return (
 				<div className="space-y-6 w-full max-w-sm mx-auto">
-					<div className="text-green-500 text-center">
-						Pass Created Successfully!
-					</div>
-
-					{props.isPaid && (props.ticketPrice ?? 0) > 0 && (
+					
+					{/* {props.isPaid && (props.ticketPrice ?? 0) > 0 && (
 						<div className="space-y-3">
 							<FriendsSection
 								show={props.showFriends}
@@ -446,32 +443,22 @@ export default function RegistrationControls(props: CommonProps) {
 								friends={props.friends}
 							/>
 						</div>
-					)}
+					)} */}
 
-					{props.isPaid && (props.ticketPrice ?? 0) > 0 && (
-						<motion.div
+			
+
+					<motion.div
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
 							className="mb-2"
 						>
 							<Button
 								className="bg-purple-600 hover:bg-purple-700 w-full flex items-center justify-center gap-2"
-								onClick={props.payNow}
 							>
-								<span className="text-lg font-bold">Buy Now</span>
-								{props.ticketPrice ? (
-									<span className="text-sm">
-										₹ {props.ticketPrice}
-									</span>
-								) : null}
-								{props.friends.length > 0 && (
-									<span className="ml-2 text-xs bg-purple-800 px-2 py-1 rounded-full">
-										+{props.friends.length}
-									</span>
-								)}
+								<span className="text-lg font-bold">Pass Created Successfully!</span>
+								
 							</Button>
 						</motion.div>
-					)}
 				</div>
 			);
 		default:
