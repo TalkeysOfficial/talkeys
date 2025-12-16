@@ -124,10 +124,10 @@ const passSchema = new mongoose.Schema({
 });
 
 passSchema.pre('save', function(next) {
-	if (!this.passUUID && this.status === 'active') {
+	if (!this.passUUID && this.passStatus === 'active') {
 		this.passUUID = uuidv4();
 	}
-	if (this.status === 'active' && (!this.qrStrings || this.qrStrings.length === 0)) {
+	if (this.passStatus === 'active' && (!this.qrStrings || this.qrStrings.length === 0)) {
 		this.qrStrings = [];
 		this.qrStrings.push({
 			id: uuidv4(),
@@ -194,7 +194,7 @@ passSchema.statics.validateQRString = async function(qrId) {
 	if (qrString.isScanned) {
 		return { valid: false, message: "QR code already scanned" };
 	}
-	if (pass.status !== 'active') {
+	if (pass.passStatus !== 'active') {
 		return { valid: false, message: "Pass is not active" };
 	}
 	return { valid: true, pass, qrString };

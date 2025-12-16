@@ -167,7 +167,7 @@ const bookTicket = async (req, res) => {
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + 20 * 60 * 1000),
     });
-
+    console.log('Creating pass:', pass);
     await pass.save();
     console.log('Pass created with ID:', pass._id);
 
@@ -200,6 +200,7 @@ const bookTicket = async (req, res) => {
 
     const qrStrings = [];
     qrStrings.push({
+      id: uuidv4(),
       personName: user.name || "You",
     });
     if (friends.length > 0) {
@@ -211,6 +212,7 @@ const bookTicket = async (req, res) => {
       }
     }
     pass.qrStrings = qrStrings;
+    console.log("Saving QR strings to pass");
     await pass.save();
 
     return res.status(200).json({
