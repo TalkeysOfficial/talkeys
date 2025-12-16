@@ -197,11 +197,11 @@ const bookTicket = async (req, res) => {
 
     // Generate QR strings for the user and friends
 
-
+    
     const qrStrings = [];
     qrStrings.push({
       id: uuidv4(),
-      personName: user.name || "You",
+      personName: user?.name || "You",
     });
     if (friends.length > 0) {
       for (const friend of friends) {
