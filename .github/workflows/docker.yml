@@ -39,7 +39,7 @@ jobs:
 
       - name: SSH into server and deploy backend
         run: |
-          ssh -o StrictHostKeyChecking=no akars@ccstiet.com 'cd /home/shreyas/talkeys/Server && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys && sudo docker-compose up --build -d'
+          ssh -o StrictHostKeyChecking=no akars@ccstiet.com 'cd /home/shreyas/talkeys/Server && sudo git pull https://ShreyasMahajann:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys && sudo docker compose up --build -d'
           echo "Allowing Go Fiber Program to start properly"
           sleep 10
 
