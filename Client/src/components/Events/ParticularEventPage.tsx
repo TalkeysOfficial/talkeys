@@ -194,8 +194,8 @@ export default function ParticularEventPage({
             {["details", "dates", "prizes", "community"].map((key, index) => {
               const labels = [
                 "DETAILS",
-                "DATE & DEADLINES",
-                "PRIZES",
+                // "DATE & DEADLINES",
+                // "PRIZES",
                 "JOIN DISCUSSION COMMUNITY",
               ];
               return (
@@ -234,7 +234,7 @@ export default function ParticularEventPage({
           </div>
 
           {/* Dates */}
-          <div
+          {/*<div
             className={`flex flex-col bg-neutral-900 rounded-none w/full px-3 sm:px-[21px] py-2 sm:py-[13px] gap-2 sm:gap-[16px] transition-colors duration-200 ${
               hovered === "dates" ? "bg-[#8A44CB]/20" : ""
             }`}
@@ -252,12 +252,12 @@ export default function ParticularEventPage({
               {formatTime(event.startTime)} <br />
               <span className="font-medium">Duration:</span> {event.duration}{" "}
               <br />
-              {/*<span className="font-medium">
+              <span className="font-medium">
 								Registration Deadline:
 							</span>{" "}
-							{new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}*/}
+							{new Date(event.endRegistrationDate).toLocaleDateString("en-IN")}
             </span>
-          </div>
+          </div>*/}
 
           {/* Prizes */}
           {event.prizes && (
