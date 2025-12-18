@@ -52,9 +52,17 @@ export default function EventHeader({
         />
 
         <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-md lg:max-w-lg text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0 min-w-0">
-          <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold font-urbanist leading-tight break-words">
-            {event.tileName}
-          </span>
+          <div className="flex flex-col gap-1 font-urbanist">
+            <h2 className="text-white text-xl sm:text-2xl md:text-3xl font-bold leading-tight break-words">
+              {event.tileName}
+            </h2>
+            <span className="text-gray-300 text-sm sm:text-base font-medium tracking-wider">
+              In Partnership with{" "}
+              <span className="font-bold text-white">
+                Mother Dairy Fruit &amp; Vegetable Pvt. Ltd.
+              </span>{" "}
+            </span>
+          </div>
 
           <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist min-w-0">
             <div className="flex items-start gap-2 min-w-0">
