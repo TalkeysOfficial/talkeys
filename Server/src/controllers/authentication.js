@@ -7,7 +7,6 @@ const { OAuth2Client } = require("google-auth-library");
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Your Google Client ID
 const client = new OAuth2Client(CLIENT_ID);
 
-
 exports.login = async (req, res) => {
   try {
     const data = req.headers.authorization;
@@ -27,40 +26,31 @@ exports.login = async (req, res) => {
 
     if (!user) {
       // Generate refresh token - you might want to use a more sophisticated method
-      const refreshToken = jwt.sign(
-        { email: payload.email }, 
-        secret, 
-        { expiresIn: '7d' }
-      );
+      const refreshToken = jwt.sign({ email: payload.email }, secret, {
+        expiresIn: "7d",
+      });
 
       // Create access token
-      const accessToken = jwt.sign(
-        { email: payload.email }, 
-        secret, 
-        { expiresIn: '24h' }
-      );
+      const accessToken = jwt.sign({ email: payload.email }, secret, {
+        expiresIn: "4d",
+      });
 
       user = new User({
-        googleId: payload.sub,  // Google's unique identifier
+        googleId: payload.sub, // Google's unique identifier
         email: payload.email,
         name: payload.name,
         accessToken: accessToken,
-        refreshToken: refreshToken
+        refreshToken: refreshToken,
       });
-
     } else {
       // Update existing user's tokens
-      const accessToken = jwt.sign(
-        { email: payload.email }, 
-        secret, 
-        { expiresIn: '24h' }
-      );
-      
-      const refreshToken = jwt.sign(
-        { email: payload.email }, 
-        secret, 
-        { expiresIn: '7d' }
-      );
+      const accessToken = jwt.sign({ email: payload.email }, secret, {
+        expiresIn: "4d",
+      });
+
+      const refreshToken = jwt.sign({ email: payload.email }, secret, {
+        expiresIn: "7d",
+      });
 
       user.accessToken = accessToken;
       user.refreshToken = refreshToken;
@@ -69,14 +59,13 @@ exports.login = async (req, res) => {
 
     return res.json({
       accessToken: user.accessToken,
-      name: user.name
+      name: user.name,
     });
-
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: "Internal server error",
-      error: err.message 
+      error: err.message,
     });
   }
 };
@@ -88,4 +77,3 @@ exports.logout = (req, res) => {
   res.clearCookie("jwt");
   res.send("Logged out");
 };
-
