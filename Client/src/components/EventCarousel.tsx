@@ -108,10 +108,10 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
                     <Image alt="calendar" src={calendarSvg} />
                   </div>
                   <div className="truncate">{formatDate(event.startDate)}</div>
-                  <div className="hidden sm:block">|</div>
-                  <div className="hidden sm:block">
+                  <div className="hidden sm:block"></div>
+                  {/*<div className="hidden sm:block">
                     {formatTime(event.startTime)}
-                  </div>
+                  </div>*/}
                 </div>
 
                 {/* footer row */}
