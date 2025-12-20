@@ -984,6 +984,7 @@ const canScan = async (req, res) => {
     if (user.role !== "admin") {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
     }
+
     return res.status(200).json({ message: "User can scan passes" });
   } catch (error) {
     console.error("Get pass error:", error);
@@ -991,6 +992,42 @@ const canScan = async (req, res) => {
   }
 };
 
+const admnDetails = async (req, res) => {
+  let user = req.user;
+  let eventId = req.body.eventId;
+  const event = await Event.findById(eventId);
+  if (user.role !== "admin" && user.role !== "event_manager") {
+    return res.status(403).json({ error: "Forbidden: Invalid role" });
+  }
+  try {
+    if (user.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden: Invalid role" });
+    }
+    // fetch all passes with completed
+    const passes = await Pass.find({ paymentStatus: "completed" });
+    // calculate total number of passes
+    const totalDocuments = passes.length - 3;
+    // add all the amount - 9* length of documents
+    const totalAmount = passes.reduce((acc, pass) => acc + pass.amount, 0);
+    const totalAmountAfterAdjustment = totalAmount - 5 - 9 * totalDocuments;
+
+    const y2kPasses = await Pass.find({
+      paymentStatus: "completed",
+      amount: 209,
+    });
+    const y2kPassesCount = y2kPasses.length;
+
+    return res.status(200).json({
+      message: "Details fetched successfully",
+      passes: totalDocuments,
+      amount: totalAmountAfterAdjustment,
+      y2kPasses: y2kPassesCount,
+    });
+  } catch (error) {
+    console.error("Get pass error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 module.exports = {
   getPassByUserAndEvent,
   bookTicket,
@@ -1003,4 +1040,5 @@ module.exports = {
   getPassByQrStringsAndPassUUID,
   cleanupExpiredPasses,
   getPassByUUID,
+  admnDetails,
 };
