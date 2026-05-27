@@ -10,6 +10,16 @@ router.get(
   "/api/payment/callback/:merchantOrderId",
   Passes.handlePaymentCallback,
 );
+router.post(
+  "/api/payment/webhook",
+  express.raw({ type: "application/json" }),
+  Passes.handlePaymentWebhook,
+);
+router.post(
+  "/payment/webhook",
+  express.raw({ type: "application/json" }),
+  Passes.handlePaymentWebhook,
+);
 router.use((req, res, next) => {
   const csp = [
     "default-src 'self'",
@@ -45,11 +55,6 @@ router.use(auth.verifyToken);
 router.post("/register", influencerValidation, Events.registerForInfluencer);
 
 router.post("/api/book-ticket", Passes.bookTicket);
-router.post(
-  "/payment/webhook",
-  express.raw({ type: "application/json" }), // For webhook raw body handling
-  Passes.handlePaymentWebhook,
-);
 router.get("/api/passbyuuid/:passUUID", Passes.getPassByUUID);
 router.post("/api/getTix", Passes.getPassByQrStringsAndPassUUID);
 // Event Interaction Routes
