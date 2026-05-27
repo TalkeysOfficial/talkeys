@@ -121,7 +121,7 @@ const getEvents = asyncHandler(async (req, res) => {
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
-				status: event.getStatus(), // Now this will work and console.log
+				status: event.getStatus(),
 			};
 		});
 
@@ -172,7 +172,7 @@ const getEventById = async (req, res) => {
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
-				status: event.getStatus(), // Now this will work and console.log
+				status: event.getStatus(),
 			},
 		});
 	} catch (error) {

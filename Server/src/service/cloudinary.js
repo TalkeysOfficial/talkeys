@@ -1,7 +1,7 @@
-import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import path from "path";
-import fs from "fs";
+const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
+const path = require("path");
+const fs = require("fs");
 
 // Multer configuration for temporary storage (in memory)
 const storage = multer.diskStorage({
@@ -26,13 +26,13 @@ cloudinary.config({
 });
 
 // Handle image upload route
-export const config = {
+const config = {
 	api: {
 		bodyParser: false, // Disable the default body parser for handling form-data (needed for multer)
 	},
 };
 
-export default function getUrl (req, res) {
+function getUrl(req, res) {
 	// Use multer to handle the file upload
 	upload.single("image")(req, res, async (err) => {
 		if (err) {
@@ -67,4 +67,9 @@ export default function getUrl (req, res) {
 			});
 		}
 	});
+}
+
+module.exports = {
+	config,
+	getUrl,
 };

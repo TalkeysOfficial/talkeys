@@ -10,18 +10,28 @@ const client = new OAuth2Client(CLIENT_ID);
 exports.login = async (req, res) => {
   try {
     const data = req.headers.authorization;
+
+    if (!data || !data.startsWith("Bearer ")) {
+      return res.status(403).json({ message: "No token provided" });
+    }
+
     const idtoken = data.split(" ")[1];
 
     if (!idtoken) {
       return res.status(403).json({ message: "No token provided" });
     }
 
-    const ticket = await client.verifyIdToken({
-      idToken: idtoken,
-      audience: CLIENT_ID,
-    });
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: idtoken,
+        audience: CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid Google token" });
+    }
 
-    const payload = ticket.getPayload();
     var user = await User.findOne({ email: payload.email });
 
     if (!user) {
