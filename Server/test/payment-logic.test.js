@@ -46,6 +46,16 @@ test("friend list is capped and normalized", () => {
   assert.equal(sanitized[8].email, "friend8@example.com");
 });
 
+test("basic-pass gated events come from env configuration", () => {
+  const previousEventIds = process.env.BASIC_PASS_REQUIRED_EVENT_IDS;
+
+  process.env.BASIC_PASS_REQUIRED_EVENT_IDS = " event-a, event-b ,, ";
+
+  assert.deepEqual(_test.basicPassRequiredEventIds(), ["event-a", "event-b"]);
+
+  process.env.BASIC_PASS_REQUIRED_EVENT_IDS = previousEventIds;
+});
+
 test("QR strings are generated for buyer and friends as unscanned entries", () => {
   const qrStrings = _test.buildQRStrings(
     { name: "Buyer" },

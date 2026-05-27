@@ -4,10 +4,14 @@
    import { redirect }            from "next/navigation";
    
  
-   const API ="https://api.talkeys.xyz";          
+   const API = process.env.BACKEND_URL;
    
 
    const fetcher = async (endpoint: string) => {
+     if (!API) {
+       throw new Error("BACKEND_URL is not configured");
+     }
+
      const token = localStorage.getItem("accessToken") ?? "";
    
      const res = await fetch(`${API}${endpoint}`, {
@@ -37,4 +41,3 @@
        mutate,
      };
    }
-   

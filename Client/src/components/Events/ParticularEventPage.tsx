@@ -91,14 +91,26 @@ export default function ParticularEventPage({
     if (passQRCodes.length) setState("passCreated");
   }, [passQRCodes.length, setState]);
 
-  const handleRegisterClick = () => {
+  const handleRegisterClick = async () => {
     if (event.registrationLink) window.open(event.registrationLink, "_blank");
-    else router.push("/register");
+    else await handleCreatePass();
   };
 
   async function handleCreatePass() {
-    await createPass(teamCode);
-    setState("passCreated");
+    if (!isSignedIn) {
+      toast.error("Please log in first to register.");
+      return;
+    }
+    try {
+      if (event.isPaid) {
+        await handlePayNowClick();
+        return;
+      }
+      await createPass(teamCode);
+      setState("passCreated");
+    } catch (e: any) {
+      toast.error(e?.error ?? "Failed to create pass");
+    }
   }
 
   async function handlePayNowClick() {
@@ -111,6 +123,7 @@ export default function ParticularEventPage({
         eventId: event._id,
         passType: "General",
         friends,
+        teamCode: event.isTeamEvent ? teamCode : undefined,
       });
       // clear friend form after redirect-init
       window.location.href = res.data.paymentUrl;
@@ -122,6 +135,11 @@ export default function ParticularEventPage({
 
   // hover tabs (kept from your UI)
   const [hovered, setHovered] = useState<string | null>(null);
+  const tabs: Array<[string, string]> = [
+    ["details", "DETAILS"],
+    ...(event.prizes ? ([["prizes", "PRIZES"]] as Array<[string, string]>) : []),
+    ["community", "JOIN DISCUSSION COMMUNITY"],
+  ];
 
   return (
     <>
@@ -140,6 +158,7 @@ export default function ParticularEventPage({
           <RegistrationControls
             state={state}
             isPaid={!!event.isPaid}
+            isTeamEvent={!!event.isTeamEvent}
             ticketPrice={event.ticketPrice}
             status={event.status}
             isRegistrationOpen={event.isRegistrationOpen}
@@ -152,6 +171,7 @@ export default function ParticularEventPage({
             setTeamName={setTeamName}
             toJoin={toJoin}
             toCreate={toCreate}
+            startTeamRegistration={() => setState("teamOptions")}
             submitPhone={submitPhone}
             submitJoin={submitJoin}
             submitCreate={submitCreate}
@@ -191,13 +211,7 @@ export default function ParticularEventPage({
         {/* Tabs */}
         <div className="w-max max-w-full bg-[#262626] overflow-x-auto whitespace-nowrap no-scrollbar inline-flex items-center justify-start gap-[8px] sm:gap-[20px] px-3 sm:px-6 mt-6 sm:ml-6">
           <div className="inline-flex items-center gap-[8px] sm:gap-[16px] min-w-max">
-            {["details", "dates", "prizes", "community"].map((key, index) => {
-              const labels = [
-                "DETAILS",
-                // "DATE & DEADLINES",
-                // "PRIZES",
-                "JOIN DISCUSSION COMMUNITY",
-              ];
+            {tabs.map(([key, label]) => {
               return (
                 <button
                   key={key}
@@ -207,7 +221,7 @@ export default function ParticularEventPage({
                     hovered === key ? "bg-[#8A44CB]/30 rounded-md" : ""
                   }`}
                 >
-                  {labels[index]}
+                  {label}
                 </button>
               );
             })}

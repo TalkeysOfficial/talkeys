@@ -4,6 +4,7 @@ const auth = require("../middleware/oauth.js");
 const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
+const Teams = require("./../controllers/team.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { influencerValidation } = require("../helpers/validatorHelper.js");
 router.get(
@@ -54,6 +55,8 @@ router.get("/logout", authentication.logout);
 router.use(auth.verifyToken);
 router.post("/register", influencerValidation, Events.registerForInfluencer);
 
+router.post("/createTeam", Teams.createTeam);
+router.post("/joinTeam", Teams.joinTeam);
 router.post("/api/book-ticket", Passes.bookTicket);
 router.get("/api/passbyuuid/:passUUID", Passes.getPassByUUID);
 router.post("/api/getTix", Passes.getPassByQrStringsAndPassUUID);

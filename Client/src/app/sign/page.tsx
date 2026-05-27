@@ -16,11 +16,12 @@ import { useRouter } from "next/navigation";
 const SignUpPage = () => {
 	const router = useRouter();
 	const { isSignedIn, setIsSignedIn } = useAuth();
+	const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 
 	useEffect(() => {
 		const token = localStorage.getItem("accessToken");
 		setIsSignedIn(!!token);
-	}, []);
+	}, [setIsSignedIn]);
 
 	const handleLogout = () => {
 		localStorage.removeItem("accessToken");
@@ -30,7 +31,7 @@ const SignUpPage = () => {
 	};
 
 	return (
-		<GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
+		<GoogleOAuthProvider clientId={googleClientId}>
 			<motion.div
 				className="min-h-screen text-white"
 				style={{

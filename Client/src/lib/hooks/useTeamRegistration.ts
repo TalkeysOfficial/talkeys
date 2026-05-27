@@ -41,6 +41,7 @@ export function useTeamRegistration(eventId: string) {
 		} catch (e: any) {
 			if (e?.status === 400)
 				setErrorMsg("Team full or invalid phone number");
+			else if (e?.status === 403) setErrorMsg("Login before joining a team");
 			else if (e?.status === 404) setErrorMsg("Team or user not found");
 			else setErrorMsg("Server error");
 			setState("error");
@@ -63,7 +64,8 @@ export function useTeamRegistration(eventId: string) {
 			setState("createTeamCode");
 		} catch (e: any) {
 			if (e?.status === 400) setErrorMsg("Invalid phone number");
-			else if (e?.status === 401) setErrorMsg("Login Before Creating Team");
+			else if (e?.status === 401 || e?.status === 403)
+				setErrorMsg("Login before creating a team");
 			else if (e?.status === 404) setErrorMsg("User not found");
 			else setErrorMsg("Server error");
 			setState("error");
@@ -75,6 +77,7 @@ export function useTeamRegistration(eventId: string) {
 	const reset = () => {
 		setState("initial");
 		setErrorMsg("");
+		setTeamCode("");
 	};
 
 	return {

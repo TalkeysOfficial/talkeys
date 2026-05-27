@@ -355,7 +355,7 @@ const registerForInfluencer = asyncHandler(async (req, res) => {
 
 		const { name, instaId, phone, followersCount, attendance } = req.body;
 
-		const newRegistration = InfluencerRegistration.create({
+		const newRegistration = await InfluencerRegistration.create({
 			name,
 			instaId,
 			phone,
