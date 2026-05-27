@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import {
 	Card,
@@ -23,16 +25,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AlertCircle, Send } from "lucide-react";
 
-const form = useForm<z.infer<typeof formSchema>>({
-	resolver: zodResolver(formSchema),
-	defaultValues: {
-		name: "",
-		email: "",
-		subject: "",
-		message: "",
-	},
-});
-
 export default function ContactUsForm({
 	onSubmit,
 	isSubmitting,
@@ -42,6 +34,16 @@ export default function ContactUsForm({
 	isSubmitting: boolean;
 	error: string | null;
 }) {
+	const form = useForm<z.infer<typeof formSchema>>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			name: "",
+			email: "",
+			subject: "",
+			message: "",
+		},
+	});
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, scale: 0.9 }}

@@ -92,8 +92,6 @@ const eventSchema = new mongoose.Schema({
 
 eventSchema.methods.getStatus = function () {
 	const now = new Date();
-	console.log("Current Date:", now);
-	console.log("Start Registration Date:", this.startRegistrationDate);
 
 	if (!this.isRegistrationOpen) {
 		return "registration_closed";

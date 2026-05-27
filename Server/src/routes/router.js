@@ -61,6 +61,7 @@ router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/reqEvent", Events.reqEventt);
 router.post("/accept", Passes.Accept);
+router.post("/Accept", Passes.Accept);
 router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
