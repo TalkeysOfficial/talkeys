@@ -9,7 +9,6 @@ exports.verifyToken = (req, res, next) => {
     console.log("[AUTH MIDDLEWARE] Skipping token check for payment callback");
     return next();
   }
-		console.log(token);
 		if (!token) {
 			return res.status(403).json({ message: "No token provided" });
 		}
@@ -21,8 +20,10 @@ exports.verifyToken = (req, res, next) => {
 					.status(401)
 					.json({ message: "Failed to authenticate token" });
 			}
-			console.log(decoded.email);
 			req.user = await User.findOne({ email: decoded.email });
+			if (!req.user) {
+				return res.status(404).json({ message: "User not found" });
+			}
 			next();
 		});
 	} catch (error) {
