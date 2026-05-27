@@ -1,29 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Users, Globe2, Phone, Lightbulb, FileText, ArrowUpRight, Mail } from "lucide-react";
+import { Users, Phone, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const BACKEND_URL = process.env.BACKEND_URL;
 
 
-type Member = {
+type FormData = {
   name: string;
   email: string;
-  college: string;
-};
-
-type FormData = {
-  teamName: string;
-  domain: string;
-  members: Member[];
-  projectTitle: string;
-  projectDescription: string;
-  contactEmail: string;
-  contactPhone?: string;
+  phone: string;
+  instaId: string;
+  followersCount: number;
+  attendance: "yes" | "no";
 };
 
 const containerVariants = {
@@ -52,7 +45,6 @@ const itemVariants = {
 
 export default function RegisterPage() {
 	const [loading, setLoading] = useState(false);
-	console.log("Backend URL:", BACKEND_URL);
 
   const {
     register,
@@ -60,27 +52,36 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      teamName: "",
-      domain: "",
-      members: [],
-      projectTitle: "",
-      projectDescription: "",
-      contactEmail: "",
-      contactPhone: "",
+      name: "",
+      email: "",
+      phone: "",
+      instaId: "",
+      followersCount: 0,
+      attendance: "yes",
     },
   });
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
+      if (!BACKEND_URL) {
+        throw new Error("BACKEND_URL is not configured");
+      }
+
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(`https://api.talkeys.xyz/register`, {
+      const response = await fetch(`${BACKEND_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name,
+          instaId: data.instaId,
+          phone: data.phone,
+          followersCount: Number(data.followersCount),
+          attendance: data.attendance,
+        }),
       });
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
@@ -128,9 +129,9 @@ export default function RegisterPage() {
             <Input
               className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter your name"
-              {...register("teamName", { required: "Name is required" })}
+              {...register("name", { required: "Name is required" })}
             />
-            {errors.teamName && <p className="text-red-500 text-sm mt-1">{errors.teamName.message}</p>}
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
           </motion.div>
 
           <motion.div variants={itemVariants}>
@@ -141,7 +142,7 @@ export default function RegisterPage() {
             <Input
               className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="you@gmail.com"
-              {...register("contactEmail", {
+              {...register("email", {
                 required: "Email is required",
                 pattern: {
                   value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
@@ -149,7 +150,41 @@ export default function RegisterPage() {
                 },
               })}
             />
-            {errors.domain && <p className="text-red-500 text-sm mt-1">{errors.domain.message}</p>}
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <label className="block mb-1 text-gray-300 flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              Instagram ID
+            </label>
+            <Input
+              className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="@yourhandle"
+              {...register("instaId", { required: "Instagram ID is required" })}
+            />
+            {errors.instaId && <p className="text-red-500 text-sm mt-1">{errors.instaId.message}</p>}
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <label className="block mb-1 text-gray-300 flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              Followers Count
+            </label>
+            <Input
+              type="number"
+              className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="5000"
+              {...register("followersCount", {
+                required: "Followers count is required",
+                min: {
+                  value: 5000,
+                  message: "Followers count must be at least 5000",
+                },
+                valueAsNumber: true,
+              })}
+            />
+            {errors.followersCount && <p className="text-red-500 text-sm mt-1">{errors.followersCount.message}</p>}
           </motion.div>
 
           <motion.div variants={itemVariants}>
@@ -160,12 +195,29 @@ export default function RegisterPage() {
             <Input
               className="bg-gray-700 text-white w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter phone number"
-              {...register("contactPhone", { required: "Phone number is required" })}
+              {...register("phone", {
+                required: "Phone number is required",
+                pattern: {
+                  value: /^(\+91)?\d{10}$/,
+                  message: "Enter a valid 10 digit phone number",
+                },
+              })}
             />
-            {errors.contactPhone && <p className="text-red-500 text-sm mt-1">{errors.contactPhone.message}</p>}
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
           </motion.div>
 
-          
+          <motion.div variants={itemVariants}>
+            <label className="block mb-1 text-gray-300">
+              Will you attend?
+            </label>
+            <select
+              className="bg-gray-700 text-white w-full rounded-md px-3 py-2 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              {...register("attendance", { required: true })}
+            >
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </motion.div>
           
 
           <motion.div variants={itemVariants}>

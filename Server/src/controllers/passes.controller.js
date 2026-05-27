@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
+const Team = require("../models/teams.model.js");
 const User = require("../models/users.model.js");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
@@ -26,17 +27,41 @@ const getPhonePeConfig = () => {
   const configuredEnv = String(process.env.PHONEPE_ENV || "").toLowerCase();
 
   if (["production", "prod", "live"].includes(configuredEnv)) {
-    return CONFIG.production;
+    return {
+      AUTH_URL: process.env.PHONEPE_AUTH_URL || CONFIG.production.AUTH_URL,
+      BASE_URL: process.env.PHONEPE_BASE_URL || CONFIG.production.BASE_URL,
+      CHECKOUT_SCRIPT:
+        process.env.PHONEPE_CHECKOUT_SCRIPT ||
+        CONFIG.production.CHECKOUT_SCRIPT,
+    };
   }
 
   if (["sandbox", "staging", "test", "preprod", "uat", "development"].includes(configuredEnv)) {
-    return CONFIG.sandbox;
+    return {
+      AUTH_URL: process.env.PHONEPE_AUTH_URL || CONFIG.sandbox.AUTH_URL,
+      BASE_URL: process.env.PHONEPE_BASE_URL || CONFIG.sandbox.BASE_URL,
+      CHECKOUT_SCRIPT:
+        process.env.PHONEPE_CHECKOUT_SCRIPT || CONFIG.sandbox.CHECKOUT_SCRIPT,
+    };
   }
 
-  return String(process.env.PHONEPE_CLIENT_ID || "").startsWith("TEST-")
+  const defaultConfig = String(process.env.PHONEPE_CLIENT_ID || "").startsWith("TEST-")
     ? CONFIG.sandbox
     : CONFIG.production;
+
+  return {
+    AUTH_URL: process.env.PHONEPE_AUTH_URL || defaultConfig.AUTH_URL,
+    BASE_URL: process.env.PHONEPE_BASE_URL || defaultConfig.BASE_URL,
+    CHECKOUT_SCRIPT:
+      process.env.PHONEPE_CHECKOUT_SCRIPT || defaultConfig.CHECKOUT_SCRIPT,
+  };
 };
+
+const basicPassRequiredEventIds = () =>
+  String(process.env.BASIC_PASS_REQUIRED_EVENT_IDS || "")
+    .split(",")
+    .map((eventId) => eventId.trim())
+    .filter(Boolean);
 
 const normalizePhonePeStatus = (paymentStatus = {}) => {
   const data = paymentStatus.data || paymentStatus;
@@ -60,6 +85,47 @@ const sanitizeFriends = (friends = []) => {
     phone: friend?.phone ? String(friend.phone).trim().slice(0, 20) : undefined,
   }));
 };
+
+const getTeamBooking = async (event, userId, teamCode) => {
+  if (!event.isTeamEvent) {
+    return null;
+  }
+
+  if (!teamCode) {
+    throw Object.assign(new Error("Team code is required for this event"), {
+      statusCode: 400,
+    });
+  }
+
+  const team = await Team.findOne({
+    eventId: event._id,
+    teamCode: String(teamCode).trim().toUpperCase(),
+  });
+
+  if (!team) {
+    throw Object.assign(new Error("Team not found"), { statusCode: 404 });
+  }
+
+  const isMember = team.teamMembers.some(
+    (member) => member.userId.toString() === userId.toString(),
+  );
+  if (!isMember) {
+    throw Object.assign(new Error("User is not a member of this team"), {
+      statusCode: 403,
+    });
+  }
+
+  return team;
+};
+
+const teamMembersToFriends = (team, userId) =>
+  team.teamMembers
+    .filter((member) => member.userId.toString() !== userId.toString())
+    .map((member) => ({
+      name: member.name,
+      email: member.email,
+      phone: member.phoneNumber,
+    }));
 
 const buildQRStrings = (user, friends = []) => {
   const qrStrings = [
@@ -251,7 +317,7 @@ const bookTicket = async (req, res) => {
         error: "Event not found",
       });
     }
-    if (req.body.eventId == "6941834009f38cd886cb1aa0") {
+    if (basicPassRequiredEventIds().includes(req.body.eventId)) {
       const basicPass = await Pass.findOne({
         userId: req.user._id,
         paymentStatus: "completed",
@@ -265,7 +331,10 @@ const bookTicket = async (req, res) => {
       }
     }
 
-    const friends = sanitizeFriends(req.body.friends);
+    const team = await getTeamBooking(event, req.user._id, req.body.teamCode);
+    const friends = team
+      ? teamMembersToFriends(team, req.user._id)
+      : sanitizeFriends(req.body.friends);
     const totalTicketsNeeded = 1 + friends.length;
     const ticketPrice = Number(event.ticketPrice || 0);
     const totalAmount = ticketPrice * totalTicketsNeeded;
@@ -394,6 +463,13 @@ const bookTicket = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
     if (pass?.seatsReserved && pass.paymentStatus !== "completed") {
       try {
         await releaseReservedSeats(pass);
@@ -1206,6 +1282,7 @@ module.exports = {
   admnDetails,
   _test: {
     buildQRStrings,
+    basicPassRequiredEventIds,
     getPhonePeConfig,
     normalizePhonePeStatus,
     sanitizeFriends,

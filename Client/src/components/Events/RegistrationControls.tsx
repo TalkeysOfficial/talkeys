@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { Check, Copy, X } from "lucide-react";
 import { type RegistrationState } from "@/lib/hooks/useTeamRegistration";
-import FriendsSection from "./FriendsSection";
 import { type Friend } from "@/lib/utils/validation";
 
 type CommonProps = {
 	state: RegistrationState;
 	isPaid: boolean;
+	isTeamEvent: boolean;
 	ticketPrice?: number;
 	status: string;
 	isLive?: boolean;
@@ -28,11 +28,12 @@ type CommonProps = {
 	// actions
 	toJoin: () => void;
 	toCreate: () => void;
+	startTeamRegistration: () => void;
 	submitPhone: () => void;
 	submitJoin: () => void;
 	submitCreate: () => void;
 	createPass: () => Promise<void> | void;
-	goRegister: () => void;
+	goRegister: () => Promise<void> | void;
 	payNow: () => void;
 	reset: () => void;
 
@@ -72,7 +73,9 @@ export default function RegistrationControls(props: CommonProps) {
 			: props.status === "coming_soon"
 			? "Coming Soon"
 			: props.status === "live"
-			? props.isPaid
+			? props.isTeamEvent
+				? "Register Team"
+				: props.isPaid
 				? "Pay Now"
 				: "Register Now"
 			: "Event Ended";
@@ -83,7 +86,9 @@ export default function RegistrationControls(props: CommonProps) {
 			: props.status === "coming_soon"
 			? "Event coming soon"
 			: props.status === "live"
-			? props.isPaid
+			? props.isTeamEvent
+				? "Register team for event"
+				: props.isPaid
 				? "Pay for tickets for event"
 				: "Register for event"
 			: "Event ended";
@@ -112,7 +117,11 @@ export default function RegistrationControls(props: CommonProps) {
 			>
 				<Button
 					className="bg-purple-600 hover:bg-purple-700 w-full rounded-full"
-					onClick={props.payNow}
+					onClick={
+						props.isTeamEvent
+							? props.startTeamRegistration
+							: props.payNow
+					}
 					disabled={isDisabled}
 					aria-label={initialAria}
 				>
@@ -134,7 +143,11 @@ export default function RegistrationControls(props: CommonProps) {
 		>
 			<Button
 				className="bg-purple-600 hover:bg-purple-700 w-full"
-				onClick={props.goRegister}
+				onClick={
+					props.isTeamEvent
+						? props.startTeamRegistration
+						: props.goRegister
+				}
 				disabled={isDisabled}
 				aria-label={initialAria}
 			>
@@ -349,7 +362,7 @@ export default function RegistrationControls(props: CommonProps) {
 							className="bg-green-600 hover:bg-green-700 w-full"
 							onClick={() => props.createPass()}
 						>
-							Create Pass
+							{props.isPaid ? "Pay Now" : "Create Pass"}
 						</Button>
 					</motion.div>
 				</div>
@@ -357,36 +370,22 @@ export default function RegistrationControls(props: CommonProps) {
 		case "teamJoined":
 			return (
 				<div className="w-full max-w-sm mx-auto space-y-3">
-					<FriendsSection
-						show={props.showFriends}
-						toggle={() => props.setShowFriends(!props.showFriends)}
-						name={props.name}
-						setName={props.setName}
-						email={props.email}
-						setEmail={props.setEmail}
-						phone={props.phoneFriend}
-						setPhone={props.setPhoneFriend}
-						errors={props.errors}
-						validateField={props.validateField}
-						onEnter={props.onEnter}
-						add={props.addFriend}
-						remove={props.removeFriend}
-						friends={props.friends}
-					/>
+					<div className="text-green-500 text-center">
+						Joined team: {props.teamName}
+					</div>
 					<motion.div
 						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
 					>
 						<Button
 							className="bg-purple-600 hover:bg-purple-700 w-full"
-							onClick={props.payNow}
+							onClick={
+								props.isPaid
+									? props.payNow
+									: () => props.createPass()
+							}
 						>
-							Pay Now
-							{props.friends.length > 0 && (
-								<span className="ml-2 text-xs bg-purple-800 px-2 py-1 rounded-full">
-									+{props.friends.length}
-								</span>
-							)}
+							{props.isPaid ? "Pay Now" : "Create Pass"}
 						</Button>
 					</motion.div>
 				</div>
