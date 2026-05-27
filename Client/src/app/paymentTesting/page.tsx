@@ -4,16 +4,27 @@ import React, { useState } from "react";
 
 const startPayment = async (bookingId: string) => {
     try {
-        const response = await fetch(`${process.env.BACKEND_URL}/payment?eventId=${bookingId}`, {
+        const response = await fetch(`${process.env.BACKEND_URL}/api/book-ticket`, {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${localStorage.getItem(
                     "accessToken",
                 )}`,
             },
+            body: JSON.stringify({
+                eventId: bookingId,
+                passType: "General",
+                friends: [],
+            }),
         });
         if (response.ok) {
-            console.log("Payment started successfully");
+            const data = await response.json();
+            if (data.data?.paymentUrl) {
+                window.location.href = data.data.paymentUrl;
+                return;
+            }
+            console.log("Pass created successfully");
         } else {
             console.error("Failed to start payment");
         }
