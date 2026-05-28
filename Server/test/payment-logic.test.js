@@ -33,6 +33,29 @@ test("explicit production PhonePe env uses production endpoints without whitespa
   process.env.PHONEPE_ENV = previousEnv;
 });
 
+test("PhonePe credentials are trimmed and can explicitly decode base64 secrets", () => {
+  const previousClientId = process.env.PHONEPE_CLIENT_ID;
+  const previousClientSecret = process.env.PHONEPE_CLIENT_SECRET;
+  const previousClientSecretEncoding = process.env.PHONEPE_CLIENT_SECRET_ENCODING;
+  const previousClientVersion = process.env.PHONEPE_CLIENT_VERSION;
+
+  process.env.PHONEPE_CLIENT_ID = ' "TEST-client-id" ';
+  process.env.PHONEPE_CLIENT_SECRET = Buffer.from("secret-value").toString("base64");
+  process.env.PHONEPE_CLIENT_SECRET_ENCODING = "base64";
+  process.env.PHONEPE_CLIENT_VERSION = " 2 ";
+
+  const credentials = _test.getPhonePeCredentials();
+
+  assert.equal(credentials.clientId, "TEST-client-id");
+  assert.equal(credentials.clientSecret, "secret-value");
+  assert.equal(credentials.clientVersion, "2");
+
+  process.env.PHONEPE_CLIENT_ID = previousClientId;
+  process.env.PHONEPE_CLIENT_SECRET = previousClientSecret;
+  process.env.PHONEPE_CLIENT_SECRET_ENCODING = previousClientSecretEncoding;
+  process.env.PHONEPE_CLIENT_VERSION = previousClientVersion;
+});
+
 test("friend list is capped and normalized", () => {
   const friends = Array.from({ length: 12 }, (_, index) => ({
     name: index === 0 ? "" : `Friend ${index}`,
