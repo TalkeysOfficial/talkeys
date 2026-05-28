@@ -1072,11 +1072,16 @@ const getPassByUUID = async (req, res) => {
       .populate("userId", "name")
       .populate("eventId", "name startDate")
       .select(
-        "eventId userId paymentStatus status createdAt amount friends passUUID passType ticketCount",
+        "eventId userId paymentStatus status createdAt amount friends passUUID passType ticketCount qrStrings",
       );
 
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
+    }
+
+    if (!pass.qrStrings?.length) {
+      pass.qrStrings = buildQRStrings(pass.userId, pass.friends || []);
+      await pass.save();
     }
 
     const totalAmount = pass.amount;
@@ -1090,7 +1095,14 @@ const getPassByUUID = async (req, res) => {
       passStatus: pass.status || pass.paymentStatus || "ERROR",
       passEnteries: pass.ticketCount || pass.friends.length + 1,
       eventId: pass.eventId?._id || "Unknown Event ID",
-      // Additional fields that might be useful
+      qrStrings: (pass.qrStrings || []).map((qrString) => ({
+        id: qrString.id,
+        personName: qrString.personName,
+        personType: qrString.personType,
+        qrScanned: qrString.qrScanned,
+        scannedAt: qrString.scannedAt,
+        qrContent: `${pass.passUUID}+${qrString.id}`,
+      })),
     };
 
     return res.status(200).json({
