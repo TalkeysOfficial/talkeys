@@ -170,11 +170,25 @@ export default function CreateEventPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("accessToken");
-      await fetch(`http://localhost:3001/event/create`, {
+      const endpoint =
+        process.env.NEXT_PUBLIC_EVENT_CREATE_URL ||
+        (process.env.BACKEND_URL
+          ? `${process.env.BACKEND_URL}/dashboard/create-event`
+          : "");
+      if (!endpoint) {
+        throw new Error("Event creation endpoint is not configured");
+      }
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(data),
       });
+      if (!response.ok) {
+        throw new Error(`Event creation failed with status ${response.status}`);
+      }
       alert("Event created successfully!");
     } catch {
       alert("Event creation failed!");

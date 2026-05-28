@@ -2,13 +2,20 @@
 export type ApiError = { message: string };
 const BASE = process.env.BACKEND_URL;
 
+const apiUrl = (path: string) => {
+	if (!BASE) {
+		throw new Error("BACKEND_URL is not configured");
+	}
+	return `${BASE}${path}`;
+};
+
 const authHeaders = () => ({
 	"Content-Type": "application/json",
 	Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
 });
 
 export async function getPass(eventId: string) {
-	const res = await fetch(`${BASE}/getPass`, {
+	const res = await fetch(apiUrl("/getPass"), {
 		method: "POST",
 		headers: authHeaders(),
 		body: JSON.stringify({ eventId }),
@@ -19,7 +26,7 @@ export async function getPass(eventId: string) {
 }
 
 export async function joinTeam(teamCode: string, phoneNumber: string) {
-	const res = await fetch(`${BASE}/joinTeam`, {
+	const res = await fetch(apiUrl("/joinTeam"), {
 		method: "POST",
 		headers: authHeaders(),
 		body: JSON.stringify({ teamCode, phoneNumber }),
@@ -34,7 +41,7 @@ export async function createTeamApi(opts: {
 	teamName: string;
 	eventId: string;
 }) {
-	const res = await fetch(`${BASE}/createTeam`, {
+	const res = await fetch(apiUrl("/createTeam"), {
 		method: "POST",
 		headers: authHeaders(),
 		body: JSON.stringify({
@@ -49,20 +56,20 @@ export async function createTeamApi(opts: {
 }
 
 export async function likeEvent(eventId: string) {
-	return fetch(`${BASE}/likeEvent/${eventId}`, {
+	return fetch(apiUrl(`/likeEvent/${eventId}`), {
 		method: "GET",
 		headers: authHeaders(),
 	});
 }
 export async function unlikeEvent(eventId: string) {
-	return fetch(`${BASE}/unlikeEvent/${eventId}`, {
+	return fetch(apiUrl(`/unlikeEvent/${eventId}`), {
 		method: "GET",
 		headers: authHeaders(),
 	});
 }
 
 export async function bookPass(teamCode: string, eventId: string) {
-	const res = await fetch(`${BASE}/bookPass`, {
+	const res = await fetch(apiUrl("/bookPass"), {
 		method: "POST",
 		headers: authHeaders(),
 		body: JSON.stringify({ teamCode, eventId }),
@@ -76,8 +83,9 @@ export async function bookTicket(opts: {
 	eventId: string;
 	passType: string;
 	friends: Array<{ name: string; email: string; phone: string }>;
+	teamCode?: string;
 }) {
-	const res = await fetch(`${BASE}/api/book-ticket`, {
+	const res = await fetch(apiUrl("/api/book-ticket"), {
 		method: "POST",
 		headers: authHeaders(),
 		body: JSON.stringify(opts),

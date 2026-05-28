@@ -17,6 +17,8 @@ const nextConfig = {
 	},
 	env: {
 		BACKEND_URL: process.env.BACKEND_URL,
+		GOOGLE_CLIENT_ID:
+			process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 	},
 	images: {
 		domains: ["res.cloudinary.com", "api.dicebear.com"],

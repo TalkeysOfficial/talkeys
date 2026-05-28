@@ -1,4 +1,3 @@
-const { bool, boolean } = require("joi");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 
@@ -16,7 +15,12 @@ const passSchema = new mongoose.Schema({
 	passStatus: {	
 		type: String,
 		enum: ["active", "inactive", "expired", "revoked"],
-		default: "active",
+		default: "inactive",
+	},
+	status: {
+		type: String,
+		enum: ["pending", "active", "payment_failed", "expired", "revoked"],
+		default: "pending",
 	},
 	paymentStatus: {
 		type: String,
@@ -39,6 +43,19 @@ const passSchema = new mongoose.Schema({
 		type: Number,
 		required: true,
 		min: 0,
+	},
+	ticketCount: {
+		type: Number,
+		required: true,
+		default: 1,
+		min: 1,
+	},
+	seatsReserved: {
+		type: Boolean,
+		default: false,
+	},
+	expiresAt: {
+		type: Date,
 	},
 	paymentDetails: {
 		orderId: String,
@@ -73,6 +90,9 @@ const passSchema = new mongoose.Schema({
 			type: String,
 			enum: ["user", "friend"],
 			
+		},
+		personIndex: {
+			type: Number,
 		},
 		personName: {
 			type: String,
@@ -124,16 +144,19 @@ const passSchema = new mongoose.Schema({
 });
 
 passSchema.pre('save', function(next) {
-	if (!this.passUUID && this.passStatus === 'active') {
+	const isConfirmed = this.paymentStatus === 'completed' || this.status === 'active' || this.passStatus === 'active';
+
+	if (!this.passUUID && isConfirmed) {
 		this.passUUID = uuidv4();
 	}
-	if (this.passStatus === 'active' && (!this.qrStrings || this.qrStrings.length === 0)) {
+	if (isConfirmed && (!this.qrStrings || this.qrStrings.length === 0)) {
 		this.qrStrings = [];
 		this.qrStrings.push({
 			id: uuidv4(),
 			personType: "user",
 			personIndex: 0,
-			isScanned: false,
+			personName: "Main User",
+			qrScanned: false,
 			scannedAt: null
 		});
 		
@@ -142,7 +165,9 @@ passSchema.pre('save', function(next) {
 			this.qrStrings.push({
 				id: uuidv4(),
 				personType: "friend",
-				isScanned: false,
+				personIndex: i + 1,
+				personName: this.friends[i]?.name || `Friend ${i + 1}`,
+				qrScanned: false,
 				scannedAt: null
 			});
 		}
@@ -155,30 +180,25 @@ passSchema.methods.getQRData = function() {
 	return this.qrStrings.map(qr => ({
 		id: qr.id,
 		personType: qr.personType,
-		personName: qr.personName,
 		personName: qr.personType === "user" ? "Main User" : 
 					this.friends[qr.personIndex - 1]?.name || `Friend ${qr.personIndex}`,
-		isScanned: qr.isScanned,
+		qrScanned: qr.qrScanned,
 		scannedAt: qr.scannedAt,
 		qrContent: `${this.eventId}_${this.passUUID}_${qr.id}_${qr.personName}`
 	}));
 };
 
 passSchema.methods.markQRScanned = function(qrId) {
-	let flag= true;
-	const qrString = this.qrStrings.find(qr => qr.id === qrId);
-	if (qrString && !qrString.isScanned) {
-		qrString.isScanned = true;
+	const qrString = this.qrStrings.find(qr => qr.id === qrId || qr._id?.toString() === qrId);
+	if (qrString && !qrString.qrScanned) {
+		qrString.qrScanned = true;
 		qrString.scannedAt = new Date();
-		for (let i = 0; i < this.qrStrings.length; i++) {
-			if (this.qrStrings[qrScanned]==false) {
-				flag = false;
-				break;}
 
-		if (!this.isScanned && flag) {
+		const allScanned = this.qrStrings.every(qr => qr.qrScanned);
+		if (!this.isScanned && allScanned) {
 			this.isScanned = true;
 			this.timeScanned = new Date();
-		}}
+		}
 		
 		return this.save();
 	}
@@ -186,15 +206,18 @@ passSchema.methods.markQRScanned = function(qrId) {
 };
 
 passSchema.statics.validateQRString = async function(qrId) {
-	const pass = await this.findOne({ "qrStrings.id": qrId });
+	const query = mongoose.Types.ObjectId.isValid(qrId)
+		? { $or: [{ "qrStrings._id": qrId }, { "qrStrings.id": qrId }] }
+		: { "qrStrings.id": qrId };
+	const pass = await this.findOne(query);
 	if (!pass) {
 		return { valid: false, message: "Invalid QR code" };
 	}
-	const qrString = pass.qrStrings.find(qr => qr.id === qrId);
-	if (qrString.isScanned) {
+	const qrString = pass.qrStrings.find(qr => qr.id === qrId || qr._id?.toString() === qrId);
+	if (qrString.qrScanned) {
 		return { valid: false, message: "QR code already scanned" };
 	}
-	if (pass.passStatus !== 'active') {
+	if (pass.paymentStatus !== 'completed' || (pass.status && pass.status !== 'active')) {
 		return { valid: false, message: "Pass is not active" };
 	}
 	return { valid: true, pass, qrString };

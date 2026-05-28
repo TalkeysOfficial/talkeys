@@ -39,6 +39,8 @@ export function formatTime(timeString: string): string {
 
 const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const convenienceFee = Number(process.env.NEXT_PUBLIC_CONVENIENCE_FEE || 0);
+  const displayedPrice = Math.max(Number(event.ticketPrice || 0) - convenienceFee, 0);
 
   return (
     <motion.div
@@ -117,10 +119,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
                 {/* footer row */}
                 <div className="mt-auto flex gap-2 sm:gap-4 mb-2">
                   <div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-2 sm:px-3 text-xs sm:text-sm">
-                    ₹{" "}
-                    {event._id == "6941834009f38cd886cb1aa0"
-                      ? "300"
-                      : event.ticketPrice - 9}
+                    ₹ {displayedPrice}
                   </div>
                   <div className="text-gray-400 border border-[#DCB6FF] rounded-3xl pt-1 pb-1 px-2 sm:px-3 text-xs sm:text-sm truncate">
                     {event.category ?? "--"}

@@ -12,7 +12,6 @@ import "swiper/css/pagination";
 type Props = { name: string; codes: string[] };
 
 export default function QRCodeDisplay({ name, codes }: Props) {
-  console.log("QRCodeDisplay", name, codes);
   if (!codes.length) return null;
 
   return (
