@@ -22,7 +22,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onToggle }) => {
 		if (isOpen) {
 			onToggle();
 		}
-	}, [pathname]);
+	}, [isOpen, onToggle, pathname]);
 
 	const navItems = [
 		{ href: "/admin", icon: LayoutDashboard, label: "Dashboard" },

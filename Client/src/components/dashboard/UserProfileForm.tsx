@@ -8,8 +8,7 @@
      user: { displayName?: string; about?: string };
      mutate: () => void;
    }
-   
-   const API = "http://localhost:8000";
+   const API = process.env.BACKEND_URL;
    
    export default function UserProfileForm({ user, mutate }: Props) {
      const [displayName, setDisplayName] = useState(user.displayName || "");
@@ -18,10 +17,13 @@
    
      const nameInputRef = useRef<HTMLInputElement>(null);
    
-     async function save() {
-       setStatus("saving");
-   
-       const res = await fetch(`${API}/dashboard/profile`, {
+   async function save() {
+     setStatus("saving");
+     if (!API) {
+       setStatus("err");
+       return;
+     }
+     const res = await fetch(`${API}/dashboard/profile`, {
          method: "PATCH",
          headers: {
            "Content-Type": "application/json",
@@ -73,7 +75,7 @@
              className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white"
            />
          </div>
-   
+
          {/* About */}
          <div>
            <label className="block mb-1 text-sm text-gray-300">About</label>
@@ -91,4 +93,3 @@
        </div>
      );
    }
-   

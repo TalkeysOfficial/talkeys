@@ -12,7 +12,11 @@ export default function RegisteredEvents() {
   useEffect(() => {
     (async () => {
       try {
-        const res   = await fetch("https://api.talkeys.xyz/getEvents");
+        if (!process.env.BACKEND_URL) {
+          throw new Error("BACKEND_URL is not configured");
+        }
+
+        const res   = await fetch(`${process.env.BACKEND_URL}/getEvents`);
         const json  = await res.json() as {
           data: { events: Event[] };
         };

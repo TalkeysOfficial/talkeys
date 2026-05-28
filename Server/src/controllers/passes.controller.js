@@ -1,55 +1,265 @@
 const asyncHandler = require("express-async-handler");
-const express = require("express");
-const auth = require("../middleware/oauth.js");
 const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
+const Team = require("../models/teams.model.js");
 const User = require("../models/users.model.js");
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const axios = require("axios");
 const qs = require("qs");
-const { listeners } = require("../models/registration.model.js");
 
 const CONFIG = {
-  PRODUCTION: {
+  production: {
     AUTH_URL: "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
-    BASE_URL: "	https://api.phonepe.com/apis/pg",
+    BASE_URL: "https://api.phonepe.com/apis/pg",
     CHECKOUT_SCRIPT: "https://mercury.phonepe.com/web/bundle/checkout.js",
   },
-  STAGING: {
-    AUTH_URL: "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
-    BASE_URL: "	https://api.phonepe.com/apis/pg",
+  sandbox: {
+    AUTH_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token",
+    BASE_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox",
+    CHECKOUT_SCRIPT: "https://mercury-uat.phonepe.com/web/bundle/checkout.js",
   },
-  CLIENT_VERSION: "1.0",
+  CLIENT_VERSION: "1",
 };
 
-// Environment configuration - use environment variables for security
-const ENVIRONMENT = process.env.PHONEPE_ENV;
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID;
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
+const cleanEnvValue = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/^["']|["']$/g, "");
+
+const getPhonePeConfig = () => {
+  const configuredEnv = cleanEnvValue(process.env.PHONEPE_ENV).toLowerCase();
+
+  if (["production", "prod", "live"].includes(configuredEnv)) {
+    return {
+      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.production.AUTH_URL,
+      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.production.BASE_URL,
+      CHECKOUT_SCRIPT:
+        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) ||
+        CONFIG.production.CHECKOUT_SCRIPT,
+    };
+  }
+
+  if (["sandbox", "staging", "test", "preprod", "uat", "development"].includes(configuredEnv)) {
+    return {
+      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.sandbox.AUTH_URL,
+      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.sandbox.BASE_URL,
+      CHECKOUT_SCRIPT:
+        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || CONFIG.sandbox.CHECKOUT_SCRIPT,
+    };
+  }
+
+  const defaultConfig = cleanEnvValue(process.env.PHONEPE_CLIENT_ID).startsWith("TEST-")
+    ? CONFIG.sandbox
+    : CONFIG.production;
+
+  return {
+    AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || defaultConfig.AUTH_URL,
+    BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || defaultConfig.BASE_URL,
+    CHECKOUT_SCRIPT:
+      cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || defaultConfig.CHECKOUT_SCRIPT,
+  };
+};
+
+const getPhonePeCredentials = () => {
+  const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
+  const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
+  const secretEncoding = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET_ENCODING).toLowerCase();
+  const rawClientSecret = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET);
+  const clientSecret =
+    secretEncoding === "base64"
+      ? Buffer.from(rawClientSecret, "base64").toString("utf8").trim()
+      : rawClientSecret;
+
+  const missing = [];
+  if (!clientId) missing.push("PHONEPE_CLIENT_ID");
+  if (!clientSecret) missing.push("PHONEPE_CLIENT_SECRET");
+  if (!clientVersion) missing.push("PHONEPE_CLIENT_VERSION");
+
+  if (missing.length) {
+    throw new Error(`Missing PhonePe configuration: ${missing.join(", ")}`);
+  }
+
+  return {
+    clientId,
+    clientSecret,
+    clientVersion,
+  };
+};
+
+const basicPassRequiredEventIds = () =>
+  String(process.env.BASIC_PASS_REQUIRED_EVENT_IDS || "")
+    .split(",")
+    .map((eventId) => eventId.trim())
+    .filter(Boolean);
+
+const normalizePhonePeStatus = (paymentStatus = {}) => {
+  const data = paymentStatus.data || paymentStatus;
+  return {
+    state: paymentStatus.state || data.state,
+    orderId: paymentStatus.orderId || data.orderId,
+    amount: paymentStatus.amount || data.amount,
+    paymentDetails: paymentStatus.paymentDetails || data.paymentDetails || [],
+    reason: paymentStatus.reason || data.reason,
+  };
+};
+
+const sanitizeFriends = (friends = []) => {
+  if (!Array.isArray(friends)) {
+    return [];
+  }
+
+  return friends.slice(0, 9).map((friend) => ({
+    name: String(friend?.name || "Friend").trim().slice(0, 80) || "Friend",
+    email: friend?.email ? String(friend.email).trim().slice(0, 120) : undefined,
+    phone: friend?.phone ? String(friend.phone).trim().slice(0, 20) : undefined,
+  }));
+};
+
+const getTeamBooking = async (event, userId, teamCode) => {
+  if (!event.isTeamEvent) {
+    return null;
+  }
+
+  if (!teamCode) {
+    throw Object.assign(new Error("Team code is required for this event"), {
+      statusCode: 400,
+    });
+  }
+
+  const team = await Team.findOne({
+    eventId: event._id,
+    teamCode: String(teamCode).trim().toUpperCase(),
+  });
+
+  if (!team) {
+    throw Object.assign(new Error("Team not found"), { statusCode: 404 });
+  }
+
+  const isMember = team.teamMembers.some(
+    (member) => member.userId.toString() === userId.toString(),
+  );
+  if (!isMember) {
+    throw Object.assign(new Error("User is not a member of this team"), {
+      statusCode: 403,
+    });
+  }
+
+  return team;
+};
+
+const teamMembersToFriends = (team, userId) =>
+  team.teamMembers
+    .filter((member) => member.userId.toString() !== userId.toString())
+    .map((member) => ({
+      name: member.name,
+      email: member.email,
+      phone: member.phoneNumber,
+    }));
+
+const buildQRStrings = (user, friends = []) => {
+  const qrStrings = [
+    {
+      id: uuidv4(),
+      personType: "user",
+      personIndex: 0,
+      personName: user?.name || "Main User",
+      qrScanned: false,
+      scannedAt: null,
+    },
+  ];
+
+  friends.slice(0, 9).forEach((friend, index) => {
+    qrStrings.push({
+      id: uuidv4(),
+      personType: "friend",
+      personIndex: index + 1,
+      personName: friend.name || `Friend ${index + 1}`,
+      qrScanned: false,
+      scannedAt: null,
+    });
+  });
+
+  return qrStrings;
+};
+
+const reserveSeats = async (eventId, ticketCount) => {
+  return Event.findOneAndUpdate(
+    {
+      _id: eventId,
+      $expr: {
+        $lte: [
+          { $add: [{ $ifNull: ["$registrationCount", 0] }, ticketCount] },
+          "$totalSeats",
+        ],
+      },
+    },
+    { $inc: { registrationCount: ticketCount } },
+    { new: true },
+  );
+};
+
+const releaseReservedSeats = async (pass) => {
+  if (!pass?.seatsReserved) {
+    return;
+  }
+
+  const ticketCount = pass.ticketCount || 1 + (pass.friends?.length || 0);
+  await Event.findByIdAndUpdate(pass.eventId, {
+    $inc: { registrationCount: -ticketCount },
+  });
+  pass.seatsReserved = false;
+};
+
+const findQRString = (pass, qrId) => {
+  return pass?.qrStrings?.find(
+    (qr) => qr.id === qrId || qr._id?.toString() === qrId,
+  );
+};
 
 const getPhonePeAccessToken = async () => {
   try {
-    console.log("[PhonePe] Requesting access token...");
+    const config = getPhonePeConfig();
+    const { clientId, clientSecret, clientVersion } = getPhonePeCredentials();
+
     const response = await axios.post(
-      "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
+      config.AUTH_URL,
       qs.stringify({
-        client_id: process.env.PHONEPE_CLIENT_ID,
-        client_secret: process.env.PHONEPE_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         grant_type: "client_credentials",
-        client_version: "1",
+        client_version: clientVersion,
       }),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
         },
+        timeout: 15000,
       },
     );
 
-    return response.data.access_token;
+    const accessToken = response.data?.access_token || response.data?.data?.access_token;
+    if (!accessToken) {
+      throw new Error("PhonePe auth response did not include an access token");
+    }
+
+    return accessToken;
   } catch (error) {
+    if (error.response?.status === 401) {
+      const config = getPhonePeConfig();
+      const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
+      const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
+      throw new Error(
+        [
+          "PhonePe authentication failed with 401.",
+          "Check PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, PHONEPE_CLIENT_VERSION, and PHONEPE_ENV.",
+          `Using ${config.AUTH_URL} with client id prefix ${clientId.slice(0, 8)} and client version ${clientVersion}.`,
+        ].join(" "),
+      );
+    }
+
     console.error(
       "[PhonePe] Auth Error:",
       error.response?.data || error.message,
@@ -63,7 +273,11 @@ const getPhonePeAccessToken = async () => {
 // Create Payment Order
 const createPhonePeOrder = async (orderData) => {
   try {
-    console.log("Creating PhonePe order with data:", orderData);
+    const config = getPhonePeConfig();
+    console.log("Creating PhonePe order:", {
+      merchantOrderId: orderData.merchantOrderId,
+      amount: orderData.amount,
+    });
     const accessToken = await getPhonePeAccessToken();
 
     const payload = {
@@ -86,7 +300,7 @@ const createPhonePeOrder = async (orderData) => {
     };
 
     const response = await axios.post(
-      `${CONFIG.PRODUCTION.BASE_URL}/checkout/v2/pay`,
+      `${config.BASE_URL}/checkout/v2/pay`,
       payload,
       {
         headers: {
@@ -97,7 +311,13 @@ const createPhonePeOrder = async (orderData) => {
       },
     );
 
-    return response.data;
+    const paymentOrder = response.data;
+    const paymentUrl = paymentOrder?.data?.redirectUrl || paymentOrder?.redirectUrl;
+    if (!paymentUrl) {
+      throw new Error("PhonePe order response did not include a payment URL");
+    }
+
+    return paymentOrder;
   } catch (error) {
     console.error("PhonePe order creation error:", {
       status: error.response?.status,
@@ -111,15 +331,19 @@ const createPhonePeOrder = async (orderData) => {
 };
 
 const bookTicket = async (req, res) => {
+  let pass;
   try {
-    console.log("Booking ticket request:", req.body);
-
-    // Validation
-    console.log("User:", req.user);
     if (!req.user?._id || !req.body.eventId) {
       return res.status(400).json({
         success: false,
         error: "User ID and Event ID are required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.body.eventId)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid Event ID",
       });
     }
 
@@ -138,7 +362,7 @@ const bookTicket = async (req, res) => {
         error: "Event not found",
       });
     }
-    if (req.body.eventId == "6941834009f38cd886cb1aa0") {
+    if (basicPassRequiredEventIds().includes(req.body.eventId)) {
       const basicPass = await Pass.findOne({
         userId: req.user._id,
         paymentStatus: "completed",
@@ -152,13 +376,18 @@ const bookTicket = async (req, res) => {
       }
     }
 
-    const friends = req.body.friends || [];
+    const team = await getTeamBooking(event, req.user._id, req.body.teamCode);
+    const friends = team
+      ? teamMembersToFriends(team, req.user._id)
+      : sanitizeFriends(req.body.friends);
     const totalTicketsNeeded = 1 + friends.length;
-    const totalAmount = event.ticketPrice * totalTicketsNeeded;
-    const amountInPaisa = totalAmount * 100;
+    const ticketPrice = Number(event.ticketPrice || 0);
+    const totalAmount = ticketPrice * totalTicketsNeeded;
+    const amountInPaisa = Math.round(totalAmount * 100);
+    const isPaidBooking = Boolean(event.isPaid && amountInPaisa > 0);
 
-    // Validation checks
-    if (event.remainingSeats < totalTicketsNeeded) {
+    const reservedEvent = await reserveSeats(event._id, totalTicketsNeeded);
+    if (!reservedEvent) {
       return res.status(400).json({
         success: false,
         error: "Insufficient tickets available",
@@ -168,69 +397,92 @@ const bookTicket = async (req, res) => {
     // Generate unique merchant order ID with timestamp
     const merchantOrderId = `TKT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log("Generated merchantOrderId:", merchantOrderId);
-
-    // Create temporary pass
-    const pass = new Pass({
+    pass = new Pass({
       userId: req.user?._id,
       eventId: req.body.eventId,
       passType: req.body.passType || "General",
-      status: "pending",
-      paymentStatus: "pending",
+      status: isPaidBooking ? "pending" : "active",
+      passStatus: isPaidBooking ? "inactive" : "active",
+      paymentStatus: isPaidBooking ? "pending" : "completed",
       merchantOrderId,
       amount: totalAmount,
+      ticketCount: totalTicketsNeeded,
+      seatsReserved: true,
       friends,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + 20 * 60 * 1000),
     });
-    console.log("Creating pass:", pass);
-    await pass.save();
-    console.log("Pass created with ID:", pass._id);
 
-    // Create PhonePe payment order
+    if (!isPaidBooking) {
+      pass.confirmedAt = new Date();
+      pass.paymentDetails = {
+        amount: 0,
+        completedAt: new Date(),
+        source: "free_registration",
+        merchantOrderId,
+      };
+      pass.qrStrings = buildQRStrings(user, friends);
+      await pass.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Free pass created successfully",
+        data: {
+          passId: pass._id,
+          passUUID: pass.passUUID,
+          merchantOrderId,
+          amount: totalAmount,
+          amountInPaisa,
+          totalTickets: totalTicketsNeeded,
+          paymentRequired: false,
+          paymentUrl: null,
+          event: {
+            id: event._id,
+            title: event.name,
+            date: event.startDate,
+            venue: event.location,
+          },
+          qrStrings: pass.qrStrings,
+          friends,
+        },
+      });
+    }
+
+    await pass.save();
+
     const orderData = {
       merchantOrderId,
       amount: amountInPaisa,
-      userId: req.body.userId,
+      userId: req.user._id.toString(),
       eventId: req.body.eventId,
-      eventName: event.title,
+      eventName: event.name,
       passType: req.body.passType || "General",
       friends,
-      mobileNumber: user.phone,
+      mobileNumber: user.phoneNumber,
     };
 
-    const paymentOrder = await createPhonePeOrder(orderData);
+    let paymentOrder;
+    try {
+      paymentOrder = await createPhonePeOrder(orderData);
+    } catch (error) {
+      pass.status = "payment_failed";
+      pass.passStatus = "inactive";
+      pass.paymentStatus = "failed";
+      pass.paymentDetails = {
+        amount: amountInPaisa,
+        failedAt: new Date(),
+        source: "order_creation",
+        reason: error.message,
+        merchantOrderId,
+      };
+      await releaseReservedSeats(pass);
+      await pass.save();
+      throw error;
+    }
 
-    // Update pass with payment details
     pass.phonePeOrderId = paymentOrder.data?.orderId || paymentOrder.orderId;
     pass.paymentUrl =
       paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl;
-    console.log("saving pass");
-    await pass.save();
-
-    console.log(
-      "Redirect URL:",
-      `${process.env.BASE_URL}/api/payment/callback/${orderData.merchantOrderId}`,
-    );
-    console.log("Webhook URL:", `${process.env.BASE_URL}/api/payment/webhook`);
-    console.log("Payment order created successfully");
-
-    // Generate QR strings for the user and friends
-
-    const qrStrings = [];
-    qrStrings.push({
-      id: uuidv4(),
-      personName: user?.name || "You",
-    });
-    if (friends.length > 0) {
-      for (const friend of friends) {
-        qrStrings.push({
-          personName: friend.name || "Friend",
-        });
-      }
-    }
-    pass.qrStrings = qrStrings;
-    console.log("Saving QR strings to pass");
     await pass.save();
 
     return res.status(200).json({
@@ -247,15 +499,32 @@ const bookTicket = async (req, res) => {
         expiresAt: pass.expiresAt,
         event: {
           id: event._id,
-          title: event.title,
-          date: event.date,
-          venue: event.venue,
+          title: event.name,
+          date: event.startDate,
+          venue: event.location,
         },
-        qrStrings: qrStrings,
-        friends: friends,
+        qrStrings: [],
+        friends,
       },
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    if (pass?.seatsReserved && pass.paymentStatus !== "completed") {
+      try {
+        await releaseReservedSeats(pass);
+        if (!pass.isNew) {
+          await pass.save();
+        }
+      } catch (releaseError) {
+        console.error("Seat reservation release failed:", releaseError);
+      }
+    }
     console.error("Ticket booking error:", error);
     return res.status(500).json({
       success: false,
@@ -269,11 +538,10 @@ const bookTicket = async (req, res) => {
 // Enhanced Payment Status Check with Integrated Processing
 const checkPaymentStatus = async (merchantOrderId, shouldProcess = false) => {
   try {
+    const config = getPhonePeConfig();
     const accessToken = await getPhonePeAccessToken();
-    console.log("[STATUS] Access token acquired");
 
-    const url = `${CONFIG.PRODUCTION.BASE_URL}/checkout/v2/order/${merchantOrderId}/status`;
-    console.log("[STATUS] Checking status at:", url);
+    const url = `${config.BASE_URL}/checkout/v2/order/${merchantOrderId}/status`;
 
     const response = await axios.get(url, {
       headers: {
@@ -284,13 +552,11 @@ const checkPaymentStatus = async (merchantOrderId, shouldProcess = false) => {
       timeout: 10000,
     });
 
-    console.log("[STATUS] Response from PhonePe:", response.data);
-
     const paymentData = response.data;
 
     // If shouldProcess is true, automatically process the payment based on status
     if (shouldProcess && paymentData) {
-      const paymentState = paymentData.state || paymentData.data?.state;
+      const paymentState = normalizePhonePeStatus(paymentData).state;
 
       if (paymentState === "COMPLETED") {
         await processPaymentConfirmation(
@@ -327,39 +593,64 @@ const processPaymentConfirmation = async (
   source = "callback",
 ) => {
   try {
-    console.log(
-      `[${source}] Processing payment confirmation for:`,
-      merchantOrderId,
-    );
-
-    // Find pass by merchantOrderId instead of using metadata
     const pass = await Pass.findOne({ merchantOrderId });
 
     if (!pass) {
       throw new Error(`Pass not found for merchantOrderId: ${merchantOrderId}`);
     }
 
-    // Check if already processed
+    const user = await User.findById(pass.userId).select("name");
+
     if (pass.paymentStatus === "completed") {
-      console.log(`[${source}] Payment already processed for pass:`, pass._id);
+      let repaired = false;
+      if (!pass.passUUID) {
+        pass.passUUID = uuidv4();
+        repaired = true;
+      }
+      if (!pass.qrStrings?.length) {
+        pass.qrStrings = buildQRStrings(user, pass.friends);
+        repaired = true;
+      }
+      if (pass.status !== "active" || pass.passStatus !== "active") {
+        pass.status = "active";
+        pass.passStatus = "active";
+        repaired = true;
+      }
+      if (repaired) {
+        await pass.save();
+      }
+
       return {
         passId: pass._id,
-        passUUID: pass.passUUID || pass._id,
+        passUUID: pass.passUUID,
         success: true,
         message: "Payment already confirmed",
         alreadyProcessed: true,
       };
     }
 
-    // Update pass status
+    if (!pass.seatsReserved) {
+      const reservedEvent = await reserveSeats(
+        pass.eventId,
+        pass.ticketCount || 1 + (pass.friends?.length || 0),
+      );
+      if (!reservedEvent) {
+        throw new Error("Payment completed but no seats are available");
+      }
+      pass.seatsReserved = true;
+    }
+
+    const normalizedPayment = normalizePhonePeStatus(paymentStatus);
+
     pass.status = "active";
+    pass.passStatus = "active";
     pass.paymentStatus = "completed";
     pass.confirmedAt = new Date();
     pass.paymentDetails = {
-      orderId: paymentStatus.orderId,
-      transactionId: paymentStatus.paymentDetails?.[0]?.transactionId,
-      amount: paymentStatus.amount,
-      paymentMode: paymentStatus.paymentDetails?.[0]?.paymentMode,
+      orderId: normalizedPayment.orderId,
+      transactionId: normalizedPayment.paymentDetails?.[0]?.transactionId,
+      amount: normalizedPayment.amount,
+      paymentMode: normalizedPayment.paymentDetails?.[0]?.paymentMode,
       completedAt: new Date(),
       source: source,
       merchantOrderId: merchantOrderId,
@@ -369,6 +660,9 @@ const processPaymentConfirmation = async (
     if (!pass.passUUID) {
       pass.passUUID = uuidv4();
     }
+    if (!pass.qrStrings?.length) {
+      pass.qrStrings = buildQRStrings(user, pass.friends);
+    }
 
     await pass.save();
 
@@ -376,11 +670,6 @@ const processPaymentConfirmation = async (
     await User.findByIdAndUpdate(pass.userId, {
       $inc: { activePasses: 1 },
     });
-
-    console.log(
-      `[${source}] Payment confirmed successfully for pass:`,
-      pass._id,
-    );
 
     return {
       passId: pass._id,
@@ -401,25 +690,24 @@ const processPaymentFailure = async (
   source = "callback",
 ) => {
   try {
-    console.log(`[${source}] Processing payment failure for:`, merchantOrderId);
-
     const pass = await Pass.findOne({
       merchantOrderId: merchantOrderId,
-      status: "pending",
     });
 
-    if (pass) {
-      // Update pass status to failed
+    if (pass && pass.paymentStatus !== "completed") {
+      const normalizedPayment = normalizePhonePeStatus(paymentStatus);
       pass.status = "payment_failed";
+      pass.passStatus = "inactive";
       pass.paymentStatus = "failed";
       pass.paymentDetails = {
-        orderId: paymentStatus.orderId,
-        amount: paymentStatus.amount,
+        orderId: normalizedPayment.orderId,
+        amount: normalizedPayment.amount,
         failedAt: new Date(),
         source: source,
-        reason: paymentStatus.reason || "Payment failed",
+        reason: normalizedPayment.reason || "Payment failed",
         merchantOrderId: merchantOrderId,
       };
+      await releaseReservedSeats(pass);
 
       await pass.save();
     }
@@ -443,8 +731,14 @@ const validateWebhookSignature = (username, password, receivedSignature) => {
       .createHash("sha256")
       .update(credentials)
       .digest("hex");
+    if (!receivedSignature || receivedSignature.length !== expectedSignature.length) {
+      return false;
+    }
 
-    return expectedSignature === receivedSignature;
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(receivedSignature),
+    );
   } catch (error) {
     console.error("Error validating webhook signature:", error);
     return false;
@@ -468,34 +762,22 @@ const htmlRedirect = (url) => `
 // Enhanced Payment Callback Handler
 const handlePaymentCallback = async (req, res) => {
   try {
-    console.log("Payment callback initiated");
     const { merchantOrderId } = req.params;
-    console.log("[CALLBACK] Received callback for:", merchantOrderId);
 
-    // Step 1: Fetch status from PhonePe with processing enabled
     const paymentStatus = await checkPaymentStatus(merchantOrderId, true);
-    console.log("[CALLBACK] PhonePe status processed:", paymentStatus);
 
-    // Validate response
     if (!paymentStatus || typeof paymentStatus !== "object") {
       throw new Error("Invalid payment status response from PhonePe");
     }
 
-    const paymentState = paymentStatus.state || paymentStatus.data?.state;
+    const paymentState = normalizePhonePeStatus(paymentStatus).state;
     if (!paymentState) {
-      console.log(
-        '[CALLBACK] Payment status missing "state" field:',
-        paymentStatus,
-      );
       throw new Error("Missing 'state' in PhonePe response");
     }
 
-    // Find pass to get details
     const pass = await Pass.findOne({ merchantOrderId: merchantOrderId });
 
-    // Step 2: Route based on payment state
     if (paymentState === "COMPLETED") {
-      console.log("[CALLBACK] Payment completed. Redirecting to success");
       return res.redirect(
         302,
         `${process.env.FRONTEND_URL}/ticket/success?passId=${pass?._id}&uuid=${pass?.passUUID}`,
@@ -503,15 +785,12 @@ const handlePaymentCallback = async (req, res) => {
     }
 
     if (paymentState === "FAILED") {
-      console.log("[CALLBACK] Payment failed. Redirecting to failure");
       return res.redirect(
         302,
         `${process.env.FRONTEND_URL}/ticket/failure?passId=${pass ? pass._id : ""}&orderId=${merchantOrderId}`,
       );
     }
 
-    // PENDING or unknown status
-    console.log("[CALLBACK] Payment pending. Redirecting to pending page.");
     return res.redirect(
       302,
       `${process.env.FRONTEND_URL}/ticket/pending?orderId=${merchantOrderId}`,
@@ -533,12 +812,10 @@ const handlePaymentCallback = async (req, res) => {
 const handleManualStatusCheck = async (req, res) => {
   try {
     const { merchantOrderId } = req.params;
-    console.log("[MANUAL_CHECK] Checking status for:", merchantOrderId);
 
-    // Check status with processing enabled
     const paymentStatus = await checkPaymentStatus(merchantOrderId, true);
 
-    const paymentState = paymentStatus.state || paymentStatus.data?.state;
+    const paymentState = normalizePhonePeStatus(paymentStatus).state;
 
     return res.status(200).json({
       success: true,
@@ -560,7 +837,9 @@ const handleManualStatusCheck = async (req, res) => {
 // Enhanced Webhook Handler
 const handlePaymentWebhook = async (req, res) => {
   try {
-    console.log("Webhook received:", req.body);
+    const webhookBody = Buffer.isBuffer(req.body)
+      ? JSON.parse(req.body.toString("utf8"))
+      : req.body;
 
     // Validate webhook signature if configured
     if (
@@ -585,7 +864,10 @@ const handlePaymentWebhook = async (req, res) => {
       }
     }
 
-    const { event, payload } = req.body;
+    const { event, payload } = webhookBody || {};
+    if (!event || !payload?.merchantOrderId) {
+      return res.status(400).json({ error: "Invalid webhook payload" });
+    }
 
     if (event === "checkout.order.completed") {
       await processPaymentConfirmation(
@@ -711,33 +993,24 @@ const getPassForQR = async (req, res) => {
 const getTicketStatus = async (req, res) => {
   try {
     const { passId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(passId)) {
+      return res.status(400).json({ error: "Invalid Pass ID" });
+    }
 
-    const pass = await Pass.findById(passId)
-      .populate("userId", "name email phone")
-      .populate("eventId", "title date venue location");
+    let pass = await Pass.findById(passId)
+      .populate("userId", "name email phoneNumber")
+      .populate("eventId", "name startDate location");
 
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
 
-    // If payment is still pending, check status from PhonePe
-    if (pass.status === "pending" && pass.merchantOrderId) {
+    if (pass.paymentStatus === "pending" && pass.merchantOrderId) {
       try {
-        const paymentStatus = await checkPaymentStatus(pass.merchantOrderId);
-
-        if (paymentStatus.state === "COMPLETED") {
-          pass.status = "active";
-          pass.paymentStatus = "completed";
-          pass.confirmedAt = new Date();
-          if (!pass.passUUID) {
-            pass.passUUID = uuidv4();
-          }
-          await pass.save();
-        } else if (paymentStatus.state === "FAILED") {
-          pass.status = "payment_failed";
-          pass.paymentStatus = "failed";
-          await pass.save();
-        }
+        await checkPaymentStatus(pass.merchantOrderId, true);
+        pass = await Pass.findById(passId)
+          .populate("userId", "name email phoneNumber")
+          .populate("eventId", "name startDate location");
       } catch (error) {
         console.error("Error checking payment status:", error);
       }
@@ -748,7 +1021,7 @@ const getTicketStatus = async (req, res) => {
       data: {
         pass: pass,
         qrCode:
-          pass.status === "active"
+          pass.paymentStatus === "completed" && pass.passUUID
             ? generateQRCode(pass.passUUID || pass._id)
             : null,
       },
@@ -768,12 +1041,15 @@ const generateQRCode = (passIdentifier) => {
 const cleanupExpiredPasses = async () => {
   try {
     const expiredPasses = await Pass.find({
-      status: "pending",
+      paymentStatus: "pending",
       expiresAt: { $lt: new Date() },
     });
 
     for (const pass of expiredPasses) {
       pass.status = "expired";
+      pass.passStatus = "expired";
+      pass.paymentStatus = "failed";
+      await releaseReservedSeats(pass);
       await pass.save();
     }
 
@@ -789,15 +1065,23 @@ const getPassByUUID = async (req, res) => {
       return res.status(400).json({ error: "Pass UUID is required" });
     }
 
-    const pass = await Pass.findOne({ passUUID: passUUID })
+    const pass = await Pass.findOne({
+      passUUID: passUUID,
+      paymentStatus: "completed",
+    })
       .populate("userId", "name")
       .populate("eventId", "name startDate")
       .select(
-        "eventId userId paymentStatus createdAt amount friends passUUID passType",
+        "eventId userId paymentStatus status createdAt amount friends passUUID passType ticketCount qrStrings",
       );
 
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
+    }
+
+    if (!pass.qrStrings?.length) {
+      pass.qrStrings = buildQRStrings(pass.userId, pass.friends || []);
+      await pass.save();
     }
 
     const totalAmount = pass.amount;
@@ -808,10 +1092,17 @@ const getPassByUUID = async (req, res) => {
       passEventDate: pass.eventId?.startDate || "Unknown Date",
       passPaymentStatus: pass.paymentStatus || "ERROR",
       passCreatedAt: pass.createdAt || "NO",
-      passStatus: pass.paymentStatus || "ERROR",
-      passEnteries: pass.friends.length + 1, // Including the main userP
+      passStatus: pass.status || pass.paymentStatus || "ERROR",
+      passEnteries: pass.ticketCount || pass.friends.length + 1,
       eventId: pass.eventId?._id || "Unknown Event ID",
-      // Additional fields that might be useful
+      qrStrings: (pass.qrStrings || []).map((qrString) => ({
+        id: qrString.id,
+        personName: qrString.personName,
+        personType: qrString.personType,
+        qrScanned: qrString.qrScanned,
+        scannedAt: qrString.scannedAt,
+        qrContent: `${pass.passUUID}+${qrString.id}`,
+      })),
     };
 
     return res.status(200).json({
@@ -826,6 +1117,10 @@ const getPassByUUID = async (req, res) => {
 
 const getPassByUserAndEvent = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.body.eventId)) {
+      return res.status(400).json({ error: "Invalid Event ID" });
+    }
+
     const passes = await Pass.find({
       userId: req.user._id,
       eventId: req.body.eventId,
@@ -849,8 +1144,6 @@ const getPassByUserAndEvent = async (req, res) => {
       };
     });
 
-    console.log("Passes found:", passesData.length);
-
     return res.status(200).json({
       passes: passesData,
       count: passesData.length,
@@ -863,40 +1156,34 @@ const getPassByUserAndEvent = async (req, res) => {
 };
 const getPassByQrStringsAndPassUUID = async (req, res) => {
   try {
+    if (!req.body.passUUID || !req.body.qrId) {
+      return res.status(400).json({ error: "Pass UUID and QR ID are required" });
+    }
+
     const pass = await Pass.findOne({
       passUUID: req.body.passUUID,
-    }).populate("eventId");
-
-    console.log(req.body.qrId);
-    console.log(pass);
+      paymentStatus: "completed",
+    })
+      .populate("eventId", "name")
+      .populate("userId", "name");
 
     if (!pass) {
       return res.status(404).json({ error: "Valid pass not found" });
     }
 
-    let person = null;
-
-    // Check if qrStrings exists and is an array
-    if (pass.qrStrings && Array.isArray(pass.qrStrings)) {
-      // Use for...of loop to iterate over the actual objects
-      for (const qr of pass.qrStrings) {
-        if (qr._id && qr._id.toString() === req.body.qrId) {
-          console.log("QR found", qr);
-          person = qr;
-          break;
-        }
-      }
+    const person = findQRString(pass, req.body.qrId);
+    if (!person) {
+      return res.status(404).json({ error: "QR code not found" });
     }
-
-    console.log("Found person:", person);
 
     return res.status(200).json({
       success: true,
       data: {
-        buyer: pass.userId.name,
-        event: pass.eventId.name,
+        buyer: pass.userId?.name || "Unknown buyer",
+        event: pass.eventId?.name || "Unknown event",
         person,
         amount: pass.amount,
+        paymentStatus: pass.paymentStatus,
       },
     });
   } catch (error) {
@@ -906,35 +1193,48 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
 };
 const Accept = async (req, res) => {
   try {
-    let passUUID = req.body.uuid;
+    const passUUID = req.body.uuid;
     if (!passUUID) {
       return res.status(400).json({ error: "Pass UUID is required" });
     }
-    let qrId = req.body.qrId;
+    const qrId = req.body.qrId;
     if (!qrId) {
       return res.status(400).json({ error: "QR ID is required" });
     }
 
-    // Find pass by passUUID field, not by _id
     const pass = await Pass.findOne({ passUUID });
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
 
-    // Find the QR string by _id
-    const qrString = pass.qrStrings.find((qr) => qr._id.toString() === qrId);
+    if (pass.paymentStatus !== "completed") {
+      return res.status(400).json({ error: "Pass is not active" });
+    }
+    if (pass.status !== "active" || pass.passStatus !== "active") {
+      pass.status = "active";
+      pass.passStatus = "active";
+    }
+
+    const qrString = findQRString(pass, qrId);
     if (!qrString) {
       return res.status(404).json({ error: "QR code not found" });
     }
 
-    if (qrString.isScanned) {
+    if (qrString.qrScanned) {
       return res.status(400).json({ error: "QR code already scanned" });
     }
 
     qrString.scannedAt = new Date();
     qrString.qrScanned = true;
+    if (pass.qrStrings.every((qr) => qr.qrScanned || qr._id.toString() === qrString._id.toString())) {
+      pass.isScanned = true;
+      pass.timeScanned = qrString.scannedAt;
+    }
     await pass.save();
-    return res.status(200).json({ message: "Pass scanned successfully" });
+    return res.status(200).json({
+      message: "Pass scanned successfully",
+      scannedAt: qrString.scannedAt,
+    });
   } catch (error) {
     console.error("Accept pass error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -975,11 +1275,6 @@ const Accept = async (req, res) => {
 
 const canScan = async (req, res) => {
   let user = req.user;
-  let eventId = req.body.eventId;
-  const event = await Event.findById(eventId);
-  if (user.role !== "admin" && user.role !== "event_manager") {
-    return res.status(403).json({ error: "Forbidden: Invalid role" });
-  }
   try {
     if (user.role !== "admin") {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
@@ -994,22 +1289,22 @@ const canScan = async (req, res) => {
 
 const admnDetails = async (req, res) => {
   let user = req.user;
-  let eventId = req.body.eventId;
-  const event = await Event.findById(eventId);
-  if (user.role !== "admin" && user.role !== "event_manager") {
-    return res.status(403).json({ error: "Forbidden: Invalid role" });
-  }
   try {
     if (user.role !== "admin") {
       return res.status(403).json({ error: "Forbidden: Invalid role" });
     }
-    // fetch all passes with completed
-    const passes = await Pass.find({ paymentStatus: "completed" });
-    // calculate total number of passes
-    const totalDocuments = passes.length - 3;
-    // add all the amount - 9* length of documents
+    const query = { paymentStatus: "completed" };
+    if (req.query.eventId && mongoose.Types.ObjectId.isValid(req.query.eventId)) {
+      query.eventId = req.query.eventId;
+    }
+
+    const passes = await Pass.find(query);
+    const totalOrders = passes.length;
+    const totalTickets = passes.reduce(
+      (acc, pass) => acc + (pass.ticketCount || 1 + (pass.friends?.length || 0)),
+      0,
+    );
     const totalAmount = passes.reduce((acc, pass) => acc + pass.amount, 0);
-    const totalAmountAfterAdjustment = totalAmount - 5 - 9 * totalDocuments;
 
     const y2kPasses = await Pass.find({
       paymentStatus: "completed",
@@ -1019,8 +1314,9 @@ const admnDetails = async (req, res) => {
 
     return res.status(200).json({
       message: "Details fetched successfully",
-      passes: totalDocuments,
-      amount: totalAmountAfterAdjustment,
+      orders: totalOrders,
+      passes: totalTickets,
+      amount: totalAmount,
       y2kPasses: y2kPassesCount,
     });
   } catch (error) {
@@ -1041,4 +1337,14 @@ module.exports = {
   cleanupExpiredPasses,
   getPassByUUID,
   admnDetails,
+  _test: {
+    buildQRStrings,
+    basicPassRequiredEventIds,
+    cleanEnvValue,
+    getPhonePeCredentials,
+    getPhonePeConfig,
+    normalizePhonePeStatus,
+    sanitizeFriends,
+    validateWebhookSignature,
+  },
 };

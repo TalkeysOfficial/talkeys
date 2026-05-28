@@ -1,12 +1,12 @@
 // hooks/usePassManagement.ts
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { bookPass, getPass } from "@/lib/services/eventApi";
 
 export function usePassManagement(eventId: string) {
   const [codes, setCodes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const data = await getPass(eventId);
       const qrs: string[] = [];
@@ -23,11 +23,11 @@ export function usePassManagement(eventId: string) {
     } catch {
       setCodes([]);
     }
-  }
+  }, [eventId]);
 
   useEffect(() => {
     refresh();
-  }, [eventId]);
+  }, [refresh]);
 
   async function create(teamCode: string) {
     setLoading(true);

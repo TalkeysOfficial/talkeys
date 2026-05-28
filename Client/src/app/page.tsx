@@ -14,6 +14,7 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -46,7 +47,7 @@ export default function Home() {
   }, []);
 
   return (
-    <GoogleOAuthProvider clientId="563385258779-75kq583ov98fk7h3dqp5em0639769a61.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={googleClientId}>
       <Hero />
 
       {!loading && upcomingEvents.length > 0 && (

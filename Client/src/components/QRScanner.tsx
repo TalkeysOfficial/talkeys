@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import QrScanner from "qr-scanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ type ScannerState = "scanning" | "passInfo" | "success" | "error" | "used";
 export default function QRScannerComponent() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const qrScannerRef = useRef<QrScanner | null>(null);
+  const isPendingRef = useRef(false);
   const [state, setState] = useState<ScannerState>("scanning");
   const [passInfo, setPassInfo] = useState<GetTixResponse | null>(null);
   const [currentPassId, setCurrentPassId] = useState<CurrentPassId | null>(
@@ -42,44 +43,86 @@ export default function QRScannerComponent() {
     null,
   );
 
-  // Initialize QR Scanner
-  useEffect(() => {
-    if (state === "scanning" && videoRef.current) {
-      initializeScanner();
-    }
-    return () => {
-      if (qrScannerRef.current) {
-        qrScannerRef.current.destroy();
-        qrScannerRef.current = null;
-      }
+  const setPending = useCallback((value: boolean) => {
+    isPendingRef.current = value;
+    setIsPending(value);
+  }, []);
+
+  const parseQRData = useCallback((qrData: string): { passUUID: string; qrId?: string } => {
+    // Assuming the format is "passUUID+qrId" or just "passUUID"
+    const parts = qrData.split("+");
+    return {
+      passUUID: parts[0],
+      qrId: parts[1] || undefined,
     };
-  }, [state]);
+  }, []);
 
-  const initializeScanner = async () => {
-    if (!videoRef.current) return;
-
+  const getPassInfo = useCallback(async (
+    passUUID: string,
+    qrId?: string,
+  ): Promise<void> => {
     try {
-      qrScannerRef.current = new QrScanner(
-        videoRef.current,
-        (result) => handleQRScan(result.data),
-        {
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-          preferredCamera: "environment",
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("No access token found. Please login.");
+      }
+
+      // Prepare request body
+      const requestBody: any = { passUUID };
+      if (qrId) {
+        requestBody.qrId = qrId;
+      }
+
+      const response = await fetch(`${process.env.BACKEND_URL}/api/getTix`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
-      await qrScannerRef.current.start();
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const data: GetTixResponse = await response.json();
+
+        if (!data.success) {
+          throw new Error("API returned unsuccessful response");
+        }
+
+        setPassInfo(data);
+        setCurrentPassId({ passUUID, qrId });
+        setState("passInfo");
+        setPending(false);
+        setError(null);
+      } else if (response.status === 404) {
+        setVerificationStatus("Invalid Pass");
+        setError("Pass not found. Please check the QR code.");
+        setState("error");
+        setPending(false);
+      } else if (response.status === 401) {
+        setError("Authentication failed. Please login again.");
+        setState("error");
+        setPending(false);
+      } else {
+        const errorText = await response.text();
+        throw new Error(`Server error ${response.status}: ${errorText}`);
+      }
     } catch (error) {
-      console.error("Failed to start QR scanner:", error);
-      setError("Failed to access camera. Please check permissions.");
+      console.error("Error fetching pass info:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to verify pass. Please try again.",
+      );
       setState("error");
+      setPending(false);
     }
-  };
+  }, [setPending]);
 
-  const handleQRScan = async (qrData: string) => {
-    if (isPending) return;
+  const handleQRScan = useCallback(async (qrData: string) => {
+    if (isPendingRef.current) return;
 
-    setIsPending(true);
+    setPending(true);
     setError(null);
 
     try {
@@ -102,85 +145,43 @@ export default function QRScannerComponent() {
         error instanceof Error ? error.message : "Failed to process QR code",
       );
       setState("error");
-      setIsPending(false);
+      setPending(false);
     }
-  };
+  }, [getPassInfo, parseQRData, setPending]);
 
-  const parseQRData = (qrData: string): { passUUID: string; qrId?: string } => {
-    // Assuming the format is "passUUID+qrId" or just "passUUID"
-    const parts = qrData.split("+");
-    return {
-      passUUID: parts[0],
-      qrId: parts[1] || undefined,
-    };
-  };
-
-  const getPassInfo = async (
-    passUUID: string,
-    qrId?: string,
-  ): Promise<void> => {
-    console.log("Fetching pass info for:", { passUUID, qrId });
+  const initializeScanner = useCallback(async () => {
+    if (!videoRef.current) return;
 
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        throw new Error("No access token found. Please login.");
-      }
-
-      // Prepare request body
-      const requestBody: any = { passUUID };
-      if (qrId) {
-        requestBody.qrId = qrId;
-      }
-
-      const response = await fetch(`${process.env.BACKEND_URL}/api/getTix`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      qrScannerRef.current = new QrScanner(
+        videoRef.current,
+        (result) => handleQRScan(result.data),
+        {
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          preferredCamera: "environment",
         },
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log("Response status:", response.status);
-
-      if (response.ok) {
-        const data: GetTixResponse = await response.json();
-        console.log("Pass data received:", data);
-
-        if (!data.success) {
-          throw new Error("API returned unsuccessful response");
-        }
-
-        setPassInfo(data);
-        setCurrentPassId({ passUUID, qrId });
-        setState("passInfo");
-        setIsPending(false);
-        setError(null);
-      } else if (response.status === 404) {
-        setVerificationStatus("Invalid Pass");
-        setError("Pass not found. Please check the QR code.");
-        setState("error");
-        setIsPending(false);
-      } else if (response.status === 401) {
-        setError("Authentication failed. Please login again.");
-        setState("error");
-        setIsPending(false);
-      } else {
-        const errorText = await response.text();
-        throw new Error(`Server error ${response.status}: ${errorText}`);
-      }
-    } catch (error) {
-      console.error("Error fetching pass info:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to verify pass. Please try again.",
       );
+      await qrScannerRef.current.start();
+    } catch (error) {
+      console.error("Failed to start QR scanner:", error);
+      setError("Failed to access camera. Please check permissions.");
       setState("error");
-      setIsPending(false);
     }
-  };
+  }, [handleQRScan]);
+
+  // Initialize QR Scanner
+  useEffect(() => {
+    if (state === "scanning" && videoRef.current) {
+      initializeScanner();
+    }
+    return () => {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.destroy();
+        qrScannerRef.current = null;
+      }
+    };
+  }, [initializeScanner, state]);
 
   const handleAccept = async () => {
     if (!currentPassId || !passInfo) {
@@ -188,15 +189,13 @@ export default function QRScannerComponent() {
       return;
     }
 
-    setIsPending(true);
+    setPending(true);
 
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) {
         throw new Error("No access token found");
       }
-
-      console.log("Accepting pass:", currentPassId.passUUID);
 
       const response = await fetch(`${process.env.BACKEND_URL}/Accept`, {
         method: "POST",
@@ -211,7 +210,6 @@ export default function QRScannerComponent() {
       });
 
       if (response.ok) {
-        console.log("Pass accepted successfully");
         // Update the pass info to reflect it's now scanned
         const currentTime = new Date().toISOString();
         setPassInfo({
@@ -237,7 +235,7 @@ export default function QRScannerComponent() {
       );
       setState("error");
     } finally {
-      setIsPending(false);
+      setPending(false);
     }
   };
 
@@ -250,7 +248,7 @@ export default function QRScannerComponent() {
     setCurrentPassId(null);
     setError(null);
     setVerificationStatus(null);
-    setIsPending(false);
+    setPending(false);
     setState("scanning");
   };
 

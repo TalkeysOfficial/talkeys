@@ -28,6 +28,13 @@ export default function EventHeader({
   onClose,
   children,
 }: HeaderProps) {
+  const convenienceFee = Number(process.env.NEXT_PUBLIC_CONVENIENCE_FEE || 0);
+  const basicPassRequiredEventId =
+    process.env.NEXT_PUBLIC_BASIC_PASS_REQUIRED_EVENT_ID;
+  const requiresBasicPass =
+    Boolean(basicPassRequiredEventId) && event._id === basicPassRequiredEventId;
+  const displayedPrice = Math.max(Number(event.ticketPrice || 0) - convenienceFee, 0);
+
   return (
     <>
       {onClose && (
@@ -104,7 +111,7 @@ export default function EventHeader({
           </div>
 
           {/* Requirement Banner (Only for specific Event ID) */}
-          {event._id === "6941834009f38cd886cb1aa0" && (
+          {requiresBasicPass && (
             <div className="w-full p-3 bg-purple-900/20 border border-[#CCA1F4]/30 rounded-xl text-left">
               <p className="text-[#CCA1F4] text-xs sm:text-sm font-urbanist">
                 <span className="font-bold text-white">Requirement:</span> To
@@ -114,48 +121,48 @@ export default function EventHeader({
                 </span>
                 .
               </p>
-              <p className="text-[#CCA1F4] text-[10px] sm:text-xs mt-1">
-                * After purchase, the price will drop to ₹ 200.
-              </p>
             </div>
           )}
 
           {/* Price and Likes Section */}
           <div className="flex justify-between items-center gap-2 w-full">
             <span className="text-white text-base sm:text-lg font-bold font-urbanist flex items-center gap-2">
-              {event._id === "6941834009f38cd886cb1aa0" ? (
-                <>
-                  <span className="text-gray-400 line-through font-normal text-sm sm:text-base">
-                    ₹ 300
-                  </span>
-                  <span>₹ 200</span>
-                </>
-              ) : (
-                <span>₹ {event.ticketPrice - 9}</span>
-              )}
+              <span>₹ {displayedPrice}</span>
 
-              <span className="font-normal text-xs sm:text-sm opacity-80">
-                (excl. ₹ 9 Convenience Fee)
-              </span>
+              {convenienceFee > 0 && (
+                <span className="font-normal text-xs sm:text-sm opacity-80">
+                  (excl. ₹ {convenienceFee} Convenience Fee)
+                </span>
+              )}
             </span>
 
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
-                <motion.img
-                  src={heartImg.src}
-                  alt="likes"
-                  className="w-12 h-5 object-contain cursor-pointer transition-transform hover:scale-105"
+                <motion.button
+                  type="button"
                   onClick={toggleLike}
+                  className="cursor-pointer transition-transform hover:scale-105"
+                  aria-label={isLike ? "Unlike event" : "Like event"}
                   animate={{ scale: isLike ? 1.1 : 1 }}
                   transition={{
                     type: "spring",
                     stiffness: 300,
                     damping: 12,
                   }}
-                />
-                <img
-                  src={vectorImg.src}
+                >
+                  <Image
+                    src={heartImg}
+                    alt=""
+                    width={48}
+                    height={20}
+                    className="w-12 h-5 object-contain"
+                  />
+                </motion.button>
+                <Image
+                  src={vectorImg}
                   alt="vector"
+                  width={24}
+                  height={24}
                   className="w-6 h-6 object-contain"
                 />
               </div>

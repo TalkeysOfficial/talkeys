@@ -1,8 +1,9 @@
 "use client";
 
-import { CheckCircle, ArrowLeft, Receipt } from "lucide-react";
+import { CheckCircle, ArrowLeft, QrCode, Receipt } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense, useEffect, useState } from "react";
@@ -16,21 +17,47 @@ const config = {
 	bgColor: "bg-green-500/10",
 	borderColor: "border-green-500/20",
 };
+
+type SuccessQRString = {
+	id: string;
+	personName: string;
+	personType: "user" | "friend";
+	qrScanned: boolean;
+	scannedAt: string | null;
+	qrContent: string;
+};
+
+type PassDetails = {
+	passAmount: number;
+	passEventName: string;
+	passEventDate: string;
+	passPaymentStatus: string;
+	passCreatedAt: string;
+	passStatus: string;
+	passEnteries: number;
+	eventId: string | null;
+	qrStrings: SuccessQRString[];
+};
+
+const emptyPassDetails: PassDetails = {
+	passAmount: 0.0,
+	passEventName: "Unknown Event",
+	passEventDate: "Unknown Date",
+	passPaymentStatus: "ERROR",
+	passCreatedAt: "NULL",
+	passStatus: "ERROR",
+	passEnteries: 0,
+	eventId: null,
+	qrStrings: [],
+};
+
 function PaymentStatusContent() {
 	const searchParams = useSearchParams();
 	const passId = searchParams.get("passId") ?? "NULL";
 	const uuid = searchParams.get("uuid") ?? null;
 	const StatusIcon = config.icon;
-	const [passDetails, setPassDetails] = useState({
-		passAmount: 0.0,
-		passEventName: "Unknown Event",
-		passEventDate: "Unknown Date",
-		passPaymentStatus: "ERROR",
-		passCreatedAt: "NULL",
-		passStatus: "ERROR",
-		passEnteries: 0,
-		eventId: null,
-	});
+	const [passDetails, setPassDetails] = useState<PassDetails>(emptyPassDetails);
+	const qrStrings = passDetails.qrStrings.filter((qr) => qr.qrContent);
 
 	useEffect(() => {
 		const getPassDetails = async () => {
@@ -52,8 +79,11 @@ function PaymentStatusContent() {
 				if (!response.ok) throw new Error("Failed to fetch pass details");
 
 				const data = await response.json();
-				console.log("Pass details:", data);
-				setPassDetails(data.data);
+				setPassDetails({
+					...emptyPassDetails,
+					...data.data,
+					qrStrings: data.data?.qrStrings || [],
+				});
 			} catch (error) {
 				console.error("Error fetching pass details:", error);
 			}
@@ -203,6 +233,46 @@ function PaymentStatusContent() {
 										</span>
 									</div>
 								</div>
+							</div>
+
+							{/* QR Codes */}
+							<div className="bg-gray-800/50 rounded-lg p-6 mb-8 text-left">
+								<div className="flex items-center mb-4">
+									<QrCode className="w-5 h-5 text-gray-400 mr-2" />
+									<span className="font-semibold">Entry QR Codes</span>
+								</div>
+
+								{qrStrings.length ? (
+									<div className="grid gap-4 sm:grid-cols-2">
+										{qrStrings.map((qrString, index) => (
+											<div
+												key={qrString.id || `${qrString.qrContent}-${index}`}
+												className="rounded-lg border border-gray-700 bg-gray-900 p-4 text-center"
+											>
+												<div className="mx-auto mb-3 flex w-fit rounded-lg bg-white p-3">
+													<QRCode
+														value={qrString.qrContent}
+														size={140}
+														level="M"
+													/>
+												</div>
+												<p className="font-medium">
+													{qrString.personName || `Pass ${index + 1}`}
+												</p>
+												<p className="text-xs text-gray-400">
+													{qrString.personType === "user"
+														? "Primary attendee"
+														: "Additional attendee"}
+												</p>
+											</div>
+										))}
+									</div>
+								) : (
+									<p className="text-sm text-gray-400">
+										QR codes are being prepared. Refresh this page in a few
+										seconds or continue to the event page.
+									</p>
+								)}
 							</div>
 
 							{/* Action Buttons */}
