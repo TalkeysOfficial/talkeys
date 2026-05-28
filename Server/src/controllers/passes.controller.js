@@ -23,37 +23,68 @@ const CONFIG = {
   CLIENT_VERSION: "1",
 };
 
+const cleanEnvValue = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/^["']|["']$/g, "");
+
 const getPhonePeConfig = () => {
-  const configuredEnv = String(process.env.PHONEPE_ENV || "").toLowerCase();
+  const configuredEnv = cleanEnvValue(process.env.PHONEPE_ENV).toLowerCase();
 
   if (["production", "prod", "live"].includes(configuredEnv)) {
     return {
-      AUTH_URL: process.env.PHONEPE_AUTH_URL || CONFIG.production.AUTH_URL,
-      BASE_URL: process.env.PHONEPE_BASE_URL || CONFIG.production.BASE_URL,
+      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.production.AUTH_URL,
+      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.production.BASE_URL,
       CHECKOUT_SCRIPT:
-        process.env.PHONEPE_CHECKOUT_SCRIPT ||
+        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) ||
         CONFIG.production.CHECKOUT_SCRIPT,
     };
   }
 
   if (["sandbox", "staging", "test", "preprod", "uat", "development"].includes(configuredEnv)) {
     return {
-      AUTH_URL: process.env.PHONEPE_AUTH_URL || CONFIG.sandbox.AUTH_URL,
-      BASE_URL: process.env.PHONEPE_BASE_URL || CONFIG.sandbox.BASE_URL,
+      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.sandbox.AUTH_URL,
+      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.sandbox.BASE_URL,
       CHECKOUT_SCRIPT:
-        process.env.PHONEPE_CHECKOUT_SCRIPT || CONFIG.sandbox.CHECKOUT_SCRIPT,
+        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || CONFIG.sandbox.CHECKOUT_SCRIPT,
     };
   }
 
-  const defaultConfig = String(process.env.PHONEPE_CLIENT_ID || "").startsWith("TEST-")
+  const defaultConfig = cleanEnvValue(process.env.PHONEPE_CLIENT_ID).startsWith("TEST-")
     ? CONFIG.sandbox
     : CONFIG.production;
 
   return {
-    AUTH_URL: process.env.PHONEPE_AUTH_URL || defaultConfig.AUTH_URL,
-    BASE_URL: process.env.PHONEPE_BASE_URL || defaultConfig.BASE_URL,
+    AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || defaultConfig.AUTH_URL,
+    BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || defaultConfig.BASE_URL,
     CHECKOUT_SCRIPT:
-      process.env.PHONEPE_CHECKOUT_SCRIPT || defaultConfig.CHECKOUT_SCRIPT,
+      cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || defaultConfig.CHECKOUT_SCRIPT,
+  };
+};
+
+const getPhonePeCredentials = () => {
+  const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
+  const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
+  const secretEncoding = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET_ENCODING).toLowerCase();
+  const rawClientSecret = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET);
+  const clientSecret =
+    secretEncoding === "base64"
+      ? Buffer.from(rawClientSecret, "base64").toString("utf8").trim()
+      : rawClientSecret;
+
+  const missing = [];
+  if (!clientId) missing.push("PHONEPE_CLIENT_ID");
+  if (!clientSecret) missing.push("PHONEPE_CLIENT_SECRET");
+  if (!clientVersion) missing.push("PHONEPE_CLIENT_VERSION");
+
+  if (missing.length) {
+    throw new Error(`Missing PhonePe configuration: ${missing.join(", ")}`);
+  }
+
+  return {
+    clientId,
+    clientSecret,
+    clientVersion,
   };
 };
 
@@ -190,21 +221,22 @@ const findQRString = (pass, qrId) => {
 const getPhonePeAccessToken = async () => {
   try {
     const config = getPhonePeConfig();
-    const clientVersion =
-      process.env.PHONEPE_CLIENT_VERSION || CONFIG.CLIENT_VERSION;
+    const { clientId, clientSecret, clientVersion } = getPhonePeCredentials();
 
     const response = await axios.post(
       config.AUTH_URL,
       qs.stringify({
-        client_id: process.env.PHONEPE_CLIENT_ID,
-        client_secret: process.env.PHONEPE_CLIENT_SECRET,
+        client_id: clientId,
+        client_secret: clientSecret,
         grant_type: "client_credentials",
         client_version: clientVersion,
       }),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
         },
+        timeout: 15000,
       },
     );
 
@@ -215,6 +247,19 @@ const getPhonePeAccessToken = async () => {
 
     return accessToken;
   } catch (error) {
+    if (error.response?.status === 401) {
+      const config = getPhonePeConfig();
+      const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
+      const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
+      throw new Error(
+        [
+          "PhonePe authentication failed with 401.",
+          "Check PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, PHONEPE_CLIENT_VERSION, and PHONEPE_ENV.",
+          `Using ${config.AUTH_URL} with client id prefix ${clientId.slice(0, 8)} and client version ${clientVersion}.`,
+        ].join(" "),
+      );
+    }
+
     console.error(
       "[PhonePe] Auth Error:",
       error.response?.data || error.message,
@@ -1283,6 +1328,8 @@ module.exports = {
   _test: {
     buildQRStrings,
     basicPassRequiredEventIds,
+    cleanEnvValue,
+    getPhonePeCredentials,
     getPhonePeConfig,
     normalizePhonePeStatus,
     sanitizeFriends,
