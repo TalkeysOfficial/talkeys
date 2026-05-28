@@ -23,9 +23,9 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 atpugvaraa@143.244.135.22 '
             cd /home/atpugvaraa/talkeys/Server &&
             git pull https://atpugvaraa:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys &&
-            sudo docker compose up --build -d &&
+            docker compose up --build -d &&
             sleep 10 &&
-            echo y | sudo docker system prune
+            echo y | docker system prune
           '
 
       - name: Check API Status
@@ -42,7 +42,6 @@ jobs:
           done
           echo "API failed to start after multiple attempts"
           exit 1
-
 
 # name: Deploy to Web Server
 
@@ -115,20 +114,20 @@ jobs:
 #         run: |
 #           echo y | docker system prune
 
-  # deploy-frontend:
-  #   runs-on: ubuntu-latest
-  #   needs: deploy-backend  # Waits for backend job to succeed
+# deploy-frontend:
+#   runs-on: ubuntu-latest
+#   needs: deploy-backend  # Waits for backend job to succeed
 
-  #   steps:
-  #     - name: Clone the repository to a temp directory
-  #       run: |
-  #         git clone https://atpugvaraa:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
-  #         cd temp_repo
-  #         rm -rf .github/workflows  # Remove workflow files
-  #         git config --global user.email "himanishpuri2203@gmail.com"
-  #         git config --global user.name "himanishpuri"
-  #         git remote add backup https://himanishpuri:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git
-  #         git branch -M himanish
-  #         git add .
-  #         git commit -m "Overriding with latest changes from talkeys repo"
-  #         git push --force backup himanish
+#   steps:
+#     - name: Clone the repository to a temp directory
+#       run: |
+#         git clone https://atpugvaraa:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
+#         cd temp_repo
+#         rm -rf .github/workflows  # Remove workflow files
+#         git config --global user.email "himanishpuri2203@gmail.com"
+#         git config --global user.name "himanishpuri"
+#         git remote add backup https://himanishpuri:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git
+#         git branch -M himanish
+#         git add .
+#         git commit -m "Overriding with latest changes from talkeys repo"
+#         git push --force backup himanish
