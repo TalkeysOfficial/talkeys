@@ -5,6 +5,7 @@ const authentication = require("./../controllers/authentication.js");
 const Events = require("./../controllers/event.controller.js");
 const Passes = require("./../controllers/passes.controller.js");
 const Teams = require("./../controllers/team.controller.js");
+const Admin = require("./../controllers/admin.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { influencerValidation } = require("../helpers/validatorHelper.js");
 router.get(
@@ -75,6 +76,7 @@ router.use(checkRole(["admin"]));
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
 router.get("/regisDetails", Passes.admnDetails);
+router.get("/admin/events/:eventId/stats", Admin.getEventStats);
 // router.post("/reject", Passes.Reject);
 
 // Event Management Routes
