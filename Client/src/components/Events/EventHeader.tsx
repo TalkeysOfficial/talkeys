@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import { getSafeImageSrc } from "@/lib/utils";
 import { motion } from "framer-motion";
 import heartImg from "@/public/images/heart.png";
 import vectorImg from "@/public/images/Vector.png";
@@ -51,7 +52,7 @@ export default function EventHeader({
 
       <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2 pl-8">
         <Image
-          src={event.photographs?.[0] || "/images/placeholder.jpg"}
+          src={getSafeImageSrc(event.photographs?.[0])}
           alt={`${event.name}-banner`}
           width={253}
           height={320}
