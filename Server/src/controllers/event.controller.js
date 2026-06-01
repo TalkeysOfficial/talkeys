@@ -72,7 +72,7 @@ const getEvents = asyncHandler(async (req, res) => {
 	try {
 		const {
 			page = 1,
-			limit = 10,
+			limit,
 			sortBy = "startDate",
 			order = "asc",
 			mode,
@@ -102,14 +102,16 @@ const getEvents = asyncHandler(async (req, res) => {
 			];
 		}
 
-		const skip = (parseInt(page) - 1) * parseInt(limit);
 		const sortOptions = { [sortBy]: order === "desc" ? -1 : 1 };
+		const parsedLimit = limit !== undefined ? parseInt(limit, 10) : null;
+		const shouldPaginate = Number.isFinite(parsedLimit) && parsedLimit > 0;
+		const skip = shouldPaginate ? (parseInt(page, 10) - 1) * parsedLimit : 0;
 
 		let events = await Event.find(query)
 			.select("-__v")
 			.sort(sortOptions)
 			.skip(skip)
-			.limit(parseInt(limit));
+			.limit(shouldPaginate ? parsedLimit : 0);
 
 		// Attach computed fields
 		events = events.map(event => {
@@ -135,8 +137,8 @@ const getEvents = asyncHandler(async (req, res) => {
 				pagination: {
 					total,
 					page: parseInt(page),
-					pages: Math.ceil(total / parseInt(limit)),
-					limit: parseInt(limit),
+					pages: shouldPaginate ? Math.ceil(total / parsedLimit) : 1,
+					limit: shouldPaginate ? parsedLimit : total,
 				},
 			},
 		});
