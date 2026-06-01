@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import type { Event } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
-import { cn } from "@/lib/utils";
+import { cn, getSafeImageSrc } from "@/lib/utils";
 import Link from "next/link";
 import locationSvg from "@/public/images/location_on.svg";
 import calendarSvg from "@/public/images/calendar_month.svg";
@@ -76,7 +76,7 @@ const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
                 className="relative w-full aspect-square overflow-hidden"
               >
                 <Image
-                  src={event.photographs?.[0] || "/images/placeholder.jpg"}
+                  src={getSafeImageSrc(event.photographs?.[0])}
                   alt={event.name}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"

@@ -8,8 +8,6 @@ import { cn } from "@/lib/utils";
 
 interface EventsGridProps {
 	events?: Event[];
-	onDelete?: (id: string) => void;
-	deleteMode?: boolean;
 	className?: string;
 	emptyMessage?: string;
 	isLoading?: boolean;
@@ -17,8 +15,6 @@ interface EventsGridProps {
 
 const EventsGrid: React.FC<EventsGridProps> = ({
 	events,
-	onDelete = () => {},
-	deleteMode = false,
 	className,
 	emptyMessage = "No events found",
 	isLoading = false,
@@ -74,11 +70,7 @@ const EventsGrid: React.FC<EventsGridProps> = ({
 						transition={{ duration: 0.2 }}
 						className="h-full"
 					>
-						<EventCard
-							event={event}
-							onDelete={onDelete}
-							deleteMode={deleteMode}
-						/>
+						<EventCard event={event} />
 					</motion.div>
 				))}
 			</AnimatePresence>

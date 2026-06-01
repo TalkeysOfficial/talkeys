@@ -7,14 +7,10 @@ import type { Event } from "@/types/types";
 
 interface EventListProps {
 	events?: Event[];
-	onDelete: (id: string) => void;
-	deleteMode: boolean;
 }
 
 const EventList: React.FC<EventListProps> = ({
 	events,
-	onDelete,
-	deleteMode,
 }) => {
 	if (!events || events.length === 0) {
 		return (
@@ -47,11 +43,7 @@ const EventList: React.FC<EventListProps> = ({
 						exit={{ opacity: 0, scale: 0.9 }}
 						transition={{ duration: 0.2 }}
 					>
-						<EventCard
-							event={event}
-							onDelete={onDelete}
-							deleteMode={deleteMode}
-						/>
+						<EventCard event={event} />
 					</motion.div>
 				))}
 			</AnimatePresence>

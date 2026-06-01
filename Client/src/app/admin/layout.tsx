@@ -19,12 +19,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <SidebarLink href="/admin/qrScanner" icon={QrCode}>
               QR Code Reader
             </SidebarLink>
-            {/*<SidebarLink
+            <SidebarLink
 							href="/admin/addEvent"
 							icon={PlusCircle}
 						>
 							Add Event
-						</SidebarLink>*/}
+						</SidebarLink>
           </nav>
         </aside>
 

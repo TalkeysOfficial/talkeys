@@ -21,7 +21,28 @@ const nextConfig = {
 			process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 	},
 	images: {
-		domains: ["res.cloudinary.com", "api.dicebear.com"],
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "res.cloudinary.com",
+			},
+			{
+				protocol: "https",
+				hostname: "api.dicebear.com",
+			},
+			{
+				protocol: "https",
+				hostname: "encrypted-tbn0.gstatic.com",
+			},
+			{
+				protocol: "http",
+				hostname: "localhost",
+			},
+			{
+				protocol: "http",
+				hostname: "127.0.0.1",
+			},
+		],
 		dangerouslyAllowSVG: true,
 		contentSecurityPolicy: "default-src 'self'; img-src * data:blob:;",
 	},
