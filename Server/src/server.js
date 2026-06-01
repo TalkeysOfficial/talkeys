@@ -72,6 +72,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const logger = require("./util/logger");
+const path = require("path");
 // require("mandatoryenv").load(["DB_URL", "PORT", "SECRET"]);
 const PORT = process.env.PORT;
 // const PORT = 300;
@@ -83,6 +84,7 @@ const app = express();
 // Configure Express App Instance
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 
 
 
@@ -109,7 +111,9 @@ app.options('*', cors());
 
 // This middleware adds the json header to every response
 app.use("*", (req, res, next) => {
-	res.setHeader("Content-Type", "application/json");
+	if (!req.is("multipart/form-data")) {
+		res.setHeader("Content-Type", "application/json");
+	}
 	next();
 });
 

@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import type { Event } from "@/types/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,8 +11,9 @@ import {
   Users,
   TrendingUp,
   Calendar,
-  Trash2,
+  PlusCircle,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Import shared components
 import PageHeader from "@/components/ui/shared/PageHeader";
@@ -20,11 +21,9 @@ import StatsCard from "@/components/ui/shared/StatsCard";
 import TabsContainer from "@/components/ui/shared/TabsContainer";
 import EventsGrid from "@/components/ui/shared/EventsGrid";
 import SearchInput from "@/components/ui/shared/SearchInput";
-import DeleteModeToggle from "./DeleteModeToggle";
 
 const AdminDashboard: React.FC = () => {
   const [events, setEvents] = useState<Event[] | null>();
-  const [deleteMode, setDeleteMode] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -39,93 +38,66 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     async function fetchEvents() {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${process.env.BACKEND_URL}/getEvents`);
-        const { data } = (await response.json()) as {
-          data: {
-            events: Event[];
-          };
-        };
-        const { events: fetchedEvents } = data;
-        setEvents(fetchedEvents);
-
-        // Calculate stats
-        const now = new Date();
-        const liveEvents = fetchedEvents.filter((event) => event.isLive);
-
-        setStats({
-          totalEvents: fetchedEvents.length,
-          liveEvents: liveEvents.length,
-        });
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    async function fetchAdmDetails() {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `${process.env.BACKEND_URL}/regisDetails`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
+      const response = await fetch(
+        `${process.env.BACKEND_URL}/admin/events?limit=200&sortBy=createdAt&order=desc`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
-        );
-        const data = await response.json();
-        const { passes, y2kPasses, amount } = data;
-        setPasses({
-          totalPasses: data.passes,
-          y2kPasses,
-          amount,
-        });
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      } finally {
-        setIsLoading(false);
-      }
+        },
+      );
+      if (!response.ok) throw new Error("Failed to fetch events");
+
+      const { data } = (await response.json()) as {
+        data: {
+          events: Event[];
+        };
+      };
+      const fetchedEvents = data.events || [];
+      setEvents(fetchedEvents);
+      setStats({
+        totalEvents: fetchedEvents.length,
+        liveEvents: fetchedEvents.filter((event) => event.isLive).length,
+      });
     }
-    fetchEvents();
-    fetchAdmDetails();
+
+    async function fetchAdmDetails() {
+      const response = await fetch(
+        `${process.env.BACKEND_URL}/regisDetails`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+      if (!response.ok) throw new Error("Failed to fetch admin details");
+
+      const data = await response.json();
+      setPasses({
+        totalPasses: data.passes || 0,
+        y2kPasses: data.y2kPasses || 0,
+        amount: data.amount || 0,
+      });
+    }
+
+    async function loadDashboard() {
+      setIsLoading(true);
+      const results = await Promise.allSettled([fetchEvents(), fetchAdmDetails()]);
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          console.error("Admin dashboard load failed:", result.reason);
+        }
+      });
+      setIsLoading(false);
+    }
+
+    loadDashboard();
   }, []);
 
   const filteredEvents = events?.filter((event) =>
     event.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  const handleDelete = async (id: string) => {
-    if (deleteMode) {
-      try {
-        const response = await fetch(
-          `${process.env.BACKEND_URL}/deleteSpecificEvent/${id}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-          },
-        );
-        if (response.ok) {
-          const updatedEvents = events?.filter((event) => event._id !== id);
-          setEvents(updatedEvents);
-
-          // Update stats
-          setStats((prev) => ({
-            ...prev,
-            totalEvents: prev.totalEvents - 1,
-            liveEvents: updatedEvents?.filter((e) => e.isLive)?.length ?? 0,
-            pastEvents: updatedEvents?.filter((e) => !e.isLive)?.length ?? 0,
-          }));
-        }
-      } catch (error) {
-        console.error("Failed to delete event:", error);
-      }
-    }
-  };
 
   // Create tab content components
   const createTabContent = (events: Event[] | undefined, title: string) => (
@@ -142,8 +114,6 @@ const AdminDashboard: React.FC = () => {
       <CardContent>
         <EventsGrid
           events={events}
-          onDelete={handleDelete}
-          deleteMode={deleteMode}
           isLoading={isLoading}
         />
       </CardContent>
@@ -180,10 +150,17 @@ const AdminDashboard: React.FC = () => {
       <PageHeader
         title="Admin Dashboard"
         rightContent={
-          <DeleteModeToggle
-            deleteMode={deleteMode}
-            setDeleteMode={setDeleteMode}
-          />
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Button
+              asChild
+              className="bg-purple-700 text-white hover:bg-purple-600"
+            >
+              <Link href="/admin/addEvent">
+                <PlusCircle className="h-4 w-4" />
+                Add Event
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -231,17 +208,6 @@ const AdminDashboard: React.FC = () => {
 
       <TabsContainer tabs={tabs} defaultValue="all" />
 
-      {deleteMode && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-6 right-6 bg-red-600 text-white p-4 rounded-lg shadow-lg flex items-center z-50"
-        >
-          <Trash2 className="mr-2 h-5 w-5" />
-          <span>Delete mode is active. Click on an event to delete it.</span>
-        </motion.div>
-      )}
     </div>
   );
 };

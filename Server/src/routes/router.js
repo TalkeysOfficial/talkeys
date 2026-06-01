@@ -8,6 +8,7 @@ const Teams = require("./../controllers/team.controller.js");
 const Admin = require("./../controllers/admin.controller.js");
 const { checkRole } = require("../middleware/role.middleware.js");
 const { influencerValidation } = require("../helpers/validatorHelper.js");
+const { uploadEventImage } = require("../service/cloudinary.js");
 router.get(
   "/api/payment/callback/:merchantOrderId",
   Passes.handlePaymentCallback,
@@ -76,10 +77,15 @@ router.use(checkRole(["admin"]));
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);
 router.get("/regisDetails", Passes.admnDetails);
+router.get("/admin/events", Events.getAdminEvents);
 router.get("/admin/events/:eventId/stats", Admin.getEventStats);
+router.get("/admin/events/:eventId", Events.getAdminEventById);
 // router.post("/reject", Passes.Reject);
 
 // Event Management Routes
+router.post("/admin/events", Events.addEvent);
+router.put("/admin/events/:eventId", Events.updateEvent);
+router.post("/admin/event-images", uploadEventImage);
 router.post("/addEvent", Events.addEvent);
 router.delete("/deleteSpecificEvent/:eventId", Events.deleteSpecificEvent);
 
