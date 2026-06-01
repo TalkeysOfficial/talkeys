@@ -5,32 +5,20 @@ import type React from "react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { BarChart3, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { BarChart3, Pencil } from "lucide-react";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import type { Event } from "@/types/types";
-import { cn } from "@/lib/utils";
+import { cn, getSafeImageSrc } from "@/lib/utils";
 
 interface EventCardProps {
 	event: Event;
-	onDelete?: (id: string) => void;
 	deleteMode?: boolean;
 }
 
 const EventCard: React.FC<EventCardProps> = ({
 	event,
-	onDelete,
-	deleteMode = false,
 }) => {
 	const [isHovered, setIsHovered] = useState(false);
-
-	const handleDelete = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		if (onDelete) {
-			onDelete(event._id);
-		}
-	};
 
 	const formatDate = (dateString: string) => {
 		const options: Intl.DateTimeFormatOptions = {
@@ -48,10 +36,7 @@ const EventCard: React.FC<EventCardProps> = ({
 				className="relative w-full h-48 overflow-hidden"
 			>
 				<Image
-					src={
-						event.photographs?.[0] ||
-						"/placeholder.svg?height=400&width=600"
-					}
+					src={getSafeImageSrc(event.photographs?.[0])}
 					alt={event.name}
 					fill
 					className="object-cover transition-transform duration-500"
@@ -101,7 +86,7 @@ const EventCard: React.FC<EventCardProps> = ({
 					</span>
 				</div>
 
-				<div className="mt-auto flex justify-between items-center">
+				<div className="mt-auto flex items-center justify-between gap-3">
 					<CardItem
 						translateZ="20"
 						className={cn(
@@ -112,27 +97,27 @@ const EventCard: React.FC<EventCardProps> = ({
 						{event.isPaid ? `₹${event.ticketPrice}` : "Free"}
 					</CardItem>
 
-					{deleteMode ? (
-						<CardItem translateZ="20">
-							<motion.button
-								whileHover={{ scale: 1.1 }}
-								whileTap={{ scale: 0.9 }}
-								onClick={handleDelete}
-								className="p-2 bg-red-500/20 rounded-full text-red-500 hover:bg-red-500/30 transition-colors"
-								aria-label="Delete event"
-							>
-								<Trash2 size={16} />
-							</motion.button>
-						</CardItem>
-					) : (
-						<CardItem
-							translateZ="20"
-							className="inline-flex items-center gap-2 rounded-md bg-gray-700/50 px-2 py-1 text-xs font-medium text-gray-300"
+					<CardItem
+						translateZ="20"
+						className="flex items-center gap-2"
+					>
+						<Link
+							href={`/admin/events/${event._id}`}
+							className="inline-flex h-8 items-center gap-1 rounded-md bg-gray-700/60 px-2 text-xs font-medium text-gray-200 hover:bg-gray-700"
+							aria-label={`View stats for ${event.name}`}
 						>
 							<BarChart3 size={14} />
 							Stats
-						</CardItem>
-					)}
+						</Link>
+						<Link
+							href={`/admin/events/${event._id}/edit`}
+							className="inline-flex h-8 items-center gap-1 rounded-md bg-purple-700/70 px-2 text-xs font-medium text-white hover:bg-purple-600"
+							aria-label={`Edit ${event.name}`}
+						>
+							<Pencil size={14} />
+							Edit
+						</Link>
+					</CardItem>
 				</div>
 			</CardItem>
 		</div>
@@ -151,16 +136,7 @@ const EventCard: React.FC<EventCardProps> = ({
 					isHovered ? "shadow-lg shadow-purple-500/20" : "",
 				)}
 			>
-				{deleteMode ? (
-					cardContent
-				) : (
-					<Link
-						href={`/admin/events/${event._id}`}
-						className="block h-full"
-					>
-						{cardContent}
-					</Link>
-				)}
+				{cardContent}
 			</CardBody>
 		</CardContainer>
 	);

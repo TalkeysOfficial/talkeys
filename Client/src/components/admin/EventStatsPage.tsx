@@ -8,14 +8,17 @@ import {
 	CalendarDays,
 	CheckCircle2,
 	Clock3,
+	Download,
+	Pencil,
 	IndianRupee,
 	Search,
 	TicketCheck,
 	Users,
 } from "lucide-react";
 import StatsCard from "@/components/ui/shared/StatsCard";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, getSafeImageSrc } from "@/lib/utils";
 
 interface AdminEventStatsResponse {
 	data: AdminEventStats;
@@ -123,6 +126,25 @@ const statusClassName = (status: string) =>
 			: "bg-amber-500/15 text-amber-300",
 	);
 
+const csvCell = (value: unknown) => {
+	const rawText = value === null || value === undefined ? "" : String(value);
+	const text = /^[=+\-@]/.test(rawText) ? `'${rawText}` : rawText;
+	return `"${text.replace(/"/g, '""')}"`;
+};
+
+const downloadCsv = (filename: string, rows: Array<Array<unknown>>) => {
+	const csv = rows.map((row) => row.map(csvCell).join(",")).join("\n");
+	const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	link.remove();
+	URL.revokeObjectURL(url);
+};
+
 export default function EventStatsPage({ eventId }: { eventId: string }) {
 	const [stats, setStats] = useState<AdminEventStats | null>(null);
 	const [searchTerm, setSearchTerm] = useState("");
@@ -182,6 +204,72 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 			return haystack.includes(query);
 		});
 	}, [searchTerm, stats]);
+
+	const handleExportBookings = () => {
+		if (!stats?.bookings.length) return;
+
+		const rows = [
+			[
+				"Event",
+				"Booking ID",
+				"Pass UUID",
+				"Buyer Name",
+				"Buyer Email",
+				"Buyer Phone",
+				"Booked At",
+				"Confirmed At",
+				"Ticket Count",
+				"Amount",
+				"Pass Type",
+				"Pass Status",
+				"Status",
+				"Payment Status",
+				"Merchant Order ID",
+				"PhonePe Order ID",
+				"Checked In Count",
+				"Friends",
+				"Attendees",
+			],
+			...stats.bookings.map((booking) => [
+				stats.event.name,
+				booking.id,
+				booking.passUUID || "",
+				booking.buyer.name,
+				booking.buyer.email,
+				booking.buyer.phoneNumber,
+				booking.bookedAt,
+				booking.confirmedAt || "",
+				booking.ticketCount,
+				booking.amount,
+				booking.passType,
+				booking.passStatus,
+				booking.status,
+				booking.paymentStatus,
+				booking.merchantOrderId,
+				booking.phonePeOrderId,
+				booking.checkedInCount,
+				booking.friends
+					.map((friend) =>
+						[friend.name, friend.email, friend.phone].filter(Boolean).join(" / "),
+					)
+					.join("; "),
+				booking.attendees
+					.map(
+						(attendee) =>
+							`${attendee.name} (${attendee.type}, ${
+								attendee.checkedIn ? "checked in" : "not checked in"
+							})`,
+					)
+					.join("; "),
+			]),
+		];
+
+		const safeName = stats.event.name
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-|-$/g, "");
+		downloadCsv(`${safeName || "event"}-bookings.csv`, rows);
+	};
 
 	if (isLoading) {
 		return (
@@ -257,15 +345,36 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 						</div>
 					</div>
 
-					{stats.event.photograph ? (
-						<Image
-							src={stats.event.photograph}
-							alt={stats.event.name}
-							width={320}
-							height={160}
-							className="h-32 w-full rounded-lg object-cover lg:w-64"
-						/>
-					) : null}
+					{getSafeImageSrc(stats.event.photograph, "") ? (
+						<div className="space-y-3">
+							<Image
+								src={getSafeImageSrc(stats.event.photograph)}
+								alt={stats.event.name}
+								width={320}
+								height={160}
+								className="h-32 w-full rounded-lg object-cover lg:w-64"
+							/>
+							<Button
+								asChild
+								className="w-full bg-purple-700 text-white hover:bg-purple-600"
+							>
+								<Link href={`/admin/events/${stats.event.id}/edit`}>
+									<Pencil className="h-4 w-4" />
+									Edit Event
+								</Link>
+							</Button>
+						</div>
+					) : (
+						<Button
+							asChild
+							className="bg-purple-700 text-white hover:bg-purple-600"
+						>
+							<Link href={`/admin/events/${stats.event.id}/edit`}>
+								<Pencil className="h-4 w-4" />
+								Edit Event
+							</Link>
+						</Button>
+					)}
 				</div>
 
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -314,14 +423,25 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 								{filteredBookings.length} of {stats.bookings.length} shown
 							</p>
 						</div>
-						<div className="relative w-full md:w-80">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-							<Input
-								value={searchTerm}
-								onChange={(event) => setSearchTerm(event.target.value)}
-								placeholder="Search bookings"
-								className="border-gray-700 bg-gray-950 pl-9 text-white placeholder:text-gray-500"
-							/>
+						<div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
+							<Button
+								type="button"
+								disabled={!stats.bookings.length}
+								onClick={handleExportBookings}
+								className="bg-emerald-700 text-white hover:bg-emerald-600 disabled:opacity-50"
+							>
+								<Download className="h-4 w-4" />
+								Export Data
+							</Button>
+							<div className="relative w-full md:w-80">
+								<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+								<Input
+									value={searchTerm}
+									onChange={(event) => setSearchTerm(event.target.value)}
+									placeholder="Search bookings"
+									className="border-gray-700 bg-gray-950 pl-9 text-white placeholder:text-gray-500"
+								/>
+							</div>
 						</div>
 					</div>
 

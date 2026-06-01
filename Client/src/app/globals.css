@@ -20,7 +20,7 @@ body::-webkit-scrollbar {
 body {
   /* margin-left: 50px;
   margin-right: 50px; */
-  background-image: url("/background.png");
+  background-image: url("../public/images/background.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
