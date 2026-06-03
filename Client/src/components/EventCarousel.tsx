@@ -8,6 +8,7 @@ import type { Event } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { cn, getSafeImageSrc } from "@/lib/utils";
+import { getEventDisplayPrice } from "@/lib/utils/eventUtils";
 import Link from "next/link";
 import locationSvg from "@/public/images/location_on.svg";
 import calendarSvg from "@/public/images/calendar_month.svg";
@@ -40,7 +41,7 @@ export function formatTime(timeString: string): string {
 const EventCard = memo(function EventCard({ event, index }: EventCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const convenienceFee = Number(process.env.NEXT_PUBLIC_CONVENIENCE_FEE || 0);
-  const displayedPrice = Math.max(Number(event.ticketPrice || 0) - convenienceFee, 0);
+  const displayedPrice = Math.max(getEventDisplayPrice(event) - convenienceFee, 0);
 
   return (
     <motion.div

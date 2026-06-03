@@ -44,6 +44,25 @@ const passSchema = new mongoose.Schema({
 		required: true,
 		min: 0,
 	},
+	passSelections: [{
+		passTypeId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		passTypeName: {
+			type: String,
+			default: "General Pass",
+		},
+		passPrice: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+		quantity: {
+			type: Number,
+			default: 1,
+			min: 1,
+		},
+	}],
 	ticketCount: {
 		type: Number,
 		required: true,
@@ -80,6 +99,39 @@ const passSchema = new mongoose.Schema({
 			type: String,
 		}
 	}],
+	attendees: [{
+		name: {
+			type: String,
+			required: true,
+		},
+		email: {
+			type: String,
+		},
+		phone: {
+			type: String,
+		},
+		personType: {
+			type: String,
+			enum: ["user", "friend"],
+			default: "friend",
+		},
+		personIndex: {
+			type: Number,
+			default: 0,
+		},
+		passTypeId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		passTypeName: {
+			type: String,
+			default: "General Pass",
+		},
+		passPrice: {
+			type: Number,
+			default: 0,
+			min: 0,
+		},
+	}],
 
 	qrStrings: [{
 		id: {
@@ -96,6 +148,18 @@ const passSchema = new mongoose.Schema({
 		},
 		personName: {
 			type: String,
+		},
+		passTypeId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		passTypeName: {
+			type: String,
+			default: "General Pass",
+		},
+		passPrice: {
+			type: Number,
+			default: 0,
+			min: 0,
 		},
 		qrScanned: {
 			type: Boolean,
@@ -138,8 +202,19 @@ const passSchema = new mongoose.Schema({
 	},
 	passType: {
 		type: String,
-		enum: ["VIP", "General", "Staff"],
 		default: "General",
+	},
+	passTypeId: {
+		type: mongoose.Schema.Types.ObjectId,
+	},
+	passTypeName: {
+		type: String,
+		default: "General Pass",
+	},
+	passPrice: {
+		type: Number,
+		default: 0,
+		min: 0,
 	},
 });
 
@@ -150,27 +225,38 @@ passSchema.pre('save', function(next) {
 		this.passUUID = uuidv4();
 	}
 	if (isConfirmed && (!this.qrStrings || this.qrStrings.length === 0)) {
-		this.qrStrings = [];
-		this.qrStrings.push({
+		const attendeeDetails = this.attendees?.length
+			? this.attendees
+			: [
+				{
+					name: "Main User",
+					personType: "user",
+					personIndex: 0,
+					passTypeId: this.passTypeId,
+					passTypeName: this.passTypeName || this.passType || "General Pass",
+					passPrice: this.passPrice || 0,
+				},
+				...(this.friends || []).slice(0, 9).map((friend, index) => ({
+					name: friend?.name || `Friend ${index + 1}`,
+					personType: "friend",
+					personIndex: index + 1,
+					passTypeId: this.passTypeId,
+					passTypeName: this.passTypeName || this.passType || "General Pass",
+					passPrice: this.passPrice || 0,
+				})),
+			];
+
+		this.qrStrings = attendeeDetails.slice(0, 10).map((attendee, index) => ({
 			id: uuidv4(),
-			personType: "user",
-			personIndex: 0,
-			personName: "Main User",
+			personType: attendee.personType || (index === 0 ? "user" : "friend"),
+			personIndex: attendee.personIndex ?? index,
+			personName: attendee.name || (index === 0 ? "Main User" : `Friend ${index}`),
+			passTypeId: attendee.passTypeId || this.passTypeId,
+			passTypeName: attendee.passTypeName || this.passTypeName || this.passType || "General Pass",
+			passPrice: attendee.passPrice ?? this.passPrice ?? 0,
 			qrScanned: false,
 			scannedAt: null
-		});
-		
-		const maxFriends = Math.min(this.friends.length, 9);//9 people at max
-		for (let i = 0; i < maxFriends; i++) {
-			this.qrStrings.push({
-				id: uuidv4(),
-				personType: "friend",
-				personIndex: i + 1,
-				personName: this.friends[i]?.name || `Friend ${i + 1}`,
-				qrScanned: false,
-				scannedAt: null
-			});
-		}
+		}));
 	}
 	
 	next();
@@ -182,6 +268,8 @@ passSchema.methods.getQRData = function() {
 		personType: qr.personType,
 		personName: qr.personType === "user" ? "Main User" : 
 					this.friends[qr.personIndex - 1]?.name || `Friend ${qr.personIndex}`,
+		passTypeName: qr.passTypeName || this.passTypeName || this.passType || "General Pass",
+		passPrice: qr.passPrice ?? this.passPrice ?? 0,
 		qrScanned: qr.qrScanned,
 		scannedAt: qr.scannedAt,
 		qrContent: `${this.eventId}_${this.passUUID}_${qr.id}_${qr.personName}`

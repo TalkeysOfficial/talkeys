@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { getStoredAccessToken } from "@/lib/utils/authToken";
 
 interface AuthContextType {
 	isSignedIn: boolean;
@@ -15,10 +16,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 	const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
 
 	useEffect(() => {
-		const token = localStorage.getItem("accessToken");
-		if (token) {
-			setIsSignedIn(true);
-		}
+		setIsSignedIn(Boolean(getStoredAccessToken()));
 	}, []);
 
 	const value = React.useMemo(() => ({ isSignedIn, setIsSignedIn }), [isSignedIn, setIsSignedIn]);

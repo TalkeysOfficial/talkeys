@@ -9,6 +9,7 @@ import { BarChart3, Pencil } from "lucide-react";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import type { Event } from "@/types/types";
 import { cn, getSafeImageSrc } from "@/lib/utils";
+import { getEventDisplayPrice } from "@/lib/utils/eventUtils";
 
 interface EventCardProps {
 	event: Event;
@@ -28,6 +29,13 @@ const EventCard: React.FC<EventCardProps> = ({
 		};
 		return new Date(dateString).toLocaleDateString("en-US", options);
 	};
+
+	const formatAmount = (amount: number) =>
+		new Intl.NumberFormat("en-IN", {
+			style: "currency",
+			currency: "INR",
+			maximumFractionDigits: 0,
+		}).format(amount || 0);
 
 	const cardContent = (
 		<div className="relative w-full h-full flex flex-col">
@@ -94,7 +102,7 @@ const EventCard: React.FC<EventCardProps> = ({
 							event.isPaid ? "text-yellow-400" : "text-green-400",
 						)}
 					>
-						{event.isPaid ? `₹${event.ticketPrice}` : "Free"}
+						{event.isPaid ? formatAmount(getEventDisplayPrice(event)) : "Free"}
 					</CardItem>
 
 					<CardItem

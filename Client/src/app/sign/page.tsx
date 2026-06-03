@@ -9,7 +9,9 @@ import {
 	GoogleLogin,
 	googleLogout,
 } from "@react-oauth/google";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/authContext";
+import { clearStoredAuth, getStoredAccessToken } from "@/lib/utils/authToken";
 
 import { useRouter } from "next/navigation";
 
@@ -19,13 +21,11 @@ const SignUpPage = () => {
 	const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 
 	useEffect(() => {
-		const token = localStorage.getItem("accessToken");
-		setIsSignedIn(!!token);
+		setIsSignedIn(Boolean(getStoredAccessToken()));
 	}, [setIsSignedIn]);
 
 	const handleLogout = () => {
-		localStorage.removeItem("accessToken");
-		localStorage.removeItem("name");
+		clearStoredAuth();
 		setIsSignedIn(false);
 		googleLogout();
 	};
@@ -65,24 +65,35 @@ const SignUpPage = () => {
 									<button className="w-full py-3 px-4 border-black rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-800/20 transition-colors">
 										<GoogleLogin
 											onSuccess={async (credentialResponse) => {
-												const response = await fetch(
-													`${process.env.BACKEND_URL}/verify`,
-													{
-														method: "POST",
-														headers: {
-															"Content-Type": "application/json",
-															Authorization: `Bearer ${credentialResponse.credential}`,
+												try {
+													const response = await fetch(
+														`${process.env.BACKEND_URL}/verify`,
+														{
+															method: "POST",
+															headers: {
+																"Content-Type": "application/json",
+																Authorization: `Bearer ${credentialResponse.credential}`,
+															},
 														},
-													},
-												);
-												const data = await response.json();
-												localStorage.setItem(
-													"accessToken",
-													data.accessToken,
-												);
-												localStorage.setItem("name", data.name);
-												setIsSignedIn(true);
-												router.push("/");
+													);
+													const data = await response.json();
+
+													if (!response.ok || !data.accessToken) {
+														throw new Error(data.message || "Login failed");
+													}
+
+													localStorage.setItem(
+														"accessToken",
+														data.accessToken,
+													);
+													localStorage.setItem("name", data.name);
+													setIsSignedIn(true);
+													router.push("/");
+												} catch (error: any) {
+													clearStoredAuth();
+													setIsSignedIn(false);
+													toast.error(error?.message || "Login failed");
+												}
 											}}
 											onError={() => {
 												console.log("Login Failed");
