@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
 const Event = require("../models/events.model.js");
 const reqEvent = require("../models/reqEvent.model.js");
+const User = require("../models/users.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
 const { validationResult } = require("express-validator");
 const InfluencerRegistration = require("../models/InfluencerRegistration.model.js");
@@ -136,6 +137,39 @@ const getMinTicketPrice = (passTypes) => {
 	return activePrices.length ? Math.min(...activePrices) : 0;
 };
 
+const getLikeCountsByEventId = async (eventIds = []) => {
+	const objectIds = eventIds
+		.map((eventId) => eventId?.toString())
+		.filter((eventId) => mongoose.Types.ObjectId.isValid(eventId))
+		.map((eventId) => new mongoose.Types.ObjectId(eventId));
+
+	if (!objectIds.length) {
+		return new Map();
+	}
+
+	const counts = await User.aggregate([
+		{ $match: { likedEvents: { $in: objectIds } } },
+		{ $unwind: "$likedEvents" },
+		{ $match: { likedEvents: { $in: objectIds } } },
+		{ $group: { _id: { userId: "$_id", eventId: "$likedEvents" } } },
+		{ $group: { _id: "$_id.eventId", likes: { $sum: 1 } } },
+	]);
+
+	return new Map(
+		counts.map((item) => [item._id.toString(), Number(item.likes || 0)]),
+	);
+};
+
+const getLikeCountForEvent = async (eventId) => {
+	if (!mongoose.Types.ObjectId.isValid(eventId)) {
+		return 0;
+	}
+
+	return User.countDocuments({
+		likedEvents: new mongoose.Types.ObjectId(eventId),
+	});
+};
+
 const applyTicketPriceCompatibility = (eventData) => {
 	const nextData = { ...eventData };
 
@@ -206,6 +240,7 @@ const getEvents = asyncHandler(async (req, res) => {
 			.sort(sortOptions)
 			.skip(skip)
 			.limit(shouldPaginate ? parsedLimit : 0);
+		const likeCounts = await getLikeCountsByEventId(events.map((event) => event._id));
 
 		// Attach computed fields
 		events = events.map(event => {
@@ -214,12 +249,14 @@ const getEvents = asyncHandler(async (req, res) => {
 			const startRegistrationDate = event.startRegistrationDate;
 			const availableSeats = event.totalSeats - (event.registrationCount || 0);
 			const passTypes = getEventPassTypes(eventObject);
+			const eventId = event._id.toString();
 
 			return {
 				...eventObject,
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
+				likes: likeCounts.get(eventId) || 0,
 				passTypes,
 				minTicketPrice: getMinTicketPrice(passTypes),
 				status: event.getStatus(),
@@ -284,6 +321,7 @@ const getAdminEvents = asyncHandler(async (req, res) => {
 				.limit(parsedLimit),
 			Event.countDocuments(query),
 		]);
+		const likeCounts = await getLikeCountsByEventId(events.map((event) => event._id));
 
 		res.status(200).json({
 			status: "success",
@@ -291,10 +329,12 @@ const getAdminEvents = asyncHandler(async (req, res) => {
 				events: events.map((event) => {
 					const eventObject = event.toObject();
 					const passTypes = getEventPassTypes(eventObject);
+					const eventId = event._id.toString();
 
 					return {
 						...eventObject,
 						availableSeats: event.totalSeats - (event.registrationCount || 0),
+						likes: likeCounts.get(eventId) || 0,
 						passTypes,
 						minTicketPrice: getMinTicketPrice(passTypes),
 						status: event.getStatus(),
@@ -334,6 +374,7 @@ const getEventById = async (req, res) => {
 		const startRegistrationDate = event.startRegistrationDate;
 		const availableSeats = event.totalSeats - (event.registrationCount || 0);
 		const passTypes = getEventPassTypes(event);
+		const likes = await getLikeCountForEvent(event._id);
 
 		res.status(200).json({
 			status: "success",
@@ -342,6 +383,7 @@ const getEventById = async (req, res) => {
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
+				likes,
 				passTypes,
 				minTicketPrice: getMinTicketPrice(passTypes),
 				status: event.getStatus(),
@@ -380,6 +422,7 @@ const getAdminEventById = asyncHandler(async (req, res) => {
 			data: {
 				...event.toObject(),
 				availableSeats: event.totalSeats - (event.registrationCount || 0),
+				likes: await getLikeCountForEvent(event._id),
 				passTypes: getEventPassTypes(event),
 			},
 		});
@@ -397,6 +440,13 @@ const likeEvent = asyncHandler(async (req, res) => {
 	const { id: eventID } = req.params;
 
 	try {
+		if (!mongoose.Types.ObjectId.isValid(eventID)) {
+			return res.status(400).json({
+				status: "error",
+				message: "Invalid event ID",
+			});
+		}
+
 		const event = await Event.findById(eventID)?.select("_id")?.lean();
 		if (!event) {
 			return res.status(404).json({
@@ -411,9 +461,21 @@ const likeEvent = asyncHandler(async (req, res) => {
 				message: "User not found",
 			});
 		}
-		user.likedEvents.push(eventID);
-		user.save();
-		res.sendStatus(200);
+		const alreadyLiked = user.likedEvents.some(
+			(id) => id.toString() === eventID,
+		);
+
+		if (!alreadyLiked) {
+			user.likedEvents.push(event._id);
+			await user.save();
+		}
+
+		const likes = await getLikeCountForEvent(eventID);
+		res.status(200).json({
+			status: "success",
+			liked: true,
+			likes,
+		});
 	} catch (error) {
 		console.error("Error in likeEvent:", error);
 		res.status(500).json({
@@ -428,6 +490,13 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 	const { id: eventID } = req.params;
 
 	try {
+		if (!mongoose.Types.ObjectId.isValid(eventID)) {
+			return res.status(400).json({
+				status: "error",
+				message: "Invalid event ID",
+			});
+		}
+
 		const event = await Event.findById(eventID)?.select("_id")?.lean();
 		if (!event) {
 			return res.status(404).json({
@@ -442,9 +511,17 @@ const unlikeEvent = asyncHandler(async (req, res) => {
 				message: "User not found",
 			});
 		}
-		user.likedEvents = user.likedEvents.filter((id) => id != eventID);
-		user.save();
-		res.sendStatus(200);
+		user.likedEvents = user.likedEvents.filter(
+			(id) => id.toString() !== eventID,
+		);
+		await user.save();
+
+		const likes = await getLikeCountForEvent(eventID);
+		res.status(200).json({
+			status: "success",
+			liked: false,
+			likes,
+		});
 	} catch (error) {
 		console.error("Error in unlikeEvent:", error);
 		res.status(500).json({

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { QrCode, PlusCircle, LayoutDashboard, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onToggle }) => {
 		{ href: "/admin/addEvent", icon: PlusCircle, label: "Add Event" },
 	];
 
-	const menuVariants = {
+	const menuVariants: Variants = {
 		closed: {
 			opacity: 0,
 			height: 0,
@@ -51,7 +52,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onToggle }) => {
 		},
 	};
 
-	const itemVariants = {
+	const itemVariants: Variants = {
 		closed: { opacity: 0, x: -20 },
 		open: { opacity: 1, x: 0 },
 	};
