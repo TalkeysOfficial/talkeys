@@ -407,7 +407,7 @@ export default function ParticularEventPage({
 	const { isLike, likes, toggle } = useEventLike(
 		event._id,
 		event.isLiked,
-		event.likes ?? 82,
+		event.likes ?? 0,
 	);
 
 	useEffect(() => {

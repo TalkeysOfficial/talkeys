@@ -73,16 +73,22 @@ export async function createTeamApi(opts: {
 }
 
 export async function likeEvent(eventId: string) {
-	return fetch(apiUrl(`/likeEvent/${eventId}`), {
+	const res = await fetch(apiUrl(`/likeEvent/${eventId}`), {
 		method: "GET",
 		headers: authHeaders(),
 	});
+	const data = await parseJson(res);
+	if (!res.ok) throwApiError(res, data as ApiError);
+	return data as { status: string; liked: boolean; likes: number };
 }
 export async function unlikeEvent(eventId: string) {
-	return fetch(apiUrl(`/unlikeEvent/${eventId}`), {
+	const res = await fetch(apiUrl(`/unlikeEvent/${eventId}`), {
 		method: "GET",
 		headers: authHeaders(),
 	});
+	const data = await parseJson(res);
+	if (!res.ok) throwApiError(res, data as ApiError);
+	return data as { status: string; liked: boolean; likes: number };
 }
 
 export async function bookPass(teamCode: string, eventId: string) {
