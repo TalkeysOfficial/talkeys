@@ -1,8 +1,10 @@
 import { Event } from "@/types/types"; // adjust path if needed
+import { getEventDisplayPrice, getEventPassTypes } from "@/lib/utils/eventUtils";
 
 export default function EventJsonLd({ event }: { event: Event }) {
 	const datePart = new Date(event.startDate).toISOString().split("T")[0]; // "2025-08-07"
 	const startDateTime = `${datePart}T${event.startTime}:00+05:30`; // adjust TZ if needed
+	const passTypes = getEventPassTypes(event);
 	const jsonLd = {
 		"@context": "https://schema.org",
 		"@type": "Event",
@@ -27,16 +29,28 @@ export default function EventJsonLd({ event }: { event: Event }) {
 				  },
 		image: event.photographs || [],
 		url: `${process.env.NEXT_PUBLIC_BASE_URL}/events/${event._id}`,
-		offers: {
-			"@type": "Offer",
-			price: event.isPaid ? event.ticketPrice : 0,
-			priceCurrency: "INR",
-			availability:
-				event.slots > 0
-					? "https://schema.org/InStock"
-					: "https://schema.org/SoldOut",
-			url: event.registrationLink || "",
-		},
+		offers: passTypes.length > 1
+			? passTypes.map((passType) => ({
+					"@type": "Offer",
+					name: passType.name,
+					price: event.isPaid ? passType.price : 0,
+					priceCurrency: "INR",
+					availability:
+						(passType.availableQuantity ?? event.availableSeats ?? event.slots) > 0
+							? "https://schema.org/InStock"
+							: "https://schema.org/SoldOut",
+					url: event.registrationLink || "",
+			  }))
+			: {
+					"@type": "Offer",
+					price: event.isPaid ? getEventDisplayPrice(event) : 0,
+					priceCurrency: "INR",
+					availability:
+						event.slots > 0
+							? "https://schema.org/InStock"
+							: "https://schema.org/SoldOut",
+					url: event.registrationLink || "",
+			  },
 		...(event.organizerName && {
 			organizer: {
 				"@type": "Organization",

@@ -158,30 +158,255 @@ const teamMembersToFriends = (team, userId) =>
       phone: member.phoneNumber,
     }));
 
-const buildQRStrings = (user, friends = []) => {
-  const qrStrings = [
-    {
-      id: uuidv4(),
-      personType: "user",
-      personIndex: 0,
-      personName: user?.name || "Main User",
-      qrScanned: false,
-      scannedAt: null,
-    },
-  ];
+const toObjectIdOrUndefined = (value) =>
+  value && mongoose.Types.ObjectId.isValid(value)
+    ? new mongoose.Types.ObjectId(value)
+    : undefined;
 
-  friends.slice(0, 9).forEach((friend, index) => {
-    qrStrings.push({
-      id: uuidv4(),
-      personType: "friend",
-      personIndex: index + 1,
-      personName: friend.name || `Friend ${index + 1}`,
-      qrScanned: false,
-      scannedAt: null,
+const normalizeEventPassTypes = (event) => {
+  const eventObject = event.toObject ? event.toObject() : event;
+  const passTypes = Array.isArray(eventObject.passTypes)
+    ? eventObject.passTypes.filter(Boolean)
+    : [];
+
+  if (!passTypes.length) {
+    return [
+      {
+        id: "general",
+        name: "General Pass",
+        price: Number(eventObject.ticketPrice || 0),
+        description: "",
+        totalQuantity: Number(eventObject.totalSeats || 0),
+        maxAvailable: Number(eventObject.totalSeats || 0),
+        soldQuantity: Number(eventObject.registrationCount || 0),
+        bookedQuantity: Number(eventObject.registrationCount || 0),
+        isActive: true,
+        isLegacy: true,
+      },
+    ];
+  }
+
+  return passTypes.map((passType) => ({
+    id: passType._id?.toString() || passType.id || "general",
+    name: passType.name || "General Pass",
+    price: Number(passType.price ?? eventObject.ticketPrice ?? 0),
+    description: passType.description || "",
+    totalQuantity: Number(passType.totalQuantity ?? passType.maxAvailable ?? 0),
+    maxAvailable: Number(passType.maxAvailable ?? passType.totalQuantity ?? 0),
+    soldQuantity: Number(passType.soldQuantity ?? passType.bookedQuantity ?? 0),
+    bookedQuantity: Number(passType.bookedQuantity ?? passType.soldQuantity ?? 0),
+    isActive: passType.isActive !== false,
+    isLegacy: false,
+  }));
+};
+
+const resolvePassType = (event, requestedPassType) => {
+  const activePassTypes = normalizeEventPassTypes(event).filter(
+    (passType) => passType.isActive,
+  );
+
+  if (!activePassTypes.length) {
+    throw Object.assign(new Error("No active pass types are available"), {
+      statusCode: 400,
     });
+  }
+
+  if (!requestedPassType) {
+    return activePassTypes[0];
+  }
+
+  const requested = String(requestedPassType).trim().toLowerCase();
+  const matchedPassType = activePassTypes.find((passType) => {
+    const id = String(passType.id || "").toLowerCase();
+    const name = String(passType.name || "").toLowerCase();
+
+    return (
+      id === requested ||
+      name === requested ||
+      (requested === "general" && name.includes("general"))
+    );
   });
 
-  return qrStrings;
+  if (!matchedPassType) {
+    throw Object.assign(new Error("Selected pass type is not available"), {
+      statusCode: 400,
+    });
+  }
+
+  return matchedPassType;
+};
+
+const expandPassSelections = (event, passSelections = []) => {
+  if (!Array.isArray(passSelections)) {
+    return [];
+  }
+
+  const expandedPassTypes = [];
+  passSelections.forEach((selection) => {
+    const quantity = Math.max(parseInt(selection?.quantity, 10) || 0, 0);
+    if (!quantity) return;
+
+    const passType = resolvePassType(
+      event,
+      selection?.passTypeId || selection?.passType || selection?.passTypeName,
+    );
+
+    for (let index = 0; index < quantity; index += 1) {
+      expandedPassTypes.push(passType);
+    }
+  });
+
+  return expandedPassTypes.slice(0, 10);
+};
+
+const sanitizeAttendees = (user, baseFriends = [], body = {}) => {
+  const requestedAttendees = Array.isArray(body.attendees)
+    ? body.attendees.slice(0, 10)
+    : [];
+
+  const sourcePeople = requestedAttendees.length
+    ? requestedAttendees
+    : [
+        {
+          name: user?.name || "Main User",
+          email: user?.email,
+          phone: user?.phoneNumber,
+        },
+        ...baseFriends,
+      ];
+
+  const sanitized = sourcePeople.slice(0, 10).map((person, index) => {
+    const name = String(person?.name || "").trim();
+
+    return {
+      name:
+        name ||
+        (index === 0 ? user?.name || "Main User" : `Attendee ${index + 1}`),
+      email: person?.email ? String(person.email).trim().slice(0, 120) : undefined,
+      phone: person?.phone ? String(person.phone).trim().slice(0, 20) : undefined,
+      personType: index === 0 ? "user" : "friend",
+      personIndex: index,
+      requestedPassType:
+        person?.passTypeId || person?.passType || person?.passTypeName,
+    };
+  });
+
+  return sanitized.length
+    ? sanitized
+    : [
+        {
+          name: user?.name || "Main User",
+          email: user?.email,
+          phone: user?.phoneNumber,
+          personType: "user",
+          personIndex: 0,
+        },
+      ];
+};
+
+const buildBookingDetails = (event, user, baseFriends, body = {}) => {
+  const attendees = sanitizeAttendees(user, baseFriends, body);
+  const expandedPassTypes = expandPassSelections(event, body.passSelections);
+
+  while (expandedPassTypes.length > attendees.length && attendees.length < 10) {
+    attendees.push({
+      name: `Attendee ${attendees.length + 1}`,
+      personType: attendees.length === 0 ? "user" : "friend",
+      personIndex: attendees.length,
+    });
+  }
+
+  const defaultPassValue =
+    body.passTypeId || body.passType || body.passTypeName || undefined;
+
+  const attendeeDetails = attendees.map((attendee, index) => {
+    const selectedPassType = resolvePassType(
+      event,
+      attendee.requestedPassType ||
+        expandedPassTypes[index]?.id ||
+        expandedPassTypes[index]?.name ||
+        defaultPassValue,
+    );
+    const passPrice = event.isPaid ? selectedPassType.price : 0;
+    const passTypeId = toObjectIdOrUndefined(selectedPassType.id);
+
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      phone: attendee.phone,
+      personType: attendee.personType || (index === 0 ? "user" : "friend"),
+      personIndex: index,
+      passTypeId,
+      passTypeName: selectedPassType.name,
+      passPrice,
+    };
+  });
+
+  const friends = attendeeDetails.slice(1).map((attendee) => ({
+    name: attendee.name,
+    email: attendee.email,
+    phone: attendee.phone,
+  }));
+
+  const selectionMap = new Map();
+  attendeeDetails.forEach((attendee) => {
+    const key = attendee.passTypeId?.toString() || attendee.passTypeName;
+    const current = selectionMap.get(key) || {
+      passTypeId: attendee.passTypeId,
+      passTypeName: attendee.passTypeName,
+      passPrice: attendee.passPrice,
+      quantity: 0,
+    };
+    current.quantity += 1;
+    selectionMap.set(key, current);
+  });
+
+  const passSelections = Array.from(selectionMap.values());
+  const totalAmount = attendeeDetails.reduce(
+    (sum, attendee) => sum + attendee.passPrice,
+    0,
+  );
+
+  return {
+    attendees: attendeeDetails,
+    friends,
+    passSelections,
+    totalAmount,
+    primaryPassType: passSelections[0],
+  };
+};
+
+const buildQRStrings = (user, friends = [], attendeeDetails = []) => {
+  const attendees = attendeeDetails.length
+    ? attendeeDetails
+    : [
+        {
+          name: user?.name || "Main User",
+          personType: "user",
+          personIndex: 0,
+          passTypeName: "General Pass",
+          passPrice: 0,
+        },
+        ...friends.slice(0, 9).map((friend, index) => ({
+          name: friend.name || `Friend ${index + 1}`,
+          personType: "friend",
+          personIndex: index + 1,
+          passTypeName: "General Pass",
+          passPrice: 0,
+        })),
+      ];
+
+  return attendees.slice(0, 10).map((attendee, index) => ({
+    id: uuidv4(),
+    personType: attendee.personType || (index === 0 ? "user" : "friend"),
+    personIndex: attendee.personIndex ?? index,
+    personName: attendee.name || (index === 0 ? user?.name || "Main User" : `Friend ${index}`),
+    passTypeId: attendee.passTypeId,
+    passTypeName: attendee.passTypeName || "General Pass",
+    passPrice: attendee.passPrice || 0,
+    qrScanned: false,
+    scannedAt: null,
+  }));
 };
 
 const reserveSeats = async (eventId, ticketCount) => {
@@ -200,6 +425,117 @@ const reserveSeats = async (eventId, ticketCount) => {
   );
 };
 
+const reservePassTypeSelections = async (eventId, passSelections = []) => {
+  for (const selection of passSelections) {
+    if (!selection.passTypeId || !selection.quantity) continue;
+
+    const passTypeId = toObjectIdOrUndefined(selection.passTypeId);
+    if (!passTypeId) continue;
+
+    const reservedEvent = await Event.findOneAndUpdate(
+      {
+        _id: eventId,
+        passTypes: {
+          $elemMatch: {
+            _id: passTypeId,
+            isActive: true,
+          },
+        },
+        $expr: {
+          $let: {
+            vars: {
+              passType: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$passTypes",
+                      as: "passType",
+                      cond: { $eq: ["$$passType._id", passTypeId] },
+                    },
+                  },
+                  0,
+                ],
+              },
+            },
+            in: {
+              $or: [
+                { $lte: [{ $ifNull: ["$$passType.totalQuantity", 0] }, 0] },
+                {
+                  $lte: [
+                    {
+                      $add: [
+                        { $ifNull: ["$$passType.soldQuantity", 0] },
+                        selection.quantity,
+                      ],
+                    },
+                    { $ifNull: ["$$passType.totalQuantity", 0] },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+      {
+        $inc: {
+          "passTypes.$.soldQuantity": selection.quantity,
+          "passTypes.$.bookedQuantity": selection.quantity,
+        },
+      },
+      { new: true },
+    );
+
+    if (!reservedEvent) {
+      throw Object.assign(
+        new Error(`${selection.passTypeName || "Selected pass"} is sold out`),
+        { statusCode: 400 },
+      );
+    }
+  }
+};
+
+const releasePassTypeSelections = async (eventId, passSelections = []) => {
+  for (const selection of passSelections) {
+    if (!selection.passTypeId || !selection.quantity) continue;
+
+    const passTypeId = toObjectIdOrUndefined(selection.passTypeId);
+    if (!passTypeId) continue;
+
+    await Event.updateOne(
+      {
+        _id: eventId,
+        "passTypes._id": passTypeId,
+      },
+      {
+        $inc: {
+          "passTypes.$.soldQuantity": -selection.quantity,
+          "passTypes.$.bookedQuantity": -selection.quantity,
+        },
+      },
+    );
+  }
+};
+
+const reserveBookingInventory = async (event, ticketCount, passSelections) => {
+  const reservedEvent = await reserveSeats(event._id, ticketCount);
+  if (!reservedEvent) {
+    throw Object.assign(new Error("Insufficient tickets available"), {
+      statusCode: 400,
+    });
+  }
+
+  try {
+    await reservePassTypeSelections(event._id, passSelections);
+  } catch (error) {
+    await Event.findByIdAndUpdate(event._id, {
+      $inc: { registrationCount: -ticketCount },
+    });
+    throw error;
+  }
+
+  return reservedEvent;
+};
+
 const releaseReservedSeats = async (pass) => {
   if (!pass?.seatsReserved) {
     return;
@@ -209,6 +545,7 @@ const releaseReservedSeats = async (pass) => {
   await Event.findByIdAndUpdate(pass.eventId, {
     $inc: { registrationCount: -ticketCount },
   });
+  await releasePassTypeSelections(pass.eventId, pass.passSelections || []);
   pass.seatsReserved = false;
 };
 
@@ -216,6 +553,39 @@ const findQRString = (pass, qrId) => {
   return pass?.qrStrings?.find(
     (qr) => qr.id === qrId || qr._id?.toString() === qrId,
   );
+};
+
+const serializeScannerPass = (pass, qrString) => {
+  const attendeeName =
+    qrString?.personName ||
+    (qrString?.personType === "user"
+      ? pass.userId?.name
+      : pass.attendees?.find(
+          (attendee) => attendee.personIndex === qrString?.personIndex,
+        )?.name) ||
+    "Unknown attendee";
+  const eventName = pass.eventId?.name || "Unknown event";
+  const passTypeName =
+    qrString?.passTypeName || pass.passTypeName || pass.passType || "General Pass";
+  const checkInStatus = qrString?.qrScanned ? "checked_in" : "not_checked_in";
+
+  return {
+    attendeeName,
+    passTypeName,
+    eventName,
+    checkInStatus,
+    bookingStatus: pass.status,
+    passStatus: pass.passStatus,
+    paymentStatus: pass.paymentStatus,
+    alreadyScanned: Boolean(qrString?.qrScanned),
+    scannedAt: qrString?.scannedAt || null,
+    buyer: pass.userId?.name || "Unknown buyer",
+    event: eventName,
+    person: qrString,
+    amount: pass.amount,
+    isScanned: Boolean(qrString?.qrScanned),
+    timeScanned: qrString?.scannedAt || null,
+  };
 };
 
 const getPhonePeAccessToken = async () => {
@@ -377,22 +747,21 @@ const bookTicket = async (req, res) => {
     }
 
     const team = await getTeamBooking(event, req.user._id, req.body.teamCode);
-    const friends = team
+    const baseFriends = team
       ? teamMembersToFriends(team, req.user._id)
       : sanitizeFriends(req.body.friends);
-    const totalTicketsNeeded = 1 + friends.length;
-    const ticketPrice = Number(event.ticketPrice || 0);
-    const totalAmount = ticketPrice * totalTicketsNeeded;
+    const {
+      attendees,
+      friends,
+      passSelections,
+      totalAmount,
+      primaryPassType,
+    } = buildBookingDetails(event, user, baseFriends, req.body);
+    const totalTicketsNeeded = attendees.length;
     const amountInPaisa = Math.round(totalAmount * 100);
     const isPaidBooking = Boolean(event.isPaid && amountInPaisa > 0);
 
-    const reservedEvent = await reserveSeats(event._id, totalTicketsNeeded);
-    if (!reservedEvent) {
-      return res.status(400).json({
-        success: false,
-        error: "Insufficient tickets available",
-      });
-    }
+    await reserveBookingInventory(event, totalTicketsNeeded, passSelections);
 
     // Generate unique merchant order ID with timestamp
     const merchantOrderId = `TKT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -400,7 +769,11 @@ const bookTicket = async (req, res) => {
     pass = new Pass({
       userId: req.user?._id,
       eventId: req.body.eventId,
-      passType: req.body.passType || "General",
+      passType: primaryPassType?.passTypeName || "General Pass",
+      passTypeId: primaryPassType?.passTypeId,
+      passTypeName: primaryPassType?.passTypeName || "General Pass",
+      passPrice: primaryPassType?.passPrice || 0,
+      passSelections,
       status: isPaidBooking ? "pending" : "active",
       passStatus: isPaidBooking ? "inactive" : "active",
       paymentStatus: isPaidBooking ? "pending" : "completed",
@@ -409,6 +782,7 @@ const bookTicket = async (req, res) => {
       ticketCount: totalTicketsNeeded,
       seatsReserved: true,
       friends,
+      attendees,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + 20 * 60 * 1000),
     });
@@ -421,7 +795,7 @@ const bookTicket = async (req, res) => {
         source: "free_registration",
         merchantOrderId,
       };
-      pass.qrStrings = buildQRStrings(user, friends);
+      pass.qrStrings = buildQRStrings(user, friends, attendees);
       await pass.save();
 
       return res.status(200).json({
@@ -436,6 +810,8 @@ const bookTicket = async (req, res) => {
           totalTickets: totalTicketsNeeded,
           paymentRequired: false,
           paymentUrl: null,
+          passSelections,
+          attendees,
           event: {
             id: event._id,
             title: event.name,
@@ -456,7 +832,9 @@ const bookTicket = async (req, res) => {
       userId: req.user._id.toString(),
       eventId: req.body.eventId,
       eventName: event.name,
-      passType: req.body.passType || "General",
+      passType: primaryPassType?.passTypeName || "General Pass",
+      passSelections,
+      attendees,
       friends,
       mobileNumber: user.phoneNumber,
     };
@@ -495,8 +873,11 @@ const bookTicket = async (req, res) => {
         amount: totalAmount,
         amountInPaisa: amountInPaisa,
         totalTickets: totalTicketsNeeded,
+        paymentRequired: true,
         paymentUrl: paymentOrder.data?.redirectUrl || paymentOrder.redirectUrl,
         expiresAt: pass.expiresAt,
+        passSelections,
+        attendees,
         event: {
           id: event._id,
           title: event.name,
@@ -608,7 +989,7 @@ const processPaymentConfirmation = async (
         repaired = true;
       }
       if (!pass.qrStrings?.length) {
-        pass.qrStrings = buildQRStrings(user, pass.friends);
+        pass.qrStrings = buildQRStrings(user, pass.friends, pass.attendees);
         repaired = true;
       }
       if (pass.status !== "active" || pass.passStatus !== "active") {
@@ -661,7 +1042,7 @@ const processPaymentConfirmation = async (
       pass.passUUID = uuidv4();
     }
     if (!pass.qrStrings?.length) {
-      pass.qrStrings = buildQRStrings(user, pass.friends);
+      pass.qrStrings = buildQRStrings(user, pass.friends, pass.attendees);
     }
 
     await pass.save();
@@ -965,7 +1346,7 @@ const getPassForQR = async (req, res) => {
       status: "active",
     })
       .populate("userId", "name email phone")
-      .populate("eventId", "title date venue address");
+      .populate("eventId", "name startDate location");
 
     if (!pass) {
       return res.status(404).json({ error: "Valid pass not found" });
@@ -975,7 +1356,10 @@ const getPassForQR = async (req, res) => {
       success: true,
       data: {
         passUUID: pass.passUUID,
-        passType: pass.passType,
+        passType: pass.passTypeName || pass.passType,
+        passTypeName: pass.passTypeName || pass.passType,
+        passSelections: pass.passSelections || [],
+        attendees: pass.attendees || [],
         confirmedAt: pass.confirmedAt,
         user: pass.userId,
         event: pass.eventId,
@@ -1072,7 +1456,7 @@ const getPassByUUID = async (req, res) => {
       .populate("userId", "name")
       .populate("eventId", "name startDate")
       .select(
-        "eventId userId paymentStatus status createdAt amount friends passUUID passType ticketCount qrStrings",
+        "eventId userId paymentStatus status createdAt amount friends attendees passUUID passType passTypeName passSelections ticketCount qrStrings",
       );
 
     if (!pass) {
@@ -1080,7 +1464,11 @@ const getPassByUUID = async (req, res) => {
     }
 
     if (!pass.qrStrings?.length) {
-      pass.qrStrings = buildQRStrings(pass.userId, pass.friends || []);
+      pass.qrStrings = buildQRStrings(
+        pass.userId,
+        pass.friends || [],
+        pass.attendees || [],
+      );
       await pass.save();
     }
 
@@ -1093,12 +1481,17 @@ const getPassByUUID = async (req, res) => {
       passPaymentStatus: pass.paymentStatus || "ERROR",
       passCreatedAt: pass.createdAt || "NO",
       passStatus: pass.status || pass.paymentStatus || "ERROR",
+      passType: pass.passTypeName || pass.passType || "General Pass",
+      passSelections: pass.passSelections || [],
       passEnteries: pass.ticketCount || pass.friends.length + 1,
       eventId: pass.eventId?._id || "Unknown Event ID",
       qrStrings: (pass.qrStrings || []).map((qrString) => ({
         id: qrString.id,
         personName: qrString.personName,
         personType: qrString.personType,
+        passTypeName:
+          qrString.passTypeName || pass.passTypeName || pass.passType || "General Pass",
+        passPrice: qrString.passPrice ?? 0,
         qrScanned: qrString.qrScanned,
         scannedAt: qrString.scannedAt,
         qrContent: `${pass.passUUID}+${qrString.id}`,
@@ -1137,7 +1530,9 @@ const getPassByUserAndEvent = async (req, res) => {
       return {
         passUUID: pass.passUUID,
         qrStrings: qrStrings,
-        passType: pass.passType,
+        passType: pass.passTypeName || pass.passType,
+        passTypeName: pass.passTypeName || pass.passType,
+        passSelections: pass.passSelections || [],
         passId: pass._id,
         email: req.user.email,
         eventId: req.body.eventId,
@@ -1178,13 +1573,7 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: {
-        buyer: pass.userId?.name || "Unknown buyer",
-        event: pass.eventId?.name || "Unknown event",
-        person,
-        amount: pass.amount,
-        paymentStatus: pass.paymentStatus,
-      },
+      data: serializeScannerPass(pass, person),
     });
   } catch (error) {
     console.error("Get pass by UUID error:", error);
@@ -1202,7 +1591,9 @@ const Accept = async (req, res) => {
       return res.status(400).json({ error: "QR ID is required" });
     }
 
-    const pass = await Pass.findOne({ passUUID });
+    const pass = await Pass.findOne({ passUUID })
+      .populate("eventId", "name")
+      .populate("userId", "name");
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }
@@ -1221,7 +1612,11 @@ const Accept = async (req, res) => {
     }
 
     if (qrString.qrScanned) {
-      return res.status(400).json({ error: "QR code already scanned" });
+      return res.status(409).json({
+        success: false,
+        error: "QR code already scanned",
+        data: serializeScannerPass(pass, qrString),
+      });
     }
 
     qrString.scannedAt = new Date();
@@ -1232,8 +1627,10 @@ const Accept = async (req, res) => {
     }
     await pass.save();
     return res.status(200).json({
+      success: true,
       message: "Pass scanned successfully",
       scannedAt: qrString.scannedAt,
+      data: serializeScannerPass(pass, qrString),
     });
   } catch (error) {
     console.error("Accept pass error:", error);

@@ -16,6 +16,8 @@ const serializeAttendees = (pass) => {
       id: qrString.id || qrString._id?.toString(),
       name: qrString.personType === "user" ? buyerName : qrString.personName,
       type: qrString.personType,
+      passTypeName: qrString.passTypeName || pass.passTypeName || pass.passType || "General Pass",
+      passPrice: qrString.passPrice ?? pass.passPrice ?? 0,
       checkedIn: Boolean(qrString.qrScanned),
       checkedInAt: qrString.scannedAt || null,
     }));
@@ -26,6 +28,8 @@ const serializeAttendees = (pass) => {
       id: pass._id.toString(),
       name: buyerName,
       type: "user",
+      passTypeName: pass.passTypeName || pass.passType || "General Pass",
+      passPrice: pass.passPrice || 0,
       checkedIn: Boolean(pass.isScanned),
       checkedInAt: pass.timeScanned || null,
     },
@@ -49,7 +53,9 @@ const serializeBooking = (pass) => {
     },
     amount: pass.amount || 0,
     ticketCount: getTicketCount(pass),
-    passType: pass.passType,
+    passType: pass.passTypeName || pass.passType,
+    passTypeName: pass.passTypeName || pass.passType,
+    passSelections: pass.passSelections || [],
     passStatus: pass.passStatus,
     status: pass.status,
     paymentStatus: pass.paymentStatus,
@@ -71,7 +77,7 @@ exports.getEventStats = async (req, res) => {
 
     const event = await Event.findById(eventId)
       .select(
-        "name category mode location startDate startTime totalSeats registrationCount photographs isPaid ticketPrice isLive",
+        "name category mode location startDate startTime totalSeats registrationCount photographs isPaid ticketPrice passTypes isLive",
       )
       .lean();
 
@@ -118,6 +124,7 @@ exports.getEventStats = async (req, res) => {
           photograph: event.photographs?.[0] || "",
           isPaid: event.isPaid,
           ticketPrice: event.ticketPrice || 0,
+          passTypes: event.passTypes || [],
           isLive: event.isLive,
         },
         stats: {

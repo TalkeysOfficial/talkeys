@@ -23,7 +23,11 @@ import {
 } from "@/components/ui/tooltip";
 import image from "@/public/images/Logo.png";
 
-export default function Footer() {
+type FooterProps = {
+	showWave?: boolean;
+};
+
+export default function Footer({ showWave = true }: FooterProps) {
 	const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
 	const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
@@ -80,16 +84,17 @@ export default function Footer() {
 				variants={footerVariants}
 				className="relative z-[1000] w-full"
 			>
-				{/* Top wave decoration */}
-				<div className="w-full overflow-hidden h-12 relative">
-					<svg
-						className="absolute bottom-0 w-full h-24 fill-black/60"
-						viewBox="0 0 1200 120"
-						preserveAspectRatio="none"
-					>
-						<path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-					</svg>
-				</div>
+				{showWave ? (
+					<div className="relative h-12 w-full overflow-hidden">
+						<svg
+							className="absolute bottom-0 h-24 w-full fill-black/60"
+							viewBox="0 0 1200 120"
+							preserveAspectRatio="none"
+						>
+							<path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" />
+						</svg>
+					</div>
+				) : null}
 
 				{/* Main footer content */}
 				<div className="bg-gradient-to-b from-black/60 via-gray-900/80 to-black/80 backdrop-blur-sm text-white py-6 px-2 sm:px-4 lg:px-6">

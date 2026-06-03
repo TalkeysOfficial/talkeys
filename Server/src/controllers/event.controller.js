@@ -68,6 +68,90 @@ function mergeDateTime(date, timeStr) {
 	return merged;
 }
 
+const serializePassType = (passType, event) => {
+	const totalQuantity = Number(
+		passType.totalQuantity ?? passType.maxAvailable ?? event.totalSeats ?? 0,
+	);
+	const soldQuantity = Number(
+		passType.soldQuantity ?? passType.bookedQuantity ?? 0,
+	);
+	const availableQuantity =
+		totalQuantity > 0
+			? Math.max(totalQuantity - soldQuantity, 0)
+			: Math.max(
+					Number(event.totalSeats || 0) - Number(event.registrationCount || 0),
+					0,
+			  );
+
+	return {
+		id: passType._id?.toString() || passType.id || "general",
+		_id: passType._id?.toString() || passType.id || "general",
+		name: passType.name || "General Pass",
+		price: Number(passType.price ?? event.ticketPrice ?? 0),
+		description: passType.description || "",
+		totalQuantity,
+		maxAvailable: Number(passType.maxAvailable ?? totalQuantity),
+		soldQuantity,
+		bookedQuantity: Number(passType.bookedQuantity ?? soldQuantity),
+		isActive: passType.isActive !== false,
+		availableQuantity,
+	};
+};
+
+const getEventPassTypes = (event) => {
+	const eventObject = event.toObject ? event.toObject() : event;
+	const passTypes = Array.isArray(eventObject.passTypes)
+		? eventObject.passTypes.filter(Boolean)
+		: [];
+
+	if (passTypes.length > 0) {
+		return passTypes.map((passType) => serializePassType(passType, eventObject));
+	}
+
+	const totalQuantity = Number(eventObject.totalSeats || 0);
+	const soldQuantity = Number(eventObject.registrationCount || 0);
+
+	return [
+		{
+			id: "general",
+			_id: "general",
+			name: "General Pass",
+			price: Number(eventObject.ticketPrice || 0),
+			description: "",
+			totalQuantity,
+			maxAvailable: totalQuantity,
+			soldQuantity,
+			bookedQuantity: soldQuantity,
+			isActive: true,
+			availableQuantity: Math.max(totalQuantity - soldQuantity, 0),
+		},
+	];
+};
+
+const getMinTicketPrice = (passTypes) => {
+	const activePrices = passTypes
+		.filter((passType) => passType.isActive)
+		.map((passType) => passType.price);
+
+	return activePrices.length ? Math.min(...activePrices) : 0;
+};
+
+const applyTicketPriceCompatibility = (eventData) => {
+	const nextData = { ...eventData };
+
+	if (Array.isArray(nextData.passTypes) && nextData.passTypes.length > 0) {
+		const activePrices = nextData.passTypes
+			.filter((passType) => passType.isActive !== false)
+			.map((passType) => Number(passType.price || 0));
+
+		nextData.ticketPrice = activePrices.length
+			? Math.min(...activePrices)
+			: Number(nextData.ticketPrice || 0);
+	}
+
+	return nextData;
+};
+
 const getEvents = asyncHandler(async (req, res) => {
 	try {
 		const {
@@ -89,17 +173,27 @@ const getEvents = asyncHandler(async (req, res) => {
 		if (visibility) query.visibility = visibility;
 
 		if (minPrice || maxPrice) {
-			query.ticketPrice = {};
-			if (minPrice) query.ticketPrice.$gte = Number(minPrice);
-			if (maxPrice) query.ticketPrice.$lte = Number(maxPrice);
+			const priceRange = {};
+			if (minPrice) priceRange.$gte = Number(minPrice);
+			if (maxPrice) priceRange.$lte = Number(maxPrice);
+			query.$and = query.$and || [];
+			query.$and.push({
+				$or: [
+					{ ticketPrice: priceRange },
+					{ "passTypes.price": priceRange },
+				],
+			});
 		}
 
 		if (search) {
-			query.$or = [
-				{ name: { $regex: search, $options: "i" } },
-				{ eventDescription: { $regex: search, $options: "i" } },
-				{ category: { $regex: search, $options: "i" } },
-			];
+			query.$and = query.$and || [];
+			query.$and.push({
+				$or: [
+					{ name: { $regex: search, $options: "i" } },
+					{ eventDescription: { $regex: search, $options: "i" } },
+					{ category: { $regex: search, $options: "i" } },
+				],
+			});
 		}
 
 		const sortOptions = { [sortBy]: order === "desc" ? -1 : 1 };
@@ -115,15 +209,19 @@ const getEvents = asyncHandler(async (req, res) => {
 
 		// Attach computed fields
 		events = events.map(event => {
+			const eventObject = event.toObject();
 			const startDateTime = mergeDateTime(event.startDate, event.startTime);
 			const startRegistrationDate = event.startRegistrationDate;
 			const availableSeats = event.totalSeats - (event.registrationCount || 0);
+			const passTypes = getEventPassTypes(eventObject);
 
 			return {
-				...event.toObject(),
+				...eventObject,
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
+				passTypes,
+				minTicketPrice: getMinTicketPrice(passTypes),
 				status: event.getStatus(),
 			};
 		});
@@ -190,11 +288,18 @@ const getAdminEvents = asyncHandler(async (req, res) => {
 		res.status(200).json({
 			status: "success",
 			data: {
-				events: events.map((event) => ({
-					...event.toObject(),
-					availableSeats: event.totalSeats - (event.registrationCount || 0),
-					status: event.getStatus(),
-				})),
+				events: events.map((event) => {
+					const eventObject = event.toObject();
+					const passTypes = getEventPassTypes(eventObject);
+
+					return {
+						...eventObject,
+						availableSeats: event.totalSeats - (event.registrationCount || 0),
+						passTypes,
+						minTicketPrice: getMinTicketPrice(passTypes),
+						status: event.getStatus(),
+					};
+				}),
 				pagination: {
 					total,
 					page: parsedPage,
@@ -228,6 +333,7 @@ const getEventById = async (req, res) => {
 		const startDateTime = event.startDateTime || mergeDateTime(event.startDate, event.startTime);
 		const startRegistrationDate = event.startRegistrationDate;
 		const availableSeats = event.totalSeats - (event.registrationCount || 0);
+		const passTypes = getEventPassTypes(event);
 
 		res.status(200).json({
 			status: "success",
@@ -236,6 +342,8 @@ const getEventById = async (req, res) => {
 				startDateTime,
 				startRegistrationDate,
 				availableSeats,
+				passTypes,
+				minTicketPrice: getMinTicketPrice(passTypes),
 				status: event.getStatus(),
 			},
 		});
@@ -272,6 +380,7 @@ const getAdminEventById = asyncHandler(async (req, res) => {
 			data: {
 				...event.toObject(),
 				availableSeats: event.totalSeats - (event.registrationCount || 0),
+				passTypes: getEventPassTypes(event),
 			},
 		});
 	} catch (error) {
@@ -380,7 +489,7 @@ const addEvent = asyncHandler(async (req, res) => {
 		}
 
 		const event = await Event.create({
-			...validation.data,
+			...applyTicketPriceCompatibility(validation.data),
 			organiserId: req.user?._id,
 		});
 
@@ -445,7 +554,7 @@ const updateEvent = asyncHandler(async (req, res) => {
 			});
 		}
 
-		Object.assign(event, validation.data);
+		Object.assign(event, applyTicketPriceCompatibility(validation.data));
 		await event.save();
 
 		res.status(200).json({
