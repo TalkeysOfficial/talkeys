@@ -2,208 +2,98 @@
 "use client";
 
 import Image from "next/image";
-import { getSafeImageSrc } from "@/lib/utils";
 import { motion } from "framer-motion";
-import heartImg from "@/public/images/heart.png";
-import vectorImg from "@/public/images/Vector.png";
-import lineImg from "@/public/images/Line 4.png";
-import locationImg from "@/public/images/location.png";
-import dateImg from "@/public/images/Date.png";
+import { Building2, CalendarDays, Heart, MapPin, X } from "lucide-react";
+import { getSafeImageSrc } from "@/lib/utils";
 
 type HeaderProps = {
-  event: any;
-  formatTime: (t: string) => string;
-  isLike: boolean | null;
-  likes: number;
-  toggleLike: () => void;
-  onClose?: () => void;
-  children?: React.ReactNode; // Add children prop for controls
+	event: any;
+	formatTime: (time: string) => string;
+	isLike: boolean | null;
+	likes: number;
+	toggleLike: () => void;
+	onClose?: () => void;
 };
 
 export default function EventHeader({
-  event,
-  formatTime,
-  isLike,
-  likes,
-  toggleLike,
-  onClose,
-  children,
+	event,
+	formatTime,
+	isLike,
+	likes,
+	toggleLike,
+	onClose,
 }: HeaderProps) {
-  const convenienceFee = Number(process.env.NEXT_PUBLIC_CONVENIENCE_FEE || 0);
-  const basicPassRequiredEventId =
-    process.env.NEXT_PUBLIC_BASIC_PASS_REQUIRED_EVENT_ID;
-  const requiresBasicPass =
-    Boolean(basicPassRequiredEventId) && event._id === basicPassRequiredEventId;
-  const displayedPrice = Math.max(Number(event.ticketPrice || 0) - convenienceFee, 0);
+	const organizer =
+		event.organizerName || event.collegeName || event.festName || "Talkeys";
 
-  return (
-    <>
-      {onClose && (
-        <div className="flex justify-start px-2 sm:px-4 mt-2">
-          <button
-            onClick={onClose}
-            className="text-white text-lg sm:text-xl font-bold hover:text-red-400 transition-all"
-            aria-label="Close"
-          >
-            ✖
-          </button>
-        </div>
-      )}
+	return (
+		<section className="relative overflow-hidden bg-[#0d0d10] px-5 py-5 sm:px-8 sm:py-7">
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_50%,rgba(138,68,203,0.45),transparent_34%),linear-gradient(90deg,rgba(29,7,48,0.9),rgba(8,8,10,0.92)_62%)]" />
 
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-10 mt-6 sm:mt-10 mb-10 sm:mb-20 w-full max-w-full overflow-hidden px-2 pl-8">
-        <Image
-          src={getSafeImageSrc(event.photographs?.[0])}
-          alt={`${event.name}-banner`}
-          width={253}
-          height={320}
-          className="object-cover rounded-xl w-auto max-w-full h-auto flex-shrink-0"
-        />
+			{onClose ? (
+				<button
+					type="button"
+					onClick={onClose}
+					className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-md bg-black/60 text-white transition hover:bg-red-500/80"
+					aria-label="Close"
+				>
+					<X className="h-5 w-5" />
+				</button>
+			) : null}
 
-        <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-md lg:max-w-lg text-[32px] sm:text-[54px] font-urbanist leading-none font-semibold mt-4 lg:mt-0 min-w-0">
-          <div className="flex flex-col gap-1 font-urbanist">
-            <h2 className="text-white text-xl sm:text-2xl md:text-3xl font-bold leading-tight break-words">
-              {event.name}
-            </h2>
-            {/* <span className="text-gray-300 text-sm sm:text-base font-medium tracking-wider">
-              In Partnership with{" "}
-              <span className="font-bold text-white">
-                Mother Dairy Fruit &amp; Vegetable Pvt. Ltd.
-              </span>{" "}
-            </span> */}
-          </div>
+			<div className="relative flex w-full max-w-full flex-col gap-5 md:flex-row md:items-center">
+				<div className="relative mx-auto aspect-[4/5] w-full max-w-[210px] shrink-0 overflow-hidden rounded-lg bg-black shadow-xl shadow-black/50 md:mx-0 md:w-[178px]">
+					<Image
+						src={getSafeImageSrc(event.photographs?.[0])}
+						alt={event.name}
+						fill
+						priority
+						className="object-cover"
+						sizes="(max-width: 768px) 210px, 178px"
+					/>
+				</div>
 
-          <div className="flex flex-col gap-2 sm:gap-4 text-white font-urbanist min-w-0">
-            <div className="flex items-start gap-2 min-w-0">
-              <Image
-                src={locationImg}
-                alt="location"
-                width={20}
-                height={20}
-                className="w-4 sm:w-5 h-4 sm:h-5 object-contain flex-shrink-0 mt-1"
-              />
-              <span className="text-[14px] sm:text-[16px] font-normal break-words overflow-wrap-anywhere min-w-0 flex-1 leading-snug">
-                {event.location ?? "To Be Decided"}
-              </span>
-            </div>
+				<div className="min-w-0 max-w-full flex-1 text-center md:text-left">
+					<h1 className="max-w-full break-words text-3xl font-semibold leading-tight text-white sm:text-4xl">
+						{event.name}
+					</h1>
+					<p className="mx-auto mt-2 w-full max-w-full break-words text-sm leading-6 text-gray-300 md:mx-0 md:max-w-4xl md:text-base">
+						{event.eventDescription || "Add a fun, exciting description or theme here"}
+					</p>
 
-            <div className="flex items-start gap-2 min-w-0">
-              <Image
-                src={dateImg}
-                alt="date"
-                width={20}
-                height={20}
-                className="w-4 sm:w-5 h-4 sm:h-5 object-contain flex-shrink-0 mt-1"
-              />
-              <span className="text-[14px] sm:text-[16px] font-normal break-words min-w-0 flex-1">
-                {new Date(event.startDate).toLocaleDateString("en-IN")} at{" "}
-                {formatTime(event.startTime)}
-              </span>
-            </div>
-          </div>
-        </div>
+					<div className="mt-5 grid gap-3 text-sm text-white sm:grid-cols-2">
+						<div className="flex min-w-0 items-center justify-center gap-3 md:justify-start">
+							<Building2 className="h-5 w-5 shrink-0 text-purple-400" />
+							<span className="truncate">{organizer}</span>
+						</div>
+						<div className="flex min-w-0 items-center justify-center gap-3 md:justify-start">
+							<MapPin className="h-5 w-5 shrink-0 text-purple-400" />
+							<span className="truncate">{event.location || "Online Event"}</span>
+						</div>
+						<div className="flex min-w-0 items-center justify-center gap-3 sm:col-span-2 md:justify-start">
+							<CalendarDays className="h-5 w-5 shrink-0 text-purple-400" />
+							<span>
+								{new Date(event.startDate).toLocaleDateString("en-IN")} at{" "}
+								{formatTime(event.startTime)}
+							</span>
+						</div>
+					</div>
+				</div>
 
-        <div className="flex flex-col justify-center items-end gap-[25px] px-4 sm:px-8 py-4 bg-neutral-900 rounded-2xl mt-6 sm:mt-10 w-full max-w-md lg:max-w-lg flex-shrink-0">
-          {/* Header Section */}
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-2 sm:gap-4">
-            <span className="text-white font-urbanist text-base sm:text-xl md:text-[22px] font-normal leading-none">
-              Cost for Event
-            </span>
-            <div className="w-full sm:w-auto">{children}</div>
-          </div>
-
-          {/* Requirement Banner (Only for specific Event ID) */}
-          {requiresBasicPass && (
-            <div className="w-full p-3 bg-purple-900/20 border border-[#CCA1F4]/30 rounded-xl text-left">
-              <p className="text-[#CCA1F4] text-xs sm:text-sm font-urbanist">
-                <span className="font-bold text-white">Requirement:</span> To
-                purchase this pass, you must first buy the{" "}
-                <span className="text-white underline">
-                  Basic Registration Pass
-                </span>
-                .
-              </p>
-            </div>
-          )}
-
-          {/* Price and Likes Section */}
-          <div className="flex justify-between items-center gap-2 w-full">
-            <span className="text-white text-base sm:text-lg font-bold font-urbanist flex items-center gap-2">
-              <span>₹ {displayedPrice}</span>
-
-              {convenienceFee > 0 && (
-                <span className="font-normal text-xs sm:text-sm opacity-80">
-                  (excl. ₹ {convenienceFee} Convenience Fee)
-                </span>
-              )}
-            </span>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <motion.button
-                  type="button"
-                  onClick={toggleLike}
-                  className="cursor-pointer transition-transform hover:scale-105"
-                  aria-label={isLike ? "Unlike event" : "Like event"}
-                  animate={{ scale: isLike ? 1.1 : 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 12,
-                  }}
-                >
-                  <Image
-                    src={heartImg}
-                    alt=""
-                    width={48}
-                    height={20}
-                    className="w-12 h-5 object-contain"
-                  />
-                </motion.button>
-                <Image
-                  src={vectorImg}
-                  alt="vector"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 object-contain"
-                />
-              </div>
-              <span className="block text-white text-sm font-urbanist">
-                {likes} likes
-              </span>
-            </div>
-          </div>
-
-          <Image
-            src={lineImg}
-            alt="line"
-            width={300}
-            height={8}
-            className="w-full h-2 object-contain"
-          />
-
-          {/* Category and Tags Section */}
-          <div className="flex flex-col gap-4 w-full">
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-              <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-                {event.category}
-              </span>
-              <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-                {event.mode}
-              </span>
-            </div>
-            {event.visibility && event.type && (
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full">
-                <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[396px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-                  {event.visibility}
-                </span>
-                <span className="text-[#CCA1F4] text-sm sm:text-lg flex justify-center items-center w-full sm:w-[272px] py-2 rounded-[27px] border border-[#CCA1F4] font-urbanist">
-                  {event.type ?? "Event Type"}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+				<motion.button
+					type="button"
+					onClick={toggleLike}
+					className="mt-2 inline-flex items-center gap-2 self-center rounded-full border border-white/10 bg-black/50 px-3 py-2 text-sm text-white transition hover:border-purple-300 md:absolute md:bottom-4 md:right-4 md:mt-0 md:self-auto"
+					aria-label={isLike ? "Unlike event" : "Like event"}
+					animate={{ scale: isLike ? 1.04 : 1 }}
+					transition={{ type: "spring", stiffness: 300, damping: 18 }}
+				>
+					<Heart
+						className={`h-4 w-4 ${isLike ? "fill-purple-300 text-purple-300" : "text-gray-300"}`}
+					/>
+					<span>{likes}</span>
+				</motion.button>
+			</div>
+		</section>
+	);
 }

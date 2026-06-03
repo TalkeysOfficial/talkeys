@@ -1,6 +1,7 @@
 // hooks/useEvents.ts
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
+import { getStoredAccessToken } from "@/lib/utils/authToken";
 
 export function useEvents() {
 	const [allEvents, setAllEvents] = useState<Event[]>([]);
@@ -37,12 +38,22 @@ async function getEventsWithLikes() {
         events: Event[];
     }
 
-    const events: Event[] = (data as EventsData).events.map((e: Event): Event => ({ ...e, isLiked: false }));
+	const events: Event[] = (data as EventsData).events.map(
+		(e: Event): Event => ({
+			...e,
+			isLiked: false,
+			likes: Number(e.likes || 0),
+		}),
+	);
+	const token = getStoredAccessToken();
+	if (!token) {
+		return events;
+	}
 
 	try {
 		const res = await fetch(`${process.env.BACKEND_URL}/getAllLikedEvents`, {
 			headers: {
-				Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+				Authorization: `Bearer ${token}`,
 			},
 		});
 		if (res.ok) {

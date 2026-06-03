@@ -39,6 +39,68 @@ const stringArray = z.preprocess((value) => {
 	return value;
 }, z.array(z.string()).default([]));
 
+const passTypeSchema = z
+	.object({
+		id: z.string().optional(),
+		_id: z.string().optional(),
+		name: z.string().trim().min(1, "Pass name is required"),
+		price: optionalNumber(
+			z.number().min(0, "Pass price must be a non-negative number").default(0),
+		),
+		description: z.string().default(""),
+		totalQuantity: optionalNumber(
+			z
+				.number()
+				.int("Pass quantity must be a whole number")
+				.min(0, "Pass quantity cannot be negative")
+				.default(0),
+		),
+		maxAvailable: optionalNumber(
+			z
+				.number()
+				.int("Max available pass quantity must be a whole number")
+				.min(0, "Max available pass quantity cannot be negative")
+				.default(0),
+		),
+		soldQuantity: optionalNumber(
+			z
+				.number()
+				.int("Sold pass quantity must be a whole number")
+				.min(0, "Sold pass quantity cannot be negative")
+				.default(0),
+		),
+		bookedQuantity: optionalNumber(
+			z
+				.number()
+				.int("Booked pass quantity must be a whole number")
+				.min(0, "Booked pass quantity cannot be negative")
+				.default(0),
+		),
+		isActive: optionalBoolean(true),
+	})
+	.transform((passType) => {
+		const totalQuantity = passType.totalQuantity || passType.maxAvailable || 0;
+		const maxAvailable = passType.maxAvailable || passType.totalQuantity || 0;
+		const id = passType._id || passType.id;
+
+		return {
+			...(id ? { _id: id } : {}),
+			name: passType.name,
+			price: passType.price,
+			description: passType.description,
+			totalQuantity,
+			maxAvailable,
+			soldQuantity: passType.soldQuantity,
+			bookedQuantity: passType.bookedQuantity,
+			isActive: passType.isActive,
+		};
+	});
+
+const passTypesArray = z.preprocess((value) => {
+	if (value === "" || value === null || value === undefined) return [];
+	return value;
+}, z.array(passTypeSchema).default([]));
+
 const normalizedEnum = (values, options = {}) =>
 	z.preprocess((value) => {
 		if (typeof value === "string") return value.trim().toLowerCase();
@@ -61,6 +123,7 @@ const eventShape = {
 	ticketPrice: optionalNumber(
 		z.number().min(0, "Ticket price must be a non-negative number").default(0),
 	),
+	passTypes: passTypesArray,
 	mode: normalizedEnum(["offline", "online"], {
 		required_error: "Mode is required",
 		invalid_type_error: "Mode must be offline or online",
@@ -128,6 +191,23 @@ const refineEvent = (event, ctx) => {
 			message: "Registration count cannot exceed total seats",
 		});
 	}
+
+	if (Array.isArray(event.passTypes) && event.passTypes.length > 0) {
+		event.passTypes.forEach((passType, index) => {
+			if (
+				typeof passType.soldQuantity === "number" &&
+				typeof passType.totalQuantity === "number" &&
+				passType.totalQuantity > 0 &&
+				passType.soldQuantity > passType.totalQuantity
+			) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					path: ["passTypes", index, "soldQuantity"],
+					message: "Sold pass quantity cannot exceed total pass quantity",
+				});
+			}
+		});
+	}
 };
 
 const createEventSchema = z.object(eventShape).superRefine(refineEvent);
@@ -160,6 +240,7 @@ const normalizeEventData = (eventData = {}) => {
 	delete normalized.updatedAt;
 	delete normalized.availableSeats;
 	delete normalized.startDateTime;
+	delete normalized.minTicketPrice;
 
 	return normalized;
 };
