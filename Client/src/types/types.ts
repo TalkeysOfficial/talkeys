@@ -3,6 +3,20 @@ export interface EventPageProps {
 	readonly onClose: () => void;
 }
 
+export interface EventPassType {
+	id: string;
+	_id?: string;
+	name: string;
+	price: number;
+	description?: string;
+	totalQuantity?: number;
+	maxAvailable?: number;
+	soldQuantity?: number;
+	bookedQuantity?: number;
+	availableQuantity?: number;
+	isActive?: boolean;
+}
+
 export interface TeamResponse {
 	team: {
 		teamName: string;
@@ -34,6 +48,9 @@ export interface Event {
 	isPaid: boolean;
 	isTeamEvent: boolean;
 	ticketPrice: number;
+	minTicketPrice?: number;
+	passTypes?: EventPassType[];
+	availableSeats?: number;
 	location: string;
 	startDate: string;
 	startTime: string;
@@ -81,8 +98,24 @@ export interface BookTicketResponse {
 		amount: number;
 		amountInPaisa: number;
 		totalTickets: number;
-		paymentUrl: string;
-		expiresAt: string;
+		paymentRequired?: boolean;
+		paymentUrl: string | null;
+		expiresAt?: string;
+		qrStrings?: any[];
+		passSelections?: Array<{
+			passTypeId?: string;
+			passTypeName: string;
+			passPrice: number;
+			quantity: number;
+		}>;
+		attendees?: Array<{
+			name: string;
+			email?: string;
+			phone?: string;
+			passTypeId?: string;
+			passTypeName: string;
+			passPrice: number;
+		}>;
 		event: {
 			id: string;
 		};
@@ -111,6 +144,9 @@ export interface PassResponse {
 export interface PassQRString {
 	id: string;
 	personType: "user" | "friend";
+	personName?: string;
+	passTypeName?: string;
+	passPrice?: number;
 	qrScanned: boolean;
 	scannedAt: string | null;
 	_id: string;
@@ -120,6 +156,13 @@ export interface PassDetails {
 	passUUID: string;
 	qrStrings: PassQRString[];
 	passType: string;
+	passTypeName?: string;
+	passSelections?: Array<{
+		passTypeId?: string;
+		passTypeName: string;
+		passPrice: number;
+		quantity: number;
+	}>;
 	passId: string;
 	email: string;
 	eventId: string;

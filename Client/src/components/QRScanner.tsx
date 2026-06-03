@@ -13,7 +13,15 @@ interface GetTixResponse {
     buyer: string;
     buyerIMG: string;
     event: string;
+    eventName?: string;
+    attendeeName?: string;
+    passTypeName?: string;
+    checkInStatus?: string;
+    bookingStatus?: string;
     passStatus: string;
+    paymentStatus?: string;
+    alreadyScanned?: boolean;
+    scannedAt?: string | null;
     isScanned: boolean;
     timeScanned: string;
     person?: any;
@@ -91,7 +99,11 @@ export default function QRScannerComponent() {
 
         setPassInfo(data);
         setCurrentPassId({ passUUID, qrId });
-        setState("passInfo");
+        setState(
+          data.data.alreadyScanned || data.data.person?.qrScanned
+            ? "used"
+            : "passInfo",
+        );
         setPending(false);
         setError(null);
       } else if (response.status === 404) {
@@ -209,22 +221,43 @@ export default function QRScannerComponent() {
         }),
       });
 
+      const payload = await response.json().catch(() => null);
+
       if (response.ok) {
-        // Update the pass info to reflect it's now scanned
-        const currentTime = new Date().toISOString();
+        const currentTime = payload?.data?.scannedAt || new Date().toISOString();
         setPassInfo({
           ...passInfo,
           data: {
             ...passInfo.data,
+            ...(payload?.data || {}),
             isScanned: true,
             timeScanned: currentTime,
           },
         });
-        setVerificationStatus(`✅ Pass accepted for ${passInfo.data.buyer}`);
+        setVerificationStatus(
+          `Pass accepted for ${
+            payload?.data?.attendeeName ||
+            passInfo.data.attendeeName ||
+            passInfo.data.buyer
+          }`,
+        );
         setState("success");
+      } else if (response.status === 409) {
+        if (payload?.data) {
+          setPassInfo({
+            ...passInfo,
+            data: {
+              ...passInfo.data,
+              ...payload.data,
+            },
+          });
+        }
+        setError(payload?.error || "This pass is already checked in.");
+        setState("used");
       } else {
-        const errorText = await response.text();
-        throw new Error(`Accept failed: ${response.status} - ${errorText}`);
+        throw new Error(
+          payload?.error || `Accept failed with status ${response.status}`,
+        );
       }
     } catch (error) {
       console.error("Error accepting pass:", error);
@@ -284,110 +317,106 @@ export default function QRScannerComponent() {
     </Card>
   );
 
-  const renderPassInfoView = () => (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
-      <CardHeader>
-        <CardTitle className="text-center text-slate-900 font-bold">
-          Pass Information
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {passInfo && (
-          <div className="py-4 space-y-4">
-            {/* Buyer Information */}
-            <div className="flex items-center space-x-3">
-              {/* {passInfo.data.buyerIMG && (
-                <img
-                  src={passInfo.data.buyerIMG || "/placeholder.svg"}
-                  alt="Buyer"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                />
-              )} */}
+  const renderPassInfoView = () => {
+    const alreadyScanned =
+      Boolean(passInfo?.data.alreadyScanned) ||
+      Boolean(passInfo?.data.person?.qrScanned);
+
+    return (
+      <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
+        <CardHeader>
+          <CardTitle className="text-center text-slate-900 font-bold">
+            Pass Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {passInfo && (
+            <div className="py-4 space-y-4">
               <div>
-                <p className="text-sm text-slate-600 font-medium">Buyer</p>
+                <p className="text-sm text-slate-600 font-medium">Attendee</p>
                 <p className="font-bold text-lg text-slate-900">
-                  {passInfo.data.person.personName}
+                  {passInfo.data.attendeeName ||
+                    passInfo.data.person?.personName ||
+                    "Unknown attendee"}
                 </p>
               </div>
+
+              <div>
+                <p className="text-sm text-slate-600 font-medium">Pass Type</p>
+                <p className="font-bold text-slate-900">
+                  {passInfo.data.passTypeName || "General Pass"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-600 font-medium">Event</p>
+                <p className="font-bold text-slate-900">
+                  {passInfo.data.eventName || passInfo.data.event}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-slate-100 p-3">
+                  <p className="text-slate-600">Booking</p>
+                  <p className="font-bold capitalize text-slate-900">
+                    {passInfo.data.bookingStatus || passInfo.data.passStatus || "-"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-slate-100 p-3">
+                  <p className="text-slate-600">Payment</p>
+                  <p className="font-bold capitalize text-slate-900">
+                    {passInfo.data.paymentStatus || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-600 font-medium">Amount</p>
+                <p className="font-bold text-slate-900 capitalize">
+                  {passInfo.data.amount ?? 0}
+                </p>
+              </div>
+
+              {alreadyScanned && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertDescription>
+                    <p className="font-bold text-red-800">Already Scanned</p>
+                    {(passInfo.data.scannedAt || passInfo.data.person?.scannedAt) && (
+                      <p className="text-red-700 text-sm mt-1">
+                        Scanned:{" "}
+                        {new Date(
+                          passInfo.data.scannedAt ||
+                            passInfo.data.person?.scannedAt,
+                        ).toLocaleString()}
+                      </p>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
+          )}
 
-            {/* Event Information */}
-            <div>
-              <p className="text-sm text-slate-600 font-medium">Event</p>
-              <p className="font-bold text-slate-900">{passInfo.data.event}</p>
+          {passInfo && !alreadyScanned ? (
+            <div className="flex gap-2 w-full mt-6">
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isPending}
+                className="flex-1 text-slate-700 border-slate-300 hover:bg-slate-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAccept}
+                disabled={isPending}
+                className="bg-green-600 hover:bg-green-700 text-white flex-1 font-medium"
+              >
+                {isPending ? "Accepting..." : "Accept Pass"}
+              </Button>
             </div>
-
-            {/* Pass Status */}
-            <div>
-              <p className="text-sm text-slate-600 font-medium">Amount</p>
-              <p className="font-bold text-slate-900 capitalize">
-                {passInfo.data.amount}
-              </p>
-            </div>
-
-            {/* Scan Status Warning */}
-            {passInfo.data.person.qrScanned && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-                <AlertDescription>
-                  <p className="font-bold text-red-800">Already Scanned</p>
-                  {passInfo.data.person.scannedAt && (
-                    <p className="text-red-700 text-sm mt-1">
-                      Scanned:{" "}
-                      {new Date(
-                        passInfo.data.person.scannedAt,
-                      ).toLocaleString()}
-                    </p>
-                  )}
-                </AlertDescription>
-                <Button
-                  variant="outline"
-                  onClick={resetScanner}
-                  className="w-full mt-4 text-slate-900 border-slate-300 hover:bg-slate-50"
-                >
-                  Scan Another
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full mt-4 text-slate-900 border-slate-300 hover:bg-slate-50"
-                >
-                  Update Time
-                </Button>
-              </Alert>
-            )}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        {passInfo && !passInfo.data.person.qrScanned ? (
-          <div className="flex gap-2 w-full mt-6">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isPending}
-              className="flex-1 text-slate-700 border-slate-300 hover:bg-slate-50"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAccept}
-              disabled={isPending}
-              className="bg-green-600 hover:bg-green-700 text-white flex-1 font-medium"
-            >
-              {isPending ? "Accepting..." : "Accept Pass"}
-            </Button>
-          </div>
-        ) : (
-          passInfo &&
-          passInfo.data.isScanned && (
-            <div className="mt-6">
-              <Alert className="border-orange-200 bg-orange-50">
-                <AlertCircle className="h-4 w-4 text-orange-500" />
-                <AlertDescription className="text-orange-800 font-medium">
-                  This pass has already been scanned and cannot be accepted
-                  again.
-                </AlertDescription>
-              </Alert>
+          ) : (
+            passInfo && (
               <Button
                 variant="outline"
                 onClick={resetScanner}
@@ -395,12 +424,12 @@ export default function QRScannerComponent() {
               >
                 Scan Another
               </Button>
-            </div>
-          )
-        )}
-      </CardContent>
-    </Card>
-  );
+            )
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderSuccessView = () => (
     <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
@@ -422,6 +451,37 @@ export default function QRScannerComponent() {
             className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
           >
             Continue Scanning
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderUsedView = () => (
+    <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
+      <CardContent className="pt-6">
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <AlertCircle className="h-16 w-16 text-orange-500" />
+          <div>
+            <h3 className="text-lg font-bold text-orange-700">
+              Already Checked In
+            </h3>
+            <p className="text-orange-700 mt-2 font-medium">
+              {passInfo?.data.attendeeName ||
+                passInfo?.data.person?.personName ||
+                "This attendee"}
+            </p>
+            <p className="text-slate-700 mt-1">
+              {passInfo?.data.passTypeName || "General Pass"} -{" "}
+              {passInfo?.data.eventName || passInfo?.data.event || "Event"}
+            </p>
+          </div>
+          <Button
+            onClick={resetScanner}
+            variant="outline"
+            className="w-full text-slate-900 border-slate-300 hover:bg-slate-50"
+          >
+            Scan Another
           </Button>
         </div>
       </CardContent>
@@ -455,6 +515,7 @@ export default function QRScannerComponent() {
       {state === "passInfo" && renderPassInfoView()}
       {state === "success" && renderSuccessView()}
       {state === "error" && renderErrorView()}
+      {state === "used" && renderUsedView()}
     </div>
   );
 }

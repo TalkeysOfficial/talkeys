@@ -2,8 +2,8 @@
 
 import { type Dispatch, type SetStateAction, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
-import { ArrowLeft, Loader2, Save, Trash2, UploadCloud, X } from "lucide-react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { ArrowLeft, Loader2, Plus, Save, Trash2, UploadCloud, X } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import type { Event } from "@/types/types";
@@ -40,6 +40,7 @@ type AdminEventFormValues = {
 	name: string;
 	category: string;
 	ticketPrice: number;
+	passTypes: PassTypeFormValue[];
 	mode: "offline" | "online";
 	location: string;
 	duration: string;
@@ -57,6 +58,19 @@ type AdminEventFormValues = {
 	organizerName: string;
 	organizerEmail: string;
 	organizerContact: string;
+};
+
+type PassTypeFormValue = {
+	id?: string;
+	_id?: string;
+	name: string;
+	price: number;
+	description: string;
+	totalQuantity: number;
+	maxAvailable: number;
+	soldQuantity: number;
+	bookedQuantity: number;
+	isActive: boolean;
 };
 
 type AdminEventFormProps = {
@@ -82,6 +96,52 @@ const toDateInputValue = (value?: string | null) => {
 };
 
 const toArrayText = (values?: string[]) => (values?.length ? values.join("\n") : "");
+
+const getDefaultPassType = (
+	price = 0,
+	totalQuantity = 0,
+	soldQuantity = 0,
+): PassTypeFormValue => ({
+	name: "General Pass",
+	price,
+	description: "",
+	totalQuantity,
+	maxAvailable: totalQuantity,
+	soldQuantity,
+	bookedQuantity: soldQuantity,
+	isActive: true,
+});
+
+const normalizePassTypes = (
+	event?: AdminEventFormProps["initialEvent"],
+): PassTypeFormValue[] => {
+	const passTypes = event?.passTypes?.length
+		? event.passTypes
+		: undefined;
+
+	if (!passTypes?.length) {
+		return [
+			getDefaultPassType(
+				Number(event?.ticketPrice || 0),
+				Number(event?.totalSeats || 0),
+				Number(event?.registrationCount || 0),
+			),
+		];
+	}
+
+	return passTypes.map((passType) => ({
+		id: passType.id || passType._id,
+		_id: passType._id || passType.id,
+		name: passType.name || "General Pass",
+		price: Number(passType.price || 0),
+		description: passType.description || "",
+		totalQuantity: Number(passType.totalQuantity || passType.maxAvailable || 0),
+		maxAvailable: Number(passType.maxAvailable || passType.totalQuantity || 0),
+		soldQuantity: Number(passType.soldQuantity || passType.bookedQuantity || 0),
+		bookedQuantity: Number(passType.bookedQuantity || passType.soldQuantity || 0),
+		isActive: passType.isActive !== false,
+	}));
+};
 
 const splitUrls = (value: string) =>
 	value
@@ -118,6 +178,7 @@ const getDefaultValues = (
 	name: event?.name ?? "",
 	category: event?.category ?? "Events",
 	ticketPrice: event?.ticketPrice ?? 0,
+	passTypes: normalizePassTypes(event),
 	mode: normalizeMode(event?.mode),
 	location: event?.location ?? "",
 	duration: event?.duration ?? "",
@@ -245,6 +306,15 @@ export default function AdminEventForm({
 		watch,
 		formState: { errors },
 	} = useForm<AdminEventFormValues>({ defaultValues });
+	const {
+		fields: passTypeFields,
+		append: appendPassType,
+		remove: removePassType,
+	} = useFieldArray({
+		control,
+		name: "passTypes",
+		keyName: "fieldId",
+	});
 
 	useEffect(() => {
 		reset(defaultValues);
@@ -349,6 +419,37 @@ export default function AdminEventForm({
 			];
 
 			const normalizedMode = normalizeMode(values.mode);
+			const normalizedTotalSeats = toNonNegativeInteger(values.totalSeats);
+			const passTypes = (values.passTypes.length
+				? values.passTypes
+				: [getDefaultPassType(values.ticketPrice, normalizedTotalSeats)]
+			).map((passType) => {
+				const totalQuantity = toNonNegativeInteger(
+					passType.totalQuantity || passType.maxAvailable,
+					normalizedTotalSeats,
+				);
+				const soldQuantity = toNonNegativeInteger(passType.soldQuantity);
+
+				return {
+					...(passType._id || passType.id
+						? { _id: passType._id || passType.id }
+						: {}),
+					name: passType.name.trim() || "General Pass",
+					price: values.isPaid ? toNonNegativeNumber(passType.price) : 0,
+					description: passType.description?.trim() || "",
+					totalQuantity,
+					maxAvailable: totalQuantity,
+					soldQuantity,
+					bookedQuantity: toNonNegativeInteger(
+						passType.bookedQuantity,
+						soldQuantity,
+					),
+					isActive: passType.isActive,
+				};
+			});
+			const activePassPrices = passTypes
+				.filter((passType) => passType.isActive)
+				.map((passType) => passType.price);
 			const payload = {
 				isTeamEvent: values.isTeamEvent,
 				isPaid: values.isPaid,
@@ -357,8 +458,11 @@ export default function AdminEventForm({
 				name: values.name.trim(),
 				category: values.category.trim(),
 				ticketPrice: values.isPaid
-					? toNonNegativeNumber(values.ticketPrice)
+					? activePassPrices.length
+						? Math.min(...activePassPrices)
+						: 0
 					: 0,
+				passTypes,
 				mode: normalizedMode,
 				location: normalizedMode === "offline" ? values.location.trim() : "",
 				duration: values.duration.trim(),
@@ -368,7 +472,7 @@ export default function AdminEventForm({
 				endDate: values.endDate || null,
 				startTime: values.startTime,
 				startRegistrationDate: values.startRegistrationDate,
-				totalSeats: toNonNegativeInteger(values.totalSeats),
+				totalSeats: normalizedTotalSeats,
 				photographs,
 				prizes: values.prizes,
 				eventDescription: values.eventDescription,
@@ -715,35 +819,6 @@ export default function AdminEventForm({
 
 							<section className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
 								<div>
-									<Label htmlFor="ticketPrice">
-										Ticket Price {isPaid ? "*" : ""}
-									</Label>
-									<Input
-										id="ticketPrice"
-										type="number"
-										min={0}
-										disabled={!isPaid}
-										className={inputClassName}
-										{...register("ticketPrice", {
-											valueAsNumber: true,
-											validate: (value) =>
-												!isPaid ||
-												Number.isFinite(value) ||
-												"Ticket price must be a number",
-											min: {
-												value: 0,
-												message: "Ticket price cannot be negative",
-											},
-										})}
-									/>
-									{!isPaid ? (
-										<p className="mt-1 text-xs text-gray-400">
-											Turn on Paid to set a ticket price.
-										</p>
-									) : null}
-									<FieldError message={errors.ticketPrice?.message} />
-								</div>
-								<div>
 									<Label htmlFor="totalSeats">Total Seats *</Label>
 									<Input
 										id="totalSeats"
@@ -770,6 +845,158 @@ export default function AdminEventForm({
 										className={inputClassName}
 										{...register("organizerName")}
 									/>
+								</div>
+							</section>
+
+							<section className="space-y-4">
+								<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+									<div>
+										<h3 className="text-lg font-semibold text-white">Pass Types</h3>
+										<p className="mt-1 text-sm text-gray-400">
+											Each active pass appears on the event details page.
+										</p>
+									</div>
+									<Button
+										type="button"
+										onClick={() =>
+											appendPassType(getDefaultPassType(0, watch("totalSeats") || 0))
+										}
+										className="bg-purple-700 text-white hover:bg-purple-600"
+									>
+										<Plus className="h-4 w-4" />
+										Add Pass
+									</Button>
+								</div>
+
+								<div className="space-y-4">
+									{passTypeFields.map((passTypeField, index) => (
+										<div
+											key={passTypeField.fieldId}
+											className="space-y-4 border-t border-gray-800 pt-4"
+										>
+											<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+												<div className="text-sm font-medium text-gray-300">
+													Pass {index + 1}
+												</div>
+												<div className="flex items-center gap-3">
+													<Controller
+														name={`passTypes.${index}.isActive`}
+														control={control}
+														render={({ field }) => (
+															<label className="flex items-center gap-2 text-sm text-gray-300">
+																<span>Active</span>
+																<Switch
+																	checked={field.value}
+																	onCheckedChange={field.onChange}
+																/>
+															</label>
+														)}
+													/>
+													<Button
+														type="button"
+														variant="outline"
+														disabled={passTypeFields.length === 1}
+														onClick={() => removePassType(index)}
+														className="border-red-500/40 bg-transparent text-red-200 hover:bg-red-500/10 hover:text-red-100 disabled:opacity-40"
+													>
+														<Trash2 className="h-4 w-4" />
+														Remove
+													</Button>
+												</div>
+											</div>
+
+											<input
+												type="hidden"
+												{...register(`passTypes.${index}._id` as const)}
+											/>
+
+											<div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+												<div>
+													<Label>Pass Name *</Label>
+													<Input
+														className={inputClassName}
+														{...register(`passTypes.${index}.name` as const, {
+															required: "Pass name is required",
+														})}
+													/>
+													<FieldError
+														message={errors.passTypes?.[index]?.name?.message}
+													/>
+												</div>
+												<div>
+													<Label>Price {isPaid ? "*" : ""}</Label>
+													<Input
+														type="number"
+														min={0}
+														readOnly={!isPaid}
+														className={inputClassName}
+														{...register(`passTypes.${index}.price` as const, {
+															valueAsNumber: true,
+															validate: (value) =>
+																!isPaid ||
+																Number.isFinite(value) ||
+																"Pass price must be a number",
+															min: {
+																value: 0,
+																message: "Pass price cannot be negative",
+															},
+														})}
+													/>
+													<FieldError
+														message={errors.passTypes?.[index]?.price?.message}
+													/>
+												</div>
+												<div>
+													<Label>Total Quantity *</Label>
+													<Input
+														type="number"
+														min={0}
+														className={inputClassName}
+														{...register(
+															`passTypes.${index}.totalQuantity` as const,
+															{
+																valueAsNumber: true,
+																required: "Quantity is required",
+																validate: (value) =>
+																	Number.isFinite(value) ||
+																	"Quantity must be a number",
+																min: {
+																	value: 0,
+																	message: "Quantity cannot be negative",
+																},
+															},
+														)}
+													/>
+													<FieldError
+														message={
+															errors.passTypes?.[index]?.totalQuantity?.message
+														}
+													/>
+												</div>
+												<div>
+													<Label>Booked</Label>
+													<Input
+														type="number"
+														readOnly
+														className={inputClassName}
+														{...register(
+															`passTypes.${index}.soldQuantity` as const,
+															{ valueAsNumber: true },
+														)}
+													/>
+												</div>
+											</div>
+
+											<div>
+												<Label>Description</Label>
+												<Textarea
+													rows={3}
+													className={inputClassName}
+													{...register(`passTypes.${index}.description` as const)}
+												/>
+											</div>
+										</div>
+									))}
 								</div>
 							</section>
 

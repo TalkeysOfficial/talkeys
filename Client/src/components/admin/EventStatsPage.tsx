@@ -38,8 +38,15 @@ interface AdminEventStats {
 		registrationCount: number;
 		photograph: string;
 		isPaid: boolean;
-		ticketPrice: number;
-		isLive: boolean;
+	ticketPrice: number;
+	passTypes?: Array<{
+		name: string;
+		price: number;
+		totalQuantity?: number;
+		soldQuantity?: number;
+		isActive?: boolean;
+	}>;
+	isLive: boolean;
 	};
 	stats: {
 		totalOrders: number;
@@ -66,6 +73,12 @@ interface AdminBooking {
 	amount: number;
 	ticketCount: number;
 	passType: string;
+	passTypeName?: string;
+	passSelections?: Array<{
+		passTypeName: string;
+		passPrice: number;
+		quantity: number;
+	}>;
 	passStatus: string;
 	status: string;
 	paymentStatus: string;
@@ -84,6 +97,8 @@ interface AdminAttendee {
 	id: string;
 	name: string;
 	type: "user" | "friend";
+	passTypeName?: string;
+	passPrice?: number;
 	checkedIn: boolean;
 	checkedInAt: string | null;
 }
@@ -241,7 +256,7 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 				booking.confirmedAt || "",
 				booking.ticketCount,
 				booking.amount,
-				booking.passType,
+				booking.passTypeName || booking.passType,
 				booking.passStatus,
 				booking.status,
 				booking.paymentStatus,
@@ -256,7 +271,7 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 				booking.attendees
 					.map(
 						(attendee) =>
-							`${attendee.name} (${attendee.type}, ${
+							`${attendee.name} - ${attendee.passTypeName || booking.passType} (${attendee.type}, ${
 								attendee.checkedIn ? "checked in" : "not checked in"
 							})`,
 					)
@@ -487,7 +502,7 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 													{booking.ticketCount}
 												</div>
 												<div className="mt-1 text-xs text-gray-500">
-													{booking.passType}
+													{booking.passTypeName || booking.passType}
 												</div>
 											</td>
 											<td className="px-5 py-4 font-medium text-white">
@@ -526,7 +541,8 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 																	: "Not checked in"
 															}
 														>
-															{attendee.name || "Attendee"}
+															{attendee.name || "Attendee"} -{" "}
+															{attendee.passTypeName || booking.passType}
 														</span>
 													))}
 												</div>

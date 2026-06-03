@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import {
   Mail,
   Phone,
@@ -80,7 +81,7 @@ type CreateEventFormData = {
   agreeTerms: boolean;
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -89,7 +90,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 10 } },
 };
