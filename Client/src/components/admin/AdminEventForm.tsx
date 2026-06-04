@@ -87,6 +87,12 @@ const inputClassName = "border-gray-700 bg-gray-950 text-white placeholder:text-
 const selectTriggerClassName = "border-gray-700 bg-gray-950 text-white";
 const selectContentClassName =
 	"z-[100] border-gray-700 bg-gray-900 text-white shadow-xl shadow-black/40";
+const MONGO_OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+
+const getMongoObjectId = (...values: Array<string | undefined>) =>
+	values.find((value): value is string =>
+		typeof value === "string" && MONGO_OBJECT_ID_PATTERN.test(value),
+	);
 
 const toDateInputValue = (value?: string | null) => {
 	if (!value) return "";
@@ -129,18 +135,21 @@ const normalizePassTypes = (
 		];
 	}
 
-	return passTypes.map((passType) => ({
-		id: passType.id || passType._id,
-		_id: passType._id || passType.id,
-		name: passType.name || "General Pass",
-		price: Number(passType.price || 0),
-		description: passType.description || "",
-		totalQuantity: Number(passType.totalQuantity || passType.maxAvailable || 0),
-		maxAvailable: Number(passType.maxAvailable || passType.totalQuantity || 0),
-		soldQuantity: Number(passType.soldQuantity || passType.bookedQuantity || 0),
-		bookedQuantity: Number(passType.bookedQuantity || passType.soldQuantity || 0),
-		isActive: passType.isActive !== false,
-	}));
+	return passTypes.map((passType) => {
+		const id = getMongoObjectId(passType._id, passType.id);
+
+		return {
+			...(id ? { id, _id: id } : {}),
+			name: passType.name || "General Pass",
+			price: Number(passType.price || 0),
+			description: passType.description || "",
+			totalQuantity: Number(passType.totalQuantity || passType.maxAvailable || 0),
+			maxAvailable: Number(passType.maxAvailable || passType.totalQuantity || 0),
+			soldQuantity: Number(passType.soldQuantity || passType.bookedQuantity || 0),
+			bookedQuantity: Number(passType.bookedQuantity || passType.soldQuantity || 0),
+			isActive: passType.isActive !== false,
+		};
+	});
 };
 
 const splitUrls = (value: string) =>
@@ -429,11 +438,10 @@ export default function AdminEventForm({
 					normalizedTotalSeats,
 				);
 				const soldQuantity = toNonNegativeInteger(passType.soldQuantity);
+				const id = getMongoObjectId(passType._id, passType.id);
 
 				return {
-					...(passType._id || passType.id
-						? { _id: passType._id || passType.id }
-						: {}),
+					...(id ? { _id: id } : {}),
 					name: passType.name.trim() || "General Pass",
 					price: values.isPaid ? toNonNegativeNumber(passType.price) : 0,
 					description: passType.description?.trim() || "",
