@@ -1,11 +1,25 @@
 const { z } = require("zod");
 
+const MONGO_OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+
 const optionalNumber = (schema) =>
 	z.preprocess((value) => {
 		if (value === "" || value === null || value === undefined) return undefined;
 		if (typeof value === "string") return Number(value);
 		return value;
 	}, schema);
+
+const optionalString = z.preprocess((value) => {
+	if (value === "" || value === null || value === undefined) return undefined;
+	if (typeof value === "string") return value.trim();
+	if (value?.toString) return value.toString();
+	return value;
+}, z.string().optional());
+
+const getMongoObjectId = (...values) =>
+	values.find(
+		(value) => typeof value === "string" && MONGO_OBJECT_ID_PATTERN.test(value),
+	);
 
 const optionalBoolean = (defaultValue) =>
 	z.preprocess((value) => {
@@ -41,8 +55,8 @@ const stringArray = z.preprocess((value) => {
 
 const passTypeSchema = z
 	.object({
-		id: z.string().optional(),
-		_id: z.string().optional(),
+		id: optionalString,
+		_id: optionalString,
 		name: z.string().trim().min(1, "Pass name is required"),
 		price: optionalNumber(
 			z.number().min(0, "Pass price must be a non-negative number").default(0),
@@ -81,7 +95,7 @@ const passTypeSchema = z
 	.transform((passType) => {
 		const totalQuantity = passType.totalQuantity || passType.maxAvailable || 0;
 		const maxAvailable = passType.maxAvailable || passType.totalQuantity || 0;
-		const id = passType._id || passType.id;
+		const id = getMongoObjectId(passType._id, passType.id);
 
 		return {
 			...(id ? { _id: id } : {}),
