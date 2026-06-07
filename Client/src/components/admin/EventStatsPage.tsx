@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
 	ArrowLeft,
 	CalendarDays,
+	ChevronDown,
 	CheckCircle2,
 	Clock3,
 	Download,
@@ -38,15 +39,9 @@ interface AdminEventStats {
 		registrationCount: number;
 		photograph: string;
 		isPaid: boolean;
-	ticketPrice: number;
-	passTypes?: Array<{
-		name: string;
-		price: number;
-		totalQuantity?: number;
-		soldQuantity?: number;
-		isActive?: boolean;
-	}>;
-	isLive: boolean;
+		ticketPrice: number;
+		passTypes?: AdminPassType[];
+		isLive: boolean;
 	};
 	stats: {
 		totalOrders: number;
@@ -56,6 +51,19 @@ interface AdminEventStats {
 		seatsRemaining: number;
 	};
 	bookings: AdminBooking[];
+}
+
+interface AdminPassType {
+	id?: string;
+	_id?: string;
+	name: string;
+	price: number;
+	description?: string;
+	totalQuantity?: number;
+	maxAvailable?: number;
+	soldQuantity?: number;
+	bookedQuantity?: number;
+	isActive?: boolean;
 }
 
 interface AdminBooking {
@@ -103,6 +111,44 @@ interface AdminAttendee {
 	checkedInAt: string | null;
 }
 
+type PassTypeRosterItem = {
+	id: string;
+	name: string;
+	buyerName: string;
+	bookingId: string;
+	passPrice: number;
+	checkedIn: boolean;
+	checkedInAt: string | null;
+};
+
+type PassTypeBookingRow = {
+	id: string;
+	bookedAt: string;
+	confirmedAt: string | null;
+	buyer: AdminBooking["buyer"];
+	amount: number;
+	ticketCount: number;
+	passTypeName: string;
+	paymentStatus: string;
+	merchantOrderId: string;
+	checkedInCount: number;
+	status: string;
+	attendees: AdminAttendee[];
+};
+
+type PassTypeSummary = {
+	key: string;
+	name: string;
+	price: number;
+	totalQuantity: number;
+	soldQuantity: number;
+	remainingQuantity: number;
+	totalRevenue: number;
+	isActive: boolean;
+	attendees: PassTypeRosterItem[];
+	bookings: PassTypeBookingRow[];
+};
+
 const formatDateTime = (value?: string | null) => {
 	if (!value) return "-";
 	const date = new Date(value);
@@ -140,6 +186,33 @@ const statusClassName = (status: string) =>
 			? "bg-emerald-500/15 text-emerald-300"
 			: "bg-amber-500/15 text-amber-300",
 	);
+
+const getPassTypeName = (value?: string | null) =>
+	value?.trim() || "General Pass";
+
+const getPassTypeQuantity = (passType: AdminPassType) =>
+	Number(passType.totalQuantity ?? passType.maxAvailable ?? 0);
+
+const getPassTypeSoldQuantity = (passType: AdminPassType) =>
+	Number(passType.soldQuantity ?? passType.bookedQuantity ?? 0);
+
+const bookingMatchesSearch = (booking: PassTypeBookingRow, query: string) => {
+	if (!query) return true;
+
+	const haystack = [
+		booking.buyer.name,
+		booking.buyer.email,
+		booking.buyer.phoneNumber,
+		booking.merchantOrderId,
+		booking.passTypeName,
+		...booking.attendees.map((attendee) => attendee.name),
+	]
+		.filter(Boolean)
+		.join(" ")
+		.toLowerCase();
+
+	return haystack.includes(query);
+};
 
 const csvCell = (value: unknown) => {
 	const rawText = value === null || value === undefined ? "" : String(value);
@@ -197,28 +270,106 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 		fetchStats();
 	}, [eventId]);
 
-	const filteredBookings = useMemo(() => {
+	const passTypeSummaries = useMemo<PassTypeSummary[]>(() => {
 		if (!stats) return [];
 
-		const query = searchTerm.trim().toLowerCase();
-		if (!query) return stats.bookings;
+		const summaries = new Map<string, PassTypeSummary>();
+		const ensureSummary = (name: string, passType?: AdminPassType) => {
+			const key = name.toLowerCase();
+			const existing = summaries.get(key);
 
-		return stats.bookings.filter((booking) => {
-			const haystack = [
-				booking.buyer.name,
-				booking.buyer.email,
-				booking.buyer.phoneNumber,
-				booking.passUUID,
-				booking.merchantOrderId,
-				...booking.attendees.map((attendee) => attendee.name),
-			]
-				.filter(Boolean)
-				.join(" ")
-				.toLowerCase();
+			if (existing) return existing;
 
-			return haystack.includes(query);
+			const totalQuantity = passType ? getPassTypeQuantity(passType) : 0;
+			const soldQuantity = passType ? getPassTypeSoldQuantity(passType) : 0;
+			const summary: PassTypeSummary = {
+				key,
+				name,
+				price: Number(passType?.price || 0),
+				totalQuantity,
+				soldQuantity,
+				remainingQuantity: Math.max(totalQuantity - soldQuantity, 0),
+				totalRevenue: 0,
+				isActive: passType?.isActive !== false,
+				attendees: [],
+				bookings: [],
+			};
+
+			summaries.set(key, summary);
+			return summary;
+		};
+
+		stats.event.passTypes?.forEach((passType) => {
+			ensureSummary(getPassTypeName(passType.name), passType);
 		});
-	}, [searchTerm, stats]);
+
+		stats.bookings.forEach((booking) => {
+			const bookingAttendeesByPassType = new Map<string, AdminAttendee[]>();
+
+			booking.attendees.forEach((attendee) => {
+				const name = getPassTypeName(
+					attendee.passTypeName || booking.passTypeName || booking.passType,
+				);
+				const summary = ensureSummary(name);
+				const passPrice = Number(attendee.passPrice ?? summary.price ?? 0);
+				const attendeeGroup = bookingAttendeesByPassType.get(name) || [];
+
+				attendeeGroup.push(attendee);
+				bookingAttendeesByPassType.set(name, attendeeGroup);
+				summary.attendees.push({
+					id: attendee.id || `${booking.id}-${summary.attendees.length}`,
+					name: attendee.name || "Attendee",
+					buyerName: booking.buyer.name,
+					bookingId: booking.id,
+					passPrice,
+					checkedIn: attendee.checkedIn,
+					checkedInAt: attendee.checkedInAt,
+				});
+				summary.totalRevenue += passPrice;
+			});
+
+			bookingAttendeesByPassType.forEach((attendees, name) => {
+				const summary = ensureSummary(name);
+				const amount = attendees.reduce(
+					(total, attendee) =>
+						total + Number(attendee.passPrice ?? summary.price ?? 0),
+					0,
+				);
+
+				summary.bookings.push({
+					id: booking.id,
+					bookedAt: booking.bookedAt,
+					confirmedAt: booking.confirmedAt,
+					buyer: booking.buyer,
+					amount,
+					ticketCount: attendees.length,
+					passTypeName: name,
+					paymentStatus: booking.paymentStatus,
+					merchantOrderId: booking.merchantOrderId,
+					checkedInCount: attendees.filter((attendee) => attendee.checkedIn).length,
+					status: booking.status,
+					attendees,
+				});
+			});
+		});
+
+		return Array.from(summaries.values()).map((summary) => {
+			const soldQuantity = Math.max(summary.soldQuantity, summary.attendees.length);
+			const totalQuantity = Math.max(summary.totalQuantity, soldQuantity);
+
+			return {
+				...summary,
+				soldQuantity,
+				totalQuantity,
+				remainingQuantity: Math.max(totalQuantity - soldQuantity, 0),
+				totalRevenue: summary.totalRevenue || summary.price * soldQuantity,
+				attendees: summary.attendees.sort((first, second) =>
+					first.name.localeCompare(second.name),
+				),
+				bookings: summary.bookings,
+			};
+		});
+	}, [stats]);
 
 	const handleExportBookings = () => {
 		if (!stats?.bookings.length) return;
@@ -433,9 +584,9 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 				<section className="rounded-lg border border-gray-800 bg-gray-900/70">
 					<div className="flex flex-col gap-4 border-b border-gray-800 p-5 md:flex-row md:items-center md:justify-between">
 						<div>
-							<h2 className="text-xl font-semibold text-white">Bookings</h2>
+							<h2 className="text-xl font-semibold text-white">Pass Types</h2>
 							<p className="mt-1 text-sm text-gray-400">
-								{filteredBookings.length} of {stats.bookings.length} shown
+								Overall totals are shown above. Open a pass type for its bookings.
 							</p>
 						</div>
 						<div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
@@ -460,107 +611,177 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 						</div>
 					</div>
 
-					<div className="overflow-x-auto">
-						<table className="w-full min-w-[980px] text-left text-sm">
-							<thead className="bg-gray-950/80 text-xs uppercase text-gray-400">
-								<tr>
-									<th className="px-5 py-3 font-medium">Booked By</th>
-									<th className="px-5 py-3 font-medium">Booking Time</th>
-									<th className="px-5 py-3 font-medium">Tickets</th>
-									<th className="px-5 py-3 font-medium">Amount</th>
-									<th className="px-5 py-3 font-medium">Payment</th>
-									<th className="px-5 py-3 font-medium">Check-in</th>
-									<th className="px-5 py-3 font-medium">Attendees</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-800">
-								{filteredBookings.length ? (
-									filteredBookings.map((booking) => (
-										<tr
-											key={booking.id}
-											className="align-top text-gray-200 hover:bg-gray-800/45"
-										>
-											<td className="px-5 py-4">
-												<div className="font-medium text-white">
-													{booking.buyer.name}
+					<div className="divide-y divide-gray-800">
+						{passTypeSummaries.length ? (
+							passTypeSummaries.map((passType) => {
+								const soldPercent = passType.totalQuantity
+									? Math.min((passType.soldQuantity / passType.totalQuantity) * 100, 100)
+									: 0;
+								const visibleBookings = passType.bookings.filter((booking) =>
+									bookingMatchesSearch(
+										booking,
+										searchTerm.trim().toLowerCase(),
+									),
+								);
+
+								return (
+									<details
+										key={passType.key}
+										className="group p-5 open:bg-gray-950/35"
+									>
+										<summary className="cursor-pointer list-none">
+											<div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+												<div className="flex min-w-0 items-start gap-3">
+													<ChevronDown className="mt-1 h-5 w-5 shrink-0 text-gray-500 transition-transform group-open:rotate-180 group-open:text-purple-300" />
+													<div className="min-w-0">
+														<div className="flex flex-wrap items-center gap-2">
+															<h3 className="break-words text-lg font-semibold text-white">
+																{passType.name}
+															</h3>
+															<span
+																className={cn(
+																	"rounded-md px-2 py-1 text-xs font-medium",
+																	passType.isActive
+																		? "bg-emerald-500/15 text-emerald-300"
+																		: "bg-gray-800 text-gray-300",
+																)}
+															>
+																{passType.isActive ? "Active" : "Inactive"}
+															</span>
+														</div>
+														<div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-400">
+															<span>{formatAmount(passType.price)}</span>
+															<span>
+																{passType.soldQuantity}/{passType.totalQuantity} sold
+															</span>
+															<span>{passType.remainingQuantity} left</span>
+															<span>{passType.attendees.length} names</span>
+														</div>
+													</div>
 												</div>
-												<div className="mt-1 text-gray-400">
-													{booking.buyer.email || "-"}
+												<div className="w-full lg:w-72">
+													<div className="h-2 overflow-hidden rounded-full bg-gray-800">
+														<div
+															className="h-full rounded-full bg-purple-500"
+															style={{ width: `${soldPercent}%` }}
+														/>
+													</div>
+													<div className="mt-2 text-right text-xs text-gray-500">
+														{formatAmount(passType.totalRevenue)} revenue
+													</div>
 												</div>
-												<div className="mt-1 text-gray-500">
-													{booking.buyer.phoneNumber || "-"}
-												</div>
-											</td>
-											<td className="px-5 py-4">
-												<div>{formatDateTime(booking.bookedAt)}</div>
-												<div className="mt-1 text-xs text-gray-500">
-													Confirmed {formatDateTime(booking.confirmedAt)}
-												</div>
-											</td>
-											<td className="px-5 py-4">
-												<div className="font-medium text-white">
-													{booking.ticketCount}
-												</div>
-												<div className="mt-1 text-xs text-gray-500">
-													{booking.passTypeName || booking.passType}
-												</div>
-											</td>
-											<td className="px-5 py-4 font-medium text-white">
-												{formatAmount(booking.amount)}
-											</td>
-											<td className="px-5 py-4">
-												<span className={statusClassName(booking.paymentStatus)}>
-													{booking.paymentStatus}
-												</span>
-												<div className="mt-2 text-xs text-gray-500">
-													{booking.merchantOrderId}
-												</div>
-											</td>
-											<td className="px-5 py-4">
-												<div className="font-medium text-white">
-													{booking.checkedInCount}/{booking.ticketCount}
-												</div>
-												<div className="mt-1 text-xs text-gray-500">
-													{booking.status}
-												</div>
-											</td>
-											<td className="px-5 py-4">
-												<div className="flex max-w-sm flex-wrap gap-2">
-													{booking.attendees.map((attendee) => (
-														<span
-															key={attendee.id}
-															className={cn(
-																"rounded-md px-2 py-1 text-xs",
-																attendee.checkedIn
-																	? "bg-emerald-500/15 text-emerald-300"
-																	: "bg-gray-800 text-gray-300",
-															)}
-															title={
-																attendee.checkedInAt
-																	? `Checked in ${formatDateTime(attendee.checkedInAt)}`
-																	: "Not checked in"
-															}
-														>
-															{attendee.name || "Attendee"} -{" "}
-															{attendee.passTypeName || booking.passType}
-														</span>
-													))}
-												</div>
-											</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td
-											colSpan={7}
-											className="px-5 py-12 text-center text-gray-400"
-										>
-											No bookings found
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
+											</div>
+										</summary>
+
+										<div className="mt-5 overflow-x-auto rounded-lg border border-gray-800">
+											<table className="w-full min-w-[980px] text-left text-sm">
+												<thead className="bg-gray-950/80 text-xs uppercase text-gray-400">
+													<tr>
+														<th className="px-5 py-3 font-medium">Booked By</th>
+														<th className="px-5 py-3 font-medium">Booking Time</th>
+														<th className="px-5 py-3 font-medium">Tickets</th>
+														<th className="px-5 py-3 font-medium">Amount</th>
+														<th className="px-5 py-3 font-medium">Payment</th>
+														<th className="px-5 py-3 font-medium">Check-in</th>
+														<th className="px-5 py-3 font-medium">Attendees</th>
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-gray-800">
+													{visibleBookings.length ? (
+														visibleBookings.map((booking) => (
+															<tr
+																key={`${passType.key}-${booking.id}`}
+																className="align-top text-gray-200 hover:bg-gray-800/45"
+															>
+																<td className="px-5 py-4">
+																	<div className="font-medium text-white">
+																		{booking.buyer.name}
+																	</div>
+																	<div className="mt-1 text-gray-400">
+																		{booking.buyer.email || "-"}
+																	</div>
+																	<div className="mt-1 text-gray-500">
+																		{booking.buyer.phoneNumber || "-"}
+																	</div>
+																</td>
+																<td className="px-5 py-4">
+																	<div>{formatDateTime(booking.bookedAt)}</div>
+																	<div className="mt-1 text-xs text-gray-500">
+																		Confirmed {formatDateTime(booking.confirmedAt)}
+																	</div>
+																</td>
+																<td className="px-5 py-4">
+																	<div className="font-medium text-white">
+																		{booking.ticketCount}
+																	</div>
+																	<div className="mt-1 text-xs text-gray-500">
+																		{booking.passTypeName}
+																	</div>
+																</td>
+																<td className="px-5 py-4 font-medium text-white">
+																	{formatAmount(booking.amount)}
+																</td>
+																<td className="px-5 py-4">
+																	<span className={statusClassName(booking.paymentStatus)}>
+																		{booking.paymentStatus}
+																	</span>
+																	<div className="mt-2 text-xs text-gray-500">
+																		{booking.merchantOrderId}
+																	</div>
+																</td>
+																<td className="px-5 py-4">
+																	<div className="font-medium text-white">
+																		{booking.checkedInCount}/{booking.ticketCount}
+																	</div>
+																	<div className="mt-1 text-xs text-gray-500">
+																		{booking.status}
+																	</div>
+																</td>
+																<td className="px-5 py-4">
+																	<div className="flex max-w-sm flex-wrap gap-2">
+																		{booking.attendees.map((attendee) => (
+																			<span
+																				key={attendee.id}
+																				className={cn(
+																					"rounded-md px-2 py-1 text-xs",
+																					attendee.checkedIn
+																						? "bg-emerald-500/15 text-emerald-300"
+																						: "bg-gray-800 text-gray-300",
+																				)}
+																				title={
+																					attendee.checkedInAt
+																						? `Checked in ${formatDateTime(attendee.checkedInAt)}`
+																						: "Not checked in"
+																				}
+																			>
+																				{attendee.name || "Attendee"}
+																			</span>
+																		))}
+																	</div>
+																</td>
+															</tr>
+														))
+													) : (
+														<tr>
+															<td
+																colSpan={7}
+																className="px-5 py-12 text-center text-gray-400"
+															>
+																No bookings found for this pass type
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+										</div>
+									</details>
+								);
+							})
+						) : (
+							<div className="p-5 text-sm text-gray-400">
+								No pass types configured for this event.
+							</div>
+						)}
 					</div>
 				</section>
 			</div>
