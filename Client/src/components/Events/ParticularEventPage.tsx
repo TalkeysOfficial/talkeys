@@ -241,7 +241,7 @@ function RegistrationPage({
 		<div className="fixed inset-0 z-[9999] min-h-screen w-full overflow-y-auto overflow-x-hidden bg-[#070708] pt-24 text-white">
 			<Navbar />
 
-			<main className="w-full max-w-full overflow-x-hidden px-4 pb-10 sm:px-8">
+			<main className="w-full max-w-full overflow-x-hidden px-4 pb-32 sm:px-8 sm:pb-10">
 				<button
 					type="button"
 					onClick={onBack}
@@ -330,7 +330,7 @@ function RegistrationPage({
 						</div>
 					</aside>
 
-					<section className="min-w-0 border border-white/10 bg-[#0b0b0e]">
+					<section className="flex min-w-0 flex-col border border-white/10 bg-[#0b0b0e]">
 						<div className="border-b border-white/10 px-5 py-4 sm:px-6">
 							<h2 className="text-xl font-semibold text-white">Attendee details</h2>
 							<p className="mt-1 text-sm text-gray-400">
@@ -338,7 +338,7 @@ function RegistrationPage({
 							</p>
 						</div>
 
-						<div className="space-y-4 p-5 sm:p-6">
+						<div className="space-y-4 p-5 pb-0 sm:p-6 sm:pb-0">
 							{attendees.map((attendee, index) => (
 								<div
 									key={index}
@@ -403,7 +403,7 @@ function RegistrationPage({
 								</div>
 							))}
 
-							<div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
+							<div className="sticky bottom-0 z-30 -mx-5 -mb-5 flex flex-col-reverse gap-3 border-t border-white/10 bg-[#0b0b0e]/95 px-5 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:px-6 lg:static lg:mx-0 lg:mb-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:backdrop-blur-none">
 								<Button
 									type="button"
 									variant="outline"
