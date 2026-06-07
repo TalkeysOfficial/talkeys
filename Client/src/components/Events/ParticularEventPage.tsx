@@ -164,14 +164,23 @@ function RegistrationPage({
 	isSubmitting: boolean;
 	onSubmit: () => void;
 }) {
+	const [personCountValue, setPersonCountValue] = useState(
+		String(attendees.length || 1),
+	);
 	const sharedPassTypeId = attendees[0]?.passTypeId || selectedPassTypeId;
 	const totalAmount = attendees.reduce((sum, attendee) => {
 		const passType = passTypes.find((item) => item.id === attendee.passTypeId);
 		return sum + (eventIsPaid ? Number(passType?.price || 0) : 0);
 	}, 0);
+	const personCountNumber = Number(personCountValue);
+	const isPersonCountValid =
+		Number.isFinite(personCountNumber) &&
+		personCountNumber >= 1 &&
+		personCountNumber <= 10 &&
+		attendees.length > 0;
 
 	const setPersonCount = (nextCount: number) => {
-		const count = Math.min(Math.max(nextCount || 1, 1), 10);
+		const count = Math.min(Math.max(Math.floor(nextCount), 0), 10);
 		setAttendees((current) => {
 			const next = [...current];
 			while (next.length < count) {
@@ -179,6 +188,32 @@ function RegistrationPage({
 			}
 			return next.slice(0, count);
 		});
+	};
+
+	useEffect(() => {
+		setPersonCountValue(String(attendees.length));
+	}, [attendees.length]);
+
+	const handlePersonCountChange = (value: string) => {
+		setPersonCountValue(value);
+
+		if (!value) return;
+
+		const nextCount = Number(value);
+		if (!Number.isFinite(nextCount)) return;
+		if (nextCount > 10) return;
+
+		setPersonCount(nextCount);
+	};
+
+	const normalizePersonCount = () => {
+		const nextCount = Number(personCountValue);
+		const count = Number.isFinite(nextCount)
+			? Math.min(Math.max(Math.floor(nextCount), 0), 10)
+			: attendees.length;
+
+		setPersonCountValue(String(count));
+		setPersonCount(count);
 	};
 
 	const applyPassToAll = (passTypeId: string) => {
@@ -234,12 +269,20 @@ function RegistrationPage({
 								<Input
 									id="personCount"
 									type="number"
-									min={1}
+									min={0}
 									max={10}
-									value={attendees.length}
-									onChange={(event) => setPersonCount(Number(event.target.value))}
+									value={personCountValue}
+									onChange={(event) =>
+										handlePersonCountChange(event.target.value)
+									}
+									onBlur={normalizePersonCount}
 									className="mt-2 border-gray-700 bg-black text-white"
 								/>
+								{!isPersonCountValid ? (
+									<p className="mt-2 text-xs text-gray-500">
+										Add at least 1 person to confirm registration.
+									</p>
+								) : null}
 							</div>
 
 							<div>
@@ -372,7 +415,7 @@ function RegistrationPage({
 								<Button
 									type="button"
 									onClick={onSubmit}
-									disabled={isSubmitting}
+									disabled={isSubmitting || !isPersonCountValid}
 									className="bg-purple-700 text-white hover:bg-purple-600 disabled:opacity-60"
 								>
 									{isSubmitting ? "Processing..." : "Confirm Registration"}
@@ -483,6 +526,11 @@ export default function ParticularEventPage({
 	};
 
 	const validateRegistration = () => {
+		if (attendees.length < 1) {
+			toast.error("Add at least 1 person to register.");
+			return false;
+		}
+
 		if (event.isTeamEvent && !teamCode.trim()) {
 			toast.error("Team code is required for this event.");
 			return false;

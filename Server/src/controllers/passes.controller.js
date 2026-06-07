@@ -555,24 +555,47 @@ const findQRString = (pass, qrId) => {
   );
 };
 
+const getQRPersonName = (pass, qrString) =>
+  qrString?.personName ||
+  (qrString?.personType === "user"
+    ? pass.userId?.name
+    : pass.attendees?.find(
+        (attendee) => attendee.personIndex === qrString?.personIndex,
+      )?.name) ||
+  "Unknown attendee";
+
+const serializeScannerMembers = (pass, activeQrString) =>
+  (pass.qrStrings || []).map((qrString) => ({
+    id: qrString.id || qrString._id?.toString(),
+    name: getQRPersonName(pass, qrString),
+    personType: qrString.personType,
+    passTypeName:
+      qrString.passTypeName || pass.passTypeName || pass.passType || "General Pass",
+    passPrice: Number(qrString.passPrice ?? pass.passPrice ?? 0),
+    checkedIn: Boolean(qrString.qrScanned),
+    isCurrent:
+      (activeQrString?.id && qrString.id === activeQrString.id) ||
+      (activeQrString?._id &&
+        qrString._id?.toString() === activeQrString._id.toString()),
+  }));
+
 const serializeScannerPass = (pass, qrString) => {
-  const attendeeName =
-    qrString?.personName ||
-    (qrString?.personType === "user"
-      ? pass.userId?.name
-      : pass.attendees?.find(
-          (attendee) => attendee.personIndex === qrString?.personIndex,
-        )?.name) ||
-    "Unknown attendee";
+  const attendeeName = getQRPersonName(pass, qrString);
   const eventName = pass.eventId?.name || "Unknown event";
   const passTypeName =
     qrString?.passTypeName || pass.passTypeName || pass.passType || "General Pass";
+  const passPrice = Number(qrString?.passPrice ?? pass.passPrice ?? 0);
   const checkInStatus = qrString?.qrScanned ? "checked_in" : "not_checked_in";
 
   return {
+    passUUID: pass.passUUID,
+    qrId: qrString?.id || qrString?._id?.toString() || null,
     attendeeName,
     passTypeName,
+    passPrice,
     eventName,
+    eventDate: pass.eventId?.startDate || null,
+    eventLocation: pass.eventId?.location || "",
     checkInStatus,
     bookingStatus: pass.status,
     passStatus: pass.passStatus,
@@ -580,9 +603,15 @@ const serializeScannerPass = (pass, qrString) => {
     alreadyScanned: Boolean(qrString?.qrScanned),
     scannedAt: qrString?.scannedAt || null,
     buyer: pass.userId?.name || "Unknown buyer",
+    buyerEmail: pass.userId?.email || "",
+    buyerPhoneNumber: pass.userId?.phoneNumber || "",
     event: eventName,
     person: qrString,
     amount: pass.amount,
+    ticketCount: pass.ticketCount || 1 + (pass.friends?.length || 0),
+    bookingMembers: serializeScannerMembers(pass, qrString),
+    bookedAt: pass.createdAt || null,
+    confirmedAt: pass.confirmedAt || pass.paymentDetails?.completedAt || null,
     isScanned: Boolean(qrString?.qrScanned),
     timeScanned: qrString?.scannedAt || null,
   };
@@ -1559,8 +1588,8 @@ const getPassByQrStringsAndPassUUID = async (req, res) => {
       passUUID: req.body.passUUID,
       paymentStatus: "completed",
     })
-      .populate("eventId", "name")
-      .populate("userId", "name");
+      .populate("eventId", "name startDate location")
+      .populate("userId", "name email phoneNumber");
 
     if (!pass) {
       return res.status(404).json({ error: "Valid pass not found" });
@@ -1592,8 +1621,8 @@ const Accept = async (req, res) => {
     }
 
     const pass = await Pass.findOne({ passUUID })
-      .populate("eventId", "name")
-      .populate("userId", "name");
+      .populate("eventId", "name startDate location")
+      .populate("userId", "name email phoneNumber");
     if (!pass) {
       return res.status(404).json({ error: "Pass not found" });
     }

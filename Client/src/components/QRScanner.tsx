@@ -10,12 +10,19 @@ import { AlertCircle, CheckCircle, Camera, X } from "lucide-react";
 interface GetTixResponse {
   success: boolean;
   data: {
+    passUUID?: string;
+    qrId?: string | null;
     buyer: string;
+    buyerEmail?: string;
+    buyerPhoneNumber?: string;
     buyerIMG: string;
     event: string;
     eventName?: string;
+    eventDate?: string | null;
+    eventLocation?: string;
     attendeeName?: string;
     passTypeName?: string;
+    passPrice?: number;
     checkInStatus?: string;
     bookingStatus?: string;
     passStatus: string;
@@ -26,6 +33,18 @@ interface GetTixResponse {
     timeScanned: string;
     person?: any;
     amount?: number;
+    ticketCount?: number;
+    bookingMembers?: Array<{
+      id?: string;
+      name: string;
+      personType?: "user" | "friend";
+      passTypeName?: string;
+      passPrice?: number;
+      checkedIn?: boolean;
+      isCurrent?: boolean;
+    }>;
+    bookedAt?: string | null;
+    confirmedAt?: string | null;
   };
 }
 
@@ -35,6 +54,42 @@ interface CurrentPassId {
 }
 
 type ScannerState = "scanning" | "passInfo" | "success" | "error" | "used";
+
+const formatAmount = (amount?: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount || 0);
+
+const formatDateTime = (value?: string | null) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
+const formatStatus = (value?: string | null) =>
+  value?.replace(/_/g, " ") || "-";
+
+const DetailRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number | null;
+}) => (
+  <div className="rounded-lg bg-slate-100 p-3">
+    <p className="text-xs font-medium uppercase text-slate-500">{label}</p>
+    <p className="mt-1 break-words font-bold text-slate-900">
+      {value === undefined || value === null || value === "" ? "-" : value}
+    </p>
+  </div>
+);
 
 export default function QRScannerComponent() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -285,6 +340,102 @@ export default function QRScannerComponent() {
     setState("scanning");
   };
 
+  const renderPassDetails = () => {
+    if (!passInfo) return null;
+
+    const data = passInfo.data;
+    const passPrice = Number(data.passPrice || 0);
+    const bookingMembers = data.bookingMembers || [];
+
+    return (
+      <div className="space-y-4 text-left">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-sm font-medium text-slate-600">Attendee</p>
+          <p className="mt-1 text-2xl font-bold text-slate-950">
+            {data.attendeeName || data.person?.personName || "Unknown attendee"}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+              {data.passTypeName || "General Pass"}
+            </span>
+            {passPrice > 0 ? (
+              <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
+                {formatAmount(passPrice)}
+              </span>
+            ) : null}
+            <span className="rounded-md bg-slate-200 px-2 py-1 text-xs font-semibold capitalize text-slate-700">
+              {formatStatus(data.checkInStatus)}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <DetailRow label="Booked By" value={data.buyer} />
+          <DetailRow label="Buyer Phone" value={data.buyerPhoneNumber} />
+          <DetailRow label="Buyer Email" value={data.buyerEmail} />
+          <DetailRow label="Event" value={data.eventName || data.event} />
+          <DetailRow label="Pass Type" value={data.passTypeName || "General Pass"} />
+          {passPrice > 0 ? (
+            <DetailRow label="Ticket Price" value={formatAmount(passPrice)} />
+          ) : null}
+          <DetailRow label="Tickets In Booking" value={data.ticketCount} />
+          <DetailRow
+            label="Booking"
+            value={formatStatus(data.bookingStatus || data.passStatus)}
+          />
+        </div>
+
+        {bookingMembers.length ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-slate-900">
+                  Members in this booking
+                </p>
+                <p className="text-xs font-medium text-slate-500">
+                  {bookingMembers.length} total passes
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {bookingMembers.map((member, index) => (
+                <div
+                  key={member.id || `${member.name}-${index}`}
+                  className="flex items-start justify-between gap-3 rounded-lg bg-slate-100 p-3"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="break-words font-bold text-slate-950">
+                        {member.name || `Member ${index + 1}`}
+                      </p>
+                      {member.isCurrent ? (
+                        <span className="rounded-md bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-800">
+                          Scanned QR
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-slate-600">
+                      {member.passTypeName || "General Pass"}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-md px-2 py-1 text-xs font-semibold ${
+                      member.checkedIn
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {member.checkedIn ? "Checked In" : "Pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   const renderScanningView = () => (
     <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
       <CardHeader className="text-center">
@@ -332,67 +483,15 @@ export default function QRScannerComponent() {
         <CardContent>
           {passInfo && (
             <div className="py-4 space-y-4">
-              <div>
-                <p className="text-sm text-slate-600 font-medium">Attendee</p>
-                <p className="font-bold text-lg text-slate-900">
-                  {passInfo.data.attendeeName ||
-                    passInfo.data.person?.personName ||
-                    "Unknown attendee"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-slate-600 font-medium">Pass Type</p>
-                <p className="font-bold text-slate-900">
-                  {passInfo.data.passTypeName || "General Pass"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-slate-600 font-medium">Event</p>
-                <p className="font-bold text-slate-900">
-                  {passInfo.data.eventName || passInfo.data.event}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-lg bg-slate-100 p-3">
-                  <p className="text-slate-600">Booking</p>
-                  <p className="font-bold capitalize text-slate-900">
-                    {passInfo.data.bookingStatus || passInfo.data.passStatus || "-"}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-slate-100 p-3">
-                  <p className="text-slate-600">Payment</p>
-                  <p className="font-bold capitalize text-slate-900">
-                    {passInfo.data.paymentStatus || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm text-slate-600 font-medium">Amount</p>
-                <p className="font-bold text-slate-900 capitalize">
-                  {passInfo.data.amount ?? 0}
-                </p>
-              </div>
+              {renderPassDetails()}
 
               {alreadyScanned && (
                 <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <AlertDescription>
-                    <p className="font-bold text-red-800">Already Scanned</p>
-                    {(passInfo.data.scannedAt || passInfo.data.person?.scannedAt) && (
-                      <p className="text-red-700 text-sm mt-1">
-                        Scanned:{" "}
-                        {new Date(
-                          passInfo.data.scannedAt ||
-                            passInfo.data.person?.scannedAt,
-                        ).toLocaleString()}
-                      </p>
-                    )}
-                  </AlertDescription>
-                </Alert>
+                <AlertCircle className="h-4 w-4 text-red-500" />
+                <AlertDescription>
+                  <p className="font-bold text-red-800">Already Scanned</p>
+                </AlertDescription>
+              </Alert>
               )}
             </div>
           )}
@@ -432,7 +531,7 @@ export default function QRScannerComponent() {
   };
 
   const renderSuccessView = () => (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
+    <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl border-0">
       <CardContent className="pt-6">
         <div className="flex flex-col items-center space-y-4 text-center">
           <CheckCircle className="h-16 w-16 text-green-500" />
@@ -446,6 +545,7 @@ export default function QRScannerComponent() {
               </p>
             )}
           </div>
+          <div className="w-full">{renderPassDetails()}</div>
           <Button
             onClick={resetScanner}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-medium"
@@ -458,7 +558,7 @@ export default function QRScannerComponent() {
   );
 
   const renderUsedView = () => (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-xl border-0">
+    <Card className="w-full max-w-3xl mx-auto bg-white shadow-xl border-0">
       <CardContent className="pt-6">
         <div className="flex flex-col items-center space-y-4 text-center">
           <AlertCircle className="h-16 w-16 text-orange-500" />
@@ -466,16 +566,8 @@ export default function QRScannerComponent() {
             <h3 className="text-lg font-bold text-orange-700">
               Already Checked In
             </h3>
-            <p className="text-orange-700 mt-2 font-medium">
-              {passInfo?.data.attendeeName ||
-                passInfo?.data.person?.personName ||
-                "This attendee"}
-            </p>
-            <p className="text-slate-700 mt-1">
-              {passInfo?.data.passTypeName || "General Pass"} -{" "}
-              {passInfo?.data.eventName || passInfo?.data.event || "Event"}
-            </p>
           </div>
+          <div className="w-full">{renderPassDetails()}</div>
           <Button
             onClick={resetScanner}
             variant="outline"
