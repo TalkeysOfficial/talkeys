@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Building2, CalendarDays, Heart, MapPin, X } from "lucide-react";
 import { getSafeImageSrc } from "@/lib/utils";
+import EventDescription from "./EventDescription";
 
 type HeaderProps = {
 	event: any;
@@ -57,9 +58,11 @@ export default function EventHeader({
 					<h1 className="max-w-full break-words text-3xl font-semibold leading-tight text-white sm:text-4xl">
 						{event.name}
 					</h1>
-					<p className="mx-auto mt-2 w-full max-w-full break-words text-sm leading-6 text-gray-300 md:mx-0 md:max-w-4xl md:text-base">
-						{event.eventDescription || "Add a fun, exciting description or theme here"}
-					</p>
+					<EventDescription
+						text={event.eventDescription}
+						fallback="Add a fun, exciting description or theme here"
+						className="mx-auto mt-2 w-full max-w-full text-sm leading-6 text-gray-300 md:mx-0 md:max-w-4xl md:text-base"
+					/>
 
 					<div className="mt-5 grid gap-3 text-sm text-white sm:grid-cols-2">
 						<div className="flex min-w-0 items-center justify-center gap-3 md:justify-start">

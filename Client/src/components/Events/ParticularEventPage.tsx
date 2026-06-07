@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventJsonLd from "@/components/EventJsonLd";
 import EventHeader from "./EventHeader";
+import EventDescription from "./EventDescription";
 import QRCodeDisplay from "./QRCodeDisplay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -645,9 +646,11 @@ export default function ParticularEventPage({
 									<h2 className="text-lg font-semibold text-white">
 										Details for the Event
 									</h2>
-									<p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-300">
-										{event.eventDescription || "Event details will be updated soon."}
-									</p>
+									<EventDescription
+										text={event.eventDescription}
+										fallback="Event details will be updated soon."
+										className="mt-3 text-sm leading-6 text-gray-300"
+									/>
 								</section>
 
 								{event.prizes ? (
