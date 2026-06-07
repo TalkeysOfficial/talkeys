@@ -9,7 +9,7 @@ import { BarChart3, Pencil } from "lucide-react";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import type { Event } from "@/types/types";
 import { cn, getSafeImageSrc } from "@/lib/utils";
-import { getEventDisplayPrice, getEventPassTypes } from "@/lib/utils/eventUtils";
+import { getEventDisplayPrice } from "@/lib/utils/eventUtils";
 
 interface EventCardProps {
 	event: Event;
@@ -36,12 +36,6 @@ const EventCard: React.FC<EventCardProps> = ({
 			currency: "INR",
 			maximumFractionDigits: 0,
 		}).format(amount || 0);
-	const passTypes = getEventPassTypes(event);
-	const passTypeNames = passTypes.map((passType) => passType.name).filter(Boolean);
-	const passTypePreview =
-		passTypeNames.length > 2
-			? `${passTypeNames.slice(0, 2).join(", ")} +${passTypeNames.length - 2} more`
-			: passTypeNames.join(", ");
 
 	const cardContent = (
 		<div className="relative w-full h-full flex flex-col">
@@ -98,17 +92,6 @@ const EventCard: React.FC<EventCardProps> = ({
 					<span className="line-clamp-1">
 						{event.location || "Online Event"}
 					</span>
-				</div>
-
-				<div className="mb-3 rounded-md border border-gray-800 bg-gray-950/70 px-3 py-2">
-					<div className="text-xs font-medium text-purple-200">
-						{passTypes.length} {passTypes.length === 1 ? "pass type" : "pass types"}
-					</div>
-					{passTypePreview ? (
-						<div className="mt-1 line-clamp-1 text-xs text-gray-400">
-							{passTypePreview}
-						</div>
-					) : null}
 				</div>
 
 				<div className="mt-auto flex items-center justify-between gap-3">
