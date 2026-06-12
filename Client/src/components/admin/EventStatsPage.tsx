@@ -49,6 +49,7 @@ interface AdminEventStats {
 		checkedInCount: number;
 		amountCollected: number;
 		seatsRemaining: number;
+		pendingReservedTickets?: number;
 	};
 	bookings: AdminBooking[];
 }
@@ -63,6 +64,7 @@ interface AdminPassType {
 	maxAvailable?: number;
 	soldQuantity?: number;
 	bookedQuantity?: number;
+	pendingQuantity?: number;
 	isActive?: boolean;
 }
 
@@ -142,6 +144,7 @@ type PassTypeSummary = {
 	price: number;
 	totalQuantity: number;
 	soldQuantity: number;
+	pendingQuantity: number;
 	remainingQuantity: number;
 	totalRevenue: number;
 	isActive: boolean;
@@ -195,6 +198,9 @@ const getPassTypeQuantity = (passType: AdminPassType) =>
 
 const getPassTypeSoldQuantity = (passType: AdminPassType) =>
 	Number(passType.soldQuantity ?? passType.bookedQuantity ?? 0);
+
+const getPassTypePendingQuantity = (passType: AdminPassType) =>
+	Number(passType.pendingQuantity ?? 0);
 
 const bookingMatchesSearch = (booking: PassTypeBookingRow, query: string) => {
 	if (!query) return true;
@@ -288,6 +294,7 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 				price: Number(passType?.price || 0),
 				totalQuantity,
 				soldQuantity,
+				pendingQuantity: passType ? getPassTypePendingQuantity(passType) : 0,
 				remainingQuantity: Math.max(totalQuantity - soldQuantity, 0),
 				totalRevenue: 0,
 				isActive: passType?.isActive !== false,
@@ -354,7 +361,7 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 		});
 
 		return Array.from(summaries.values()).map((summary) => {
-			const soldQuantity = Math.max(summary.soldQuantity, summary.attendees.length);
+			const soldQuantity = summary.attendees.length;
 			const totalQuantity = Math.max(summary.totalQuantity, soldQuantity);
 
 			return {
@@ -547,7 +554,11 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 					<StatsCard
 						title="Bookings"
 						value={stats.stats.totalOrders}
-						description={`${stats.stats.totalTickets} passes issued`}
+						description={
+							stats.stats.pendingReservedTickets
+								? `${stats.stats.totalTickets} passes issued, ${stats.stats.pendingReservedTickets} pending`
+								: `${stats.stats.totalTickets} passes issued`
+						}
 						icon={<Users className="h-6 w-6" />}
 						className="border-purple-500/30 bg-gray-900"
 						iconClassName="text-purple-300"
@@ -654,6 +665,11 @@ export default function EventStatsPage({ eventId }: { eventId: string }) {
 															<span>
 																{passType.soldQuantity}/{passType.totalQuantity} sold
 															</span>
+															{passType.pendingQuantity > 0 ? (
+																<span className="text-amber-300">
+																	{passType.pendingQuantity} pending
+																</span>
+															) : null}
 															<span>{passType.remainingQuantity} left</span>
 															<span>{passType.attendees.length} names</span>
 														</div>
