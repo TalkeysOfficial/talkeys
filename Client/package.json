@@ -2,11 +2,13 @@
   "name": "talkeys",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.4.4",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
