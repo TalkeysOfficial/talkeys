@@ -47,9 +47,9 @@ Layered Express app, single router file, no framework-level DI:
   - When adding a route, its position relative to these two `router.use()` calls determines its auth level — there's no per-route decorator.
   - `dashboard.routes.js` is mounted separately at `/dashboard` and has its own auth requirements.
 - `controllers/*.controller.js` — request handlers, one file per domain (events, passes/tickets, registration, dashboard, contact). `authentication.js` (not suffixed `.controller.js`) handles Google OAuth login/logout.
-- `models/*.model.js` — Mongoose schemas (events, users, passes, registration, contactUs, InfluencerRegistration, reqEvent).
+- `models/*.model.js` — Mongoose schemas (events, users, passes, teams, InfluencerRegistration, reqEvent).
 - `schemas/*.schema.js` — Zod/Joi validation schemas for request bodies (separate from Mongoose models).
-- `helpers/` — cross-cutting logic: `authHelper.js`, `email.service.js` (+ `email_templates/`), `validatorHelper.js`, `verify.team.js`, `websocket.js` (`ws` package).
+- `helpers/` — cross-cutting logic: `validatorHelper.js`.
 - `service/cloudinary.js` — image upload integration.
 - Payments go through PhonePe: `/api/payment/callback/:merchantOrderId` (public, explicitly bypassed in `verifyToken`), `/payment/webhook` (raw body parsing via `express.raw`), and ticket/pass booking routes (`/api/book-ticket`, `/bookPass`, `/api/getTix`, `/api/passbyuuid/:passUUID`).
 

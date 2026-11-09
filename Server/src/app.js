@@ -6,7 +6,6 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const logger = require("./util/logger");
 const path = require("path");
-// require("mandatoryenv").load(["DB_URL", "PORT", "SECRET"]);
 // const PORT = 300;
 
 
@@ -25,17 +24,6 @@ app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
-// const cors_options = {
-// 	origin: [
-// 		"http://localhost:3000",
-// 		"https://www.talkeys.xyz",
-// 		"http://localhost:3001",
-// 		"https://talkeys.vercel.app",
-// 	],
-// 	credentials: true,
-// 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-// 	allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-// };
 app.use(cors());
 
 // Handle preflight requests

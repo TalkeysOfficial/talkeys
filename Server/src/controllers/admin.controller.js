@@ -5,8 +5,6 @@ const Pass = require("../models/passes.model");
 const getTicketCount = (pass) =>
   pass.ticketCount || 1 + (pass.friends?.length || 0);
 
-const getCheckedInCount = (pass) =>
-  (pass.qrStrings || []).filter((qrString) => qrString.qrScanned).length;
 
 const getPassTypeName = (value) =>
   String(value || "").trim() || "General Pass";

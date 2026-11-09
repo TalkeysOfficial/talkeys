@@ -11,8 +11,7 @@ Line numbers refer to commit `62e7668` and will drift; symbol names are stable.
 Browser ── Client/ (Next.js 14, Vercel) ──HTTP + Bearer JWT──▶ Server/ (Express 4, Docker on VM) ──▶ MongoDB Atlas
                                                                     ├──▶ PhonePe Checkout v2 (orders, status, webhook)
                                                                     ├──▶ Google OAuth (ID token verification at login)
-                                                                    ├──▶ Cloudinary (event images)
-                                                                    └──▶ SMTP via nodemailer (no live caller today)
+                                                                    └──▶ Cloudinary (event images)
 ```
 
 - Auth is stateless: `POST /verify` exchanges a Google ID token for a JWT signed with `SECRET`
@@ -50,10 +49,8 @@ Middleware is positional in `Server/src/routes/router.js`: every route after
 
 The dashboard router is mounted before the global `verifyToken`, but applies its own.
 
-Exported but not routed: `retryPaymentProcessing`, `handleManualStatusCheck`,
-`getPassByPaymentOrder`, `getPassForQR`, `cleanupExpiredPasses` (`passes.controller.js`).
-Unreferenced files: `controllers/contact.controller.js`, `controllers/registeration.controller.js`,
-`helpers/websocket.js`, `helpers/verify.team.js`, `middleware/Team.middleware.js`.
+Exported but not routed: `cleanupExpiredPasses` (`passes.controller.js`).
+Dead code (contact, registration, websocket, team verification, email service and templates, four unrouted pass handlers, the unused `Registration` model) was removed in Phase 4a; see git history before that commit.
 
 ## 1. Pass lifecycle (core)
 

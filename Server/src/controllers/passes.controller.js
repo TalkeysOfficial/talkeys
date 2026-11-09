@@ -1,4 +1,3 @@
-const asyncHandler = require("express-async-handler");
 const Event = require("../models/events.model.js");
 const Pass = require("../models/passes.model.js");
 const Team = require("../models/teams.model.js");
@@ -1218,32 +1217,6 @@ const handlePaymentCallback = async (req, res) => {
   }
 };
 
-// Manual Payment Status Check Route
-const handleManualStatusCheck = async (req, res) => {
-  try {
-    const { merchantOrderId } = req.params;
-
-    const paymentStatus = await checkPaymentStatus(merchantOrderId, true);
-
-    const paymentState = normalizePhonePeStatus(paymentStatus).state;
-
-    return res.status(200).json({
-      success: true,
-      merchantOrderId,
-      status: paymentState,
-      data: paymentStatus,
-      message: `Payment status: ${paymentState}`,
-    });
-  } catch (error) {
-    console.error("[MANUAL_CHECK] Error:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-      merchantOrderId: req.params.merchantOrderId,
-    });
-  }
-};
-
 // Enhanced Webhook Handler
 const handlePaymentWebhook = async (req, res) => {
   try {
@@ -1292,112 +1265,6 @@ const handlePaymentWebhook = async (req, res) => {
     return res.status(200).json({ success: true, event });
   } catch (error) {
     console.error("Webhook error:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Get Pass Status by Payment Order
-const getPassByPaymentOrder = async (req, res) => {
-  try {
-    const { merchantOrderId } = req.params;
-
-    // Find pass by merchantOrderId
-    const pass = await Pass.findOne({
-      merchantOrderId: merchantOrderId,
-    }).populate("userId", "name email");
-
-    if (!pass) {
-      return res.status(404).json({
-        success: false,
-        message: "Pass not found for this payment order",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      pass: {
-        id: pass._id,
-        status: pass.status,
-        paymentStatus: pass.paymentStatus,
-        paymentDetails: pass.paymentDetails,
-        createdAt: pass.createdAt,
-        user: pass.userId,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching pass by payment order:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// Retry Failed Payment Processing
-const retryPaymentProcessing = async (req, res) => {
-  try {
-    const { merchantOrderId } = req.body;
-
-    if (!merchantOrderId) {
-      return res.status(400).json({
-        success: false,
-        error: "merchantOrderId is required",
-      });
-    }
-
-    console.log("[RETRY] Retrying payment processing for:", merchantOrderId);
-
-    // Force check and process payment status
-    const paymentStatus = await checkPaymentStatus(merchantOrderId, true);
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment processing retried successfully",
-      status: paymentStatus.state || paymentStatus.data?.state,
-      merchantOrderId,
-    });
-  } catch (error) {
-    console.error("[RETRY] Error:", error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
-// Function to get pass details for QR code generation
-const getPassForQR = async (req, res) => {
-  try {
-    const { passUUID } = req.params;
-
-    const pass = await Pass.findOne({
-      passUUID: passUUID,
-      status: "active",
-    })
-      .populate("userId", "name email phone")
-      .populate("eventId", "name startDate location");
-
-    if (!pass) {
-      return res.status(404).json({ error: "Valid pass not found" });
-    }
-
-    return res.json({
-      success: true,
-      data: {
-        passUUID: pass.passUUID,
-        passType: pass.passTypeName || pass.passType,
-        passTypeName: pass.passTypeName || pass.passType,
-        passSelections: pass.passSelections || [],
-        attendees: pass.attendees || [],
-        confirmedAt: pass.confirmedAt,
-        user: pass.userId,
-        event: pass.eventId,
-        friends: pass.friends,
-        amount: pass.amount,
-      },
-    });
-  } catch (error) {
-    console.error("Get pass error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -1667,37 +1534,6 @@ const Accept = async (req, res) => {
   }
 };
 
-// const Reject = async (req, res) => {
-//   try{
-//   let passUUID= req.params.uuid;
-//   if (!passUUID) {
-//     return res.status(400).json({ error: "Pass UUID is required" });
-//   }
-//   qrId = req.params.qrId;
-//   if (!qrId) {
-//     return res.status(400).json({ error: "QR ID is required" });
-//   }
-//     const pass = await Pass.findById(uuid);
-//     if (!pass) {
-//       return res.status(404).json({ error: "Pass not found" });
-//     }
-//     const qrString = pass.qrStrings.find(qr => qr.id === qrId);
-//     if (!qrString) {
-//       return res.status(404).json({ error: "QR code not found" });
-//     }
-//     if (qrString.isScanned) {
-//       return res.status(400).json({ error: "QR code already scanned" });
-//     }
-//     qrString.isScanned = ;
-//     qrString.scannedAt = new Date();
-//     await pass.save();
-//     return res.status(200).json({ message: "Pass scanned successfully" });
-//   }
-//   catch (error) {
-//     console.error('Accept pass error:', error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// };
 
 const canScan = async (req, res) => {
   let user = req.user;

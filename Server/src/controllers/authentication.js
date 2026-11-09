@@ -79,10 +79,6 @@ exports.login = async (req, res) => {
     });
   }
 };
-exports.protected = (req, res) => {
-  res.send("Protected route");
-};
-
 exports.logout = (req, res) => {
   res.clearCookie("jwt");
   res.send("Logged out");

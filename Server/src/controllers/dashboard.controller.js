@@ -1,5 +1,4 @@
 // File: controllers/dashboard.controller.js
-const User = require("../models/users.model");
 const Event = require("../models/events.model");
 const Pass = require("../models/passes.model");
 const { Parser } = require("json2csv");

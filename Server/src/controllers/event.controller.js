@@ -6,7 +6,6 @@ const User = require("../models/users.model.js");
 const { validateEvent } = require("../schemas/event.schema.js");
 const { validationResult } = require("express-validator");
 const InfluencerRegistration = require("../models/InfluencerRegistration.model.js");
-const Registration = require("../models/registration.model.js");
 
 
 const createEvent = asyncHandler(async (req, res) => {
