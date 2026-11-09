@@ -776,7 +776,7 @@ const handlePaymentCallback = async (req, res) => {
     );
   } catch (error) {
     console.error("[CALLBACK] Unhandled error:", error);
-    const reason = encodeURIComponent(error.message || "callback_error");
+    const reason = "callback_error"; // details stay in the server log
     return res
       .status(200)
       .send(
