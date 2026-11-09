@@ -8,7 +8,7 @@ Line numbers refer to commit `62e7668` and will drift; symbol names are stable.
 ## System context
 
 ```
-Browser ── Client/ (Next.js 14, Vercel) ──HTTP + Bearer JWT──▶ Server/ (Express 4, Docker on VM) ──▶ MongoDB Atlas
+Browser ── Client/ (Next.js 15, Vercel) ──HTTP + Bearer JWT──▶ Server/ (Express 5, Docker on VM) ──▶ MongoDB Atlas
                                                                     ├──▶ PhonePe Checkout v2 (orders, status, webhook)
                                                                     ├──▶ Google OAuth (ID token verification at login)
                                                                     └──▶ Cloudinary (event images)

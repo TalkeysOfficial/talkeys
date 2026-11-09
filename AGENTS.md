@@ -6,7 +6,7 @@ Guidance for AI coding agents working in this repository.
 
 Two independent Node projects in one repo, no shared root package.json/workspace tooling:
 
-- `Client/` — Next.js 14 (App Router) + TypeScript frontend, deployed on Vercel.
+- `Client/` — Next.js 15 (App Router) + TypeScript frontend, deployed on Vercel.
 - `Server/` — Express + MongoDB (Mongoose) REST API backend, deployed via Docker.
 
 Each has its own `package.json`, `.env`, and `node_modules`. Run commands from inside the respective directory.

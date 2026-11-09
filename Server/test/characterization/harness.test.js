@@ -17,3 +17,9 @@ test("GET /getEvents returns seeded events", async () => {
   assert.equal(res.status, 200);
   assert.equal(res.body.data.events.length, 1);
 });
+
+test("POST without a body reaches the handler validation (400), not a 500", async () => {
+  const user = await h.makeUser();
+  const res = await request(h.app).post("/createTeam").set(h.authHeader(user));
+  assert.equal(res.status, 400);
+});

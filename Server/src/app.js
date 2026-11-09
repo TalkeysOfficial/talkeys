@@ -1,6 +1,5 @@
 require('dotenv').config();
-const { inject, errorHandler } = require("express-custom-error");
-inject();
+const { errorHandler } = require("express-custom-error");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -15,6 +14,11 @@ const app = express();
 // Configure Express App Instance
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// Express 5 leaves req.body undefined when no body was parsed; handlers rely on the Express 4 default of {}.
+app.use((req, res, next) => {
+	req.body ??= {};
+	next();
+});
 app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 
 
@@ -27,10 +31,10 @@ app.use(cookieParser());
 app.use(cors());
 
 // Handle preflight requests
-app.options('*', cors());
+app.options(/.*/, cors());
 
 // This middleware adds the json header to every response
-app.use("*", (req, res, next) => {
+app.use((req, res, next) => {
 	if (!req.is("multipart/form-data")) {
 		res.setHeader("Content-Type", "application/json");
 	}
@@ -45,7 +49,7 @@ app.use("/", require("./routes/router"));
 app.use(errorHandler());
 
 // Handle not valid route
-app.use("*", (req, res) => {
+app.use((req, res) => {
 	res.status(404).json({ status: false, message: "Endpoint Not Found" });
 });
 
