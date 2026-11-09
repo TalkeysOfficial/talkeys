@@ -1,6 +1,7 @@
 const app = require("./app");
 const PORT = process.env.PORT;
 const mongoose = require("mongoose");
+const { cleanupExpiredPasses } = require("./modules/passes/passes.controller");
 
 const connectDB = async () => {
 	try {
@@ -8,6 +9,8 @@ const connectDB = async () => {
 			serverSelectionTimeoutMS: 15000, // Increase timeout to 15 seconds
 		});
 		console.log(`MongoDB Connected: ${conn.connection.host}`);
+		// Release seats held by unpaid bookings; nothing else ever expires them.
+		setInterval(cleanupExpiredPasses, 5 * 60 * 1000).unref();
 	} catch (error) {
 		console.error(`Error: ${error.message}`);
 		process.exit(1);
