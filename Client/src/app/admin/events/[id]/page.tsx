@@ -1,9 +1,10 @@
 import EventStatsPage from "@/features/admin/components/EventStatsPage";
 
-export default function AdminEventStatsRoute({
+export default async function AdminEventStatsRoute({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-	return <EventStatsPage eventId={params.id} />;
+	const { id } = await params;
+	return <EventStatsPage eventId={id} />;
 }

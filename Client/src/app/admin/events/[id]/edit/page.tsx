@@ -1,9 +1,10 @@
 import EditEventPage from "@/features/admin/components/EditEventPage";
 
-export default function AdminEditEventRoute({
+export default async function AdminEditEventRoute({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-	return <EditEventPage eventId={params.id} />;
+	const { id } = await params;
+	return <EditEventPage eventId={id} />;
 }

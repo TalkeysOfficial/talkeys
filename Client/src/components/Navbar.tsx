@@ -90,7 +90,7 @@ const NavLinks = ({
 
 interface ProfileMenuProps {
 	isProfileMenuOpen: boolean;
-	profileMenuRef: React.RefObject<HTMLDivElement>;
+	profileMenuRef: React.RefObject<HTMLDivElement | null>;
 	name: string;
 	handleLogout: () => void;
 	setIsProfileMenuOpen: (value: boolean) => void;
@@ -160,7 +160,7 @@ interface AuthButtonProps {
 	handleLogout: () => void;
 	setIsMenuOpen: (value: boolean) => void;
 	setIsProfileMenuOpen: (value: boolean) => void;
-	profileMenuRef: React.RefObject<HTMLDivElement>;
+	profileMenuRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const AuthButton = ({
