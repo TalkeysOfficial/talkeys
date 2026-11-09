@@ -46,7 +46,6 @@ router.use((req, res, next) => {
 
   next();
 });
-router.get("/api/ticket-status/:passId", Passes.getTicketStatus);
 router.get("/getEvents", Events.getEvents);
 router.use("/dashboard", require("../modules/dashboard/dashboard.routes"));
 
@@ -55,13 +54,13 @@ router.post("/verify", authentication.login);
 router.get("/logout", authentication.logout);
 
 router.use(auth.verifyToken);
+router.get("/api/ticket-status/:passId", Passes.getTicketStatus);
 router.post("/register", influencerValidation, Events.registerForInfluencer);
 
 router.post("/createTeam", Teams.createTeam);
 router.post("/joinTeam", Teams.joinTeam);
 router.post("/api/book-ticket", Passes.bookTicket);
 router.get("/api/passbyuuid/:passUUID", Passes.getPassByUUID);
-router.post("/api/getTix", Passes.getPassByQrStringsAndPassUUID);
 // Event Interaction Routes
 router.get("/likeEvent/:id", Events.likeEvent);
 router.get("/unlikeEvent/:id", Events.unlikeEvent);
@@ -70,9 +69,10 @@ router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api/book-ticket
 router.post("/getPass", Passes.getPassByUserAndEvent);
 router.post("/reqEvent", Events.reqEventt);
+router.use(checkRole(["admin"]));
+router.post("/api/getTix", Passes.getPassByQrStringsAndPassUUID);
 router.post("/accept", Passes.Accept);
 router.post("/Accept", Passes.Accept);
-router.use(checkRole(["admin"]));
 
 // Ticket Scanning Routes
 router.get("/CanScan", Passes.canScan);

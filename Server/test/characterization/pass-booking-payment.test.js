@@ -292,26 +292,36 @@ test.describe("payment callback redirect", () => {
 });
 
 test.describe("getTicketStatus", () => {
-  test("malformed id -> 400, unknown id -> 404", async () => {
-    assert.equal((await request(h.app).get("/api/ticket-status/nope")).status, 400);
-    const res = await request(h.app).get(`/api/ticket-status/${new h.mongoose.Types.ObjectId()}`);
-    assert.equal(res.status, 404);
+  const status = (user, id) => request(h.app).get(`/api/ticket-status/${id}`).set(h.authHeader(user));
+
+  test("no token -> 403", async () => {
+    assert.equal((await request(h.app).get(`/api/ticket-status/${new h.mongoose.Types.ObjectId()}`)).status, 403);
   });
 
-  test("pending pass is resolved against PhonePe and returns a QR link", async () => {
-    const { passId } = await bookPaid();
+  test("malformed id -> 400, unknown id -> 404", async () => {
+    const user = await h.makeUser();
+    assert.equal((await status(user, "nope")).status, 400);
+    assert.equal((await status(user, new h.mongoose.Types.ObjectId())).status, 404);
+  });
+
+  test("pending pass is resolved against PhonePe and returns a QR link to its owner", async () => {
+    const { user, passId } = await bookPaid();
     h.phonepe.state = "COMPLETED";
-    const res = await request(h.app).get(`/api/ticket-status/${passId}`); // no auth header
+    const res = await status(user, passId);
     assert.equal(res.status, 200);
     assert.equal(res.body.data.pass.paymentStatus, "completed");
     assert.match(res.body.data.qrCode, /^http:\/\/api\.test\/verify-ticket\/[0-9a-f-]{36}$/);
-    // characterization: public endpoint returns the owner's contact details
-    assert.ok(res.body.data.pass.userId.email);
+  });
+
+  test("another user -> 403, admin -> 200", async () => {
+    const { passId } = await bookPaid();
+    assert.equal((await status(await h.makeUser(), passId)).status, 403);
+    assert.equal((await status(await h.makeUser({ role: "admin" }), passId)).status, 200);
   });
 
   test("still pending -> qrCode null", async () => {
-    const { passId } = await bookPaid();
-    const res = await request(h.app).get(`/api/ticket-status/${passId}`);
+    const { user, passId } = await bookPaid();
+    const res = await status(user, passId);
     assert.equal(res.body.data.pass.paymentStatus, "pending");
     assert.equal(res.body.data.qrCode, null);
   });

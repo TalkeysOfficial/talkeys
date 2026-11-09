@@ -835,6 +835,11 @@ const getTicketStatus = async (req, res) => {
       return res.status(404).json({ error: "Pass not found" });
     }
 
+    const ownerId = String(pass.userId?._id ?? pass.userId);
+    if (ownerId !== String(req.user._id) && req.user.role !== "admin") {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
     if (pass.paymentStatus === "pending" && pass.merchantOrderId) {
       try {
         await checkPaymentStatus(pass.merchantOrderId, true);

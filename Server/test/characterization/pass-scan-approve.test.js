@@ -24,8 +24,9 @@ async function confirmedPass(overrides = {}) {
   });
   return { user, event, pass };
 }
-const accept = (user, body, path = "/accept") =>
-  request(h.app).post(path).set(h.authHeader(user)).send(body);
+// Check-in is admin-only; the scanner is always an admin, whoever owns the pass.
+const accept = async (_owner, body, path = "/accept", scanner) =>
+  request(h.app).post(path).set(h.authHeader(scanner ?? (await h.makeUser({ role: "admin" })))).send(body);
 
 test.describe("Accept (check-in scan)", () => {
   test("no token -> 403", async () => {
@@ -91,11 +92,12 @@ test.describe("Accept (check-in scan)", () => {
     assert.equal(res.status, 200);
   });
 
-  test("characterization: any logged-in user (role user) can check people in", async () => {
+  test("role user cannot check people in -> 403", async () => {
     const { pass } = await confirmedPass();
     const stranger = await h.makeUser({ role: "user" });
-    const res = await accept(stranger, { uuid: pass.passUUID, qrId: pass.qrStrings[0].id });
-    assert.equal(res.status, 200);
+    const res = await accept(null, { uuid: pass.passUUID, qrId: pass.qrStrings[0].id }, "/accept", stranger);
+    assert.equal(res.status, 403);
+    assert.equal((await h.Pass.findById(pass._id)).qrStrings[0].qrScanned, false);
   });
 
   test("characterization: scanning silently re-activates a revoked pass", async () => {
