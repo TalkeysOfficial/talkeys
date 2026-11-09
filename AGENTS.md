@@ -39,18 +39,16 @@ Env vars: copy `Server/.env.example` to `Server/.env` and fill it in.
 
 Layered Express app, single router file, no framework-level DI:
 
-- `server.js` — app bootstrap: CORS, security headers (CSP set per-route in router), body parsing, cookie parsing, custom logger (`util/logger.js`, uses `rotating-file-stream`), Mongoose connection, `express-custom-error` for centralized error handling.
+- `app.js` builds the Express app (CORS, security headers, body and cookie parsing, custom logger in `shared/logger.js` using `rotating-file-stream`, router, error handler). `server.js` connects Mongoose and listens.
 - `routes/router.js` — **all routes are registered in this single file**, in a specific, order-sensitive sequence:
   1. Public/unauthenticated routes first (payment callback, `getEvents`, `getEventById`, `/verify` login, `/logout`).
-  2. `router.use(auth.verifyToken)` — everything registered *after* this line requires a JWT (`Authorization: Bearer <token>`) verified in `middleware/oauth.js`, which attaches `req.user` from Mongo.
-  3. `router.use(checkRole(["admin"]))` — everything after this additionally requires `req.user.role === "admin"` (`middleware/role.middleware.js`).
+  2. `router.use(auth.verifyToken)` — everything registered *after* this line requires a JWT (`Authorization: Bearer <token>`) verified in `shared/middleware/oauth.js`, which attaches `req.user` from Mongo.
+  3. `router.use(checkRole(["admin"]))` — everything after this additionally requires `req.user.role === "admin"` (`shared/middleware/role.middleware.js`).
   - When adding a route, its position relative to these two `router.use()` calls determines its auth level — there's no per-route decorator.
-  - `dashboard.routes.js` is mounted separately at `/dashboard` and has its own auth requirements.
-- `controllers/*.controller.js` — request handlers, one file per domain (events, passes/tickets, registration, dashboard, contact). `authentication.js` (not suffixed `.controller.js`) handles Google OAuth login/logout.
-- `models/*.model.js` — Mongoose schemas (events, users, passes, teams, InfluencerRegistration, reqEvent).
-- `schemas/*.schema.js` — Zod/Joi validation schemas for request bodies (separate from Mongoose models).
-- `helpers/` — cross-cutting logic: `validatorHelper.js`.
-- `service/cloudinary.js` — image upload integration.
+  - `modules/dashboard/dashboard.routes.js` is mounted separately at `/dashboard` and has its own auth requirements.
+- `modules/<domain>/` — one folder per domain, each with its controller, Mongoose model(s) and validation: `auth` (Google login, users), `events` (events, event schema, request-an-event, influencer registration), `passes` (booking, PhonePe payment, scanning), `teams`, `dashboard` (organizer routes and router), `admin`.
+- `shared/` — cross-domain code: `middleware/` (`oauth`, `role.middleware`), `cloudinary.js` (image upload), `logger.js`.
+- `routes/router.js` registers every route except `/dashboard`. Controllers are imported here only.
 - Payments go through PhonePe: `/api/payment/callback/:merchantOrderId` (public, explicitly bypassed in `verifyToken`), `/payment/webhook` (raw body parsing via `express.raw`), and ticket/pass booking routes (`/api/book-ticket`, `/bookPass`, `/api/getTix`, `/api/passbyuuid/:passUUID`).
 
 ## Frontend architecture (`Client/src`)

@@ -1,11 +1,11 @@
 const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
-const Event = require("../models/events.model.js");
-const reqEvent = require("../models/reqEvent.model.js");
-const User = require("../models/users.model.js");
-const { validateEvent } = require("../schemas/event.schema.js");
+const Event = require("./events.model.js");
+const reqEvent = require("./reqEvent.model.js");
+const User = require("../auth/users.model.js");
+const { validateEvent } = require("./event.schema.js");
 const { validationResult } = require("express-validator");
-const InfluencerRegistration = require("../models/InfluencerRegistration.model.js");
+const InfluencerRegistration = require("./InfluencerRegistration.model.js");
 
 
 const createEvent = asyncHandler(async (req, res) => {

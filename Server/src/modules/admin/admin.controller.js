@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const Event = require("../models/events.model");
-const Pass = require("../models/passes.model");
+const Event = require("../events/events.model");
+const Pass = require("../passes/passes.model");
 
 const getTicketCount = (pass) =>
   pass.ticketCount || 1 + (pass.friends?.length || 0);

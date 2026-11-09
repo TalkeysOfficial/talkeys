@@ -1,6 +1,6 @@
 // File: controllers/dashboard.controller.js
-const Event = require("../models/events.model");
-const Pass = require("../models/passes.model");
+const Event = require("../events/events.model");
+const Pass = require("../passes/passes.model");
 const { Parser } = require("json2csv");
 const Joi = require("joi");
 const mongoose = require("mongoose");

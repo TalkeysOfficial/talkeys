@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const mongoose = require("mongoose");
-const Event = require("../models/events.model");
-const Team = require("../models/teams.model");
+const Event = require("../events/events.model");
+const Team = require("./teams.model");
 
 const normalizePhone = (phoneNumber = "") =>
   String(phoneNumber).replace(/[^\d+]/g, "").trim();

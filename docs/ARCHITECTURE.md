@@ -15,8 +15,8 @@ Browser ── Client/ (Next.js 14, Vercel) ──HTTP + Bearer JWT──▶ Ser
 ```
 
 - Auth is stateless: `POST /verify` exchanges a Google ID token for a JWT signed with `SECRET`
-  (`Server/src/controllers/authentication.js` `login`). `verifyToken`
-  (`Server/src/middleware/oauth.js`) re-reads the user by the token's `email` on every request.
+  (`Server/src/modules/auth/auth.controller.js` `login`). `verifyToken`
+  (`Server/src/shared/middleware/oauth.js`) re-reads the user by the token's `email` on every request.
 - Server bootstrap: `Server/src/app.js` builds the Express app; `Server/src/server.js` connects Mongo and listens.
   Global middleware order: `express.json` → `urlencoded` → static `/uploads` → morgan (stdout and
   `Server/log/access.log`) → `cookieParser` → `cors()` (any origin) → force JSON content type →
@@ -49,12 +49,12 @@ Middleware is positional in `Server/src/routes/router.js`: every route after
 
 The dashboard router is mounted before the global `verifyToken`, but applies its own.
 
-Exported but not routed: `cleanupExpiredPasses` (`passes.controller.js`).
+Exported but not routed: `cleanupExpiredPasses` (`modules/passes/passes.controller.js`).
 Dead code (contact, registration, websocket, team verification, email service and templates, four unrouted pass handlers, the unused `Registration` model) was removed in Phase 4a; see git history before that commit.
 
 ## 1. Pass lifecycle (core)
 
-A `Pass` (`Server/src/models/passes.model.js`) carries three overlapping status fields that always move together:
+A `Pass` (`Server/src/modules/passes/passes.model.js`) carries three overlapping status fields that always move together:
 
 | Field | Enum | Default |
 |---|---|---|
@@ -116,14 +116,14 @@ Seats are counted twice: event-level `registrationCount` against `totalSeats`, a
 | reserve pass types | per selection, atomic `$inc` on an active pass type with capacity; on failure the event-level reservation is rolled back | `reservePassTypeSelections` |
 | release | `$inc registrationCount -ticketCount`, release pass types, `seatsReserved = false` | `releaseReservedSeats`, `releasePassTypeSelections` |
 
-The `Event` pre-validate hook (`events.model.js`) synthesises a single "General Pass" from
+The `Event` pre-validate hook (`modules/events/events.model.js`) synthesises a single "General Pass" from
 `ticketPrice` and `totalSeats` when `passTypes` is empty.
 
 ## 3. Event visibility and registration
 
 - `status` enum `draft | published | cancelled`, default `published`. No code writes `draft` or `cancelled`.
 - `isRegistrationOpen`, `isLive` and `startRegistrationDate` are set by admins and organizers through create and edit.
-- `getStatus()` (`events.model.js`) derives a display state: not `isRegistrationOpen` → `registration_closed`; before `startRegistrationDate` → `coming_soon`; `isLive` → `live`; else `ended`.
+- `getStatus()` (`modules/events/events.model.js`) derives a display state: not `isRegistrationOpen` → `registration_closed`; before `startRegistrationDate` → `coming_soon`; `isLive` → `live`; else `ended`.
 - `getEvents` returns every event regardless of `status` or `visibility` unless a `visibility` query is passed. `search` goes unescaped into `$regex`. The response `status` field is the derived `getStatus()` value, which overwrites the stored `draft | published | cancelled`.
 
 ## 4. Team membership
@@ -136,7 +136,7 @@ stateDiagram-v2
     Full --> Full: joinTeam rejected "Team is full"
 ```
 
-- `createTeam` (`team.controller.js`) requires an `isTeamEvent` event and a user not already in a team for that event. It retries code generation 5 times.
+- `createTeam` (`modules/teams/team.controller.js`) requires an `isTeamEvent` event and a user not already in a team for that event. It retries code generation 5 times.
 - `joinTeam` is idempotent for existing members (200). It rejects members of another team for the same event and full teams. The capacity check is read-then-write, not atomic.
 - The Client has no team UI or team API call (unused ones were removed in Phase 4a). The Server endpoints stay and are covered by tests.
 - Booking a team event requires `teamCode` and membership (`getTeamBooking`). Other members become `friends` on the pass.

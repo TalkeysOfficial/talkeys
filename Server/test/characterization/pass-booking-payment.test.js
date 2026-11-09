@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const request = require("supertest");
 const h = require("../helpers/setup");
-const { cleanupExpiredPasses } = require("../../src/controllers/passes.controller");
+const { cleanupExpiredPasses } = require("../../src/modules/passes/passes.controller");
 
 test.before(h.start);
 test.beforeEach(h.reset);

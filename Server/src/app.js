@@ -4,7 +4,7 @@ inject();
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const logger = require("./util/logger");
+const logger = require("./shared/logger");
 const path = require("path");
 // const PORT = 300;
 

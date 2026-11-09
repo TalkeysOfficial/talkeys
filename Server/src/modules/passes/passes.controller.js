@@ -1,7 +1,7 @@
-const Event = require("../models/events.model.js");
-const Pass = require("../models/passes.model.js");
-const Team = require("../models/teams.model.js");
-const User = require("../models/users.model.js");
+const Event = require("../events/events.model.js");
+const Pass = require("./passes.model.js");
+const Team = require("../teams/teams.model.js");
+const User = require("../auth/users.model.js");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");

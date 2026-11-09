@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const Event = require("../models/events.model");
+const Event = require("../modules/events/events.model");
 
 const migrateEventPassTypes = async () => {
 	if (!process.env.DB_URL) {

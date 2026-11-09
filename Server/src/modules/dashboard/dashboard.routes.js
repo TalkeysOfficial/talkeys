@@ -1,7 +1,7 @@
 const router = require("express").Router();
-const { verifyToken } = require("../middleware/oauth");
-const { checkRole } = require("../middleware/role.middleware");
-const ctrl = require("../controllers/dashboard.controller");
+const { verifyToken } = require("../../shared/middleware/oauth");
+const { checkRole } = require("../../shared/middleware/role.middleware");
+const ctrl = require("./dashboard.controller");
 
 // All routes require user to be logged in
 router.use(verifyToken);

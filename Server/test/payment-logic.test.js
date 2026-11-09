@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const test = require("node:test");
 
-const { _test } = require("../src/controllers/passes.controller");
+const { _test } = require("../src/modules/passes/passes.controller");
 
 test("PhonePe test credentials default to sandbox endpoints", () => {
   const previousEnv = process.env.PHONEPE_ENV;

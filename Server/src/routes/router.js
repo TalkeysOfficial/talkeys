@@ -1,14 +1,14 @@
 const router = require("express").Router();
 const express = require("express");
-const auth = require("../middleware/oauth.js");
-const authentication = require("./../controllers/authentication.js");
-const Events = require("./../controllers/event.controller.js");
-const Passes = require("./../controllers/passes.controller.js");
-const Teams = require("./../controllers/team.controller.js");
-const Admin = require("./../controllers/admin.controller.js");
-const { checkRole } = require("../middleware/role.middleware.js");
-const { influencerValidation } = require("../helpers/validatorHelper.js");
-const { uploadEventImage } = require("../service/cloudinary.js");
+const auth = require("../shared/middleware/oauth.js");
+const authentication = require("../modules/auth/auth.controller.js");
+const Events = require("../modules/events/event.controller.js");
+const Passes = require("../modules/passes/passes.controller.js");
+const Teams = require("../modules/teams/team.controller.js");
+const Admin = require("../modules/admin/admin.controller.js");
+const { checkRole } = require("../shared/middleware/role.middleware.js");
+const { influencerValidation } = require("../modules/events/influencer.validation.js");
+const { uploadEventImage } = require("../shared/cloudinary.js");
 router.get(
   "/api/payment/callback/:merchantOrderId",
   Passes.handlePaymentCallback,
@@ -48,7 +48,7 @@ router.use((req, res, next) => {
 });
 router.get("/api/ticket-status/:passId", Passes.getTicketStatus);
 router.get("/getEvents", Events.getEvents);
-router.use("/dashboard", require("./dashboard.routes"));
+router.use("/dashboard", require("../modules/dashboard/dashboard.routes"));
 
 router.get("/getEventById/:id", Events.getEventById);
 router.post("/verify", authentication.login);

@@ -82,10 +82,10 @@ after(async () => {
   if (mongod) await mongod.stop();
 });
 
-const User = require("../../src/models/users.model");
-const Event = require("../../src/models/events.model");
-const Pass = require("../../src/models/passes.model");
-const Team = require("../../src/models/teams.model");
+const User = require("../../src/modules/auth/users.model");
+const Event = require("../../src/modules/events/events.model");
+const Pass = require("../../src/modules/passes/passes.model");
+const Team = require("../../src/modules/teams/teams.model");
 const app = require("../../src/app");
 
 let seq = 0;

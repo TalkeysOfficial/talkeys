@@ -1,8 +1,7 @@
 // jwt token handling for user authentication
 const jwt = require("jsonwebtoken");
-const User = require("../models/users.model.js");
+const User = require("./users.model.js");
 const secret = process.env.SECRET;
-// const { secret } = require('../config');
 const { OAuth2Client } = require("google-auth-library");
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // Your Google Client ID
 const client = new OAuth2Client(CLIENT_ID);
