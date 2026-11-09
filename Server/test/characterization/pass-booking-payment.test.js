@@ -9,13 +9,24 @@ const { cleanupExpiredPasses } = require("../../src/modules/passes/passes.contro
 
 test.before(h.start);
 test.beforeEach(h.reset);
+// The webhook fails closed, so every test runs with credentials configured.
+const HOOK_AUTH = { Authorization: `SHA256 ${crypto.createHash("sha256").update("hook-user:hook-pass").digest("hex")}` };
+test.beforeEach(() => {
+  process.env.PHONEPE_WEBHOOK_USERNAME = "hook-user";
+  process.env.PHONEPE_WEBHOOK_PASSWORD = "hook-pass";
+});
+test.afterEach(() => {
+  process.env.PHONEPE_WEBHOOK_USERNAME = "";
+  process.env.PHONEPE_WEBHOOK_PASSWORD = "";
+});
 
 const book = (user, body) =>
   request(h.app).post("/api/book-ticket").set(h.authHeader(user)).send(body);
+// headers === null sends no Authorization header at all.
 const webhook = (event, merchantOrderId, headers = {}) =>
   request(h.app)
     .post("/api/payment/webhook")
-    .set({ "Content-Type": "application/json", ...headers })
+    .set({ "Content-Type": "application/json", ...(headers === null ? {} : { ...HOOK_AUTH, ...headers }) })
     .send(JSON.stringify({ event, payload: { merchantOrderId, orderId: "OMO-FAKE", amount: 10000 } }));
 
 async function bookPaid(overrides = {}) {
@@ -181,7 +192,7 @@ test.describe("webhook", () => {
   test("payload without event or merchantOrderId -> 400", async () => {
     const res = await request(h.app)
       .post("/api/payment/webhook")
-      .set("Content-Type", "application/json")
+      .set({ "Content-Type": "application/json", ...HOOK_AUTH })
       .send(JSON.stringify({ foo: 1 }));
     assert.equal(res.status, 400);
   });
@@ -190,28 +201,29 @@ test.describe("webhook", () => {
     const { merchantOrderId, passId } = await bookPaid();
     const res = await request(h.app)
       .post("/payment/webhook")
-      .set("Content-Type", "application/json")
-      .send(JSON.stringify({ event: "checkout.order.completed", payload: { merchantOrderId } }));
+      .set({ "Content-Type": "application/json", ...HOOK_AUTH })
+      .send(JSON.stringify({ event: "checkout.order.completed", payload: { merchantOrderId, amount: 10000 } }));
     assert.equal(res.status, 200);
     assert.equal((await h.Pass.findById(passId)).paymentStatus, "completed");
   });
 
-  test("characterization: with no webhook credentials configured, anyone can confirm a payment", async () => {
-    assert.equal(process.env.PHONEPE_WEBHOOK_USERNAME, "");
+  test("with no webhook credentials configured the webhook is refused", async () => {
+    process.env.PHONEPE_WEBHOOK_USERNAME = "";
+    process.env.PHONEPE_WEBHOOK_PASSWORD = "";
     const { merchantOrderId, passId } = await bookPaid();
-    const res = await webhook("checkout.order.completed", merchantOrderId); // no Authorization header
-    assert.equal(res.status, 200);
-    assert.equal((await h.Pass.findById(passId)).paymentStatus, "completed");
+    const res = await webhook("checkout.order.completed", merchantOrderId, null);
+    assert.equal(res.status, 503);
+    assert.equal((await h.Pass.findById(passId)).paymentStatus, "pending");
   });
 
-  test("characterization: confirmation ignores the paid amount", async () => {
+  test("a confirmation whose amount differs from the booking is rejected", async () => {
     const { merchantOrderId, passId } = await bookPaid();
     const res = await request(h.app)
       .post("/api/payment/webhook")
-      .set("Content-Type", "application/json")
+      .set({ "Content-Type": "application/json", ...HOOK_AUTH })
       .send(JSON.stringify({ event: "checkout.order.completed", payload: { merchantOrderId, amount: 1 } }));
-    assert.equal(res.status, 200);
-    assert.equal((await h.Pass.findById(passId)).paymentStatus, "completed");
+    assert.equal(res.status, 400);
+    assert.equal((await h.Pass.findById(passId)).paymentStatus, "pending");
   });
 
   test.describe("with credentials configured", () => {
@@ -226,7 +238,7 @@ test.describe("webhook", () => {
 
     test("missing Authorization -> 401", async () => {
       const { merchantOrderId } = await bookPaid();
-      const res = await webhook("checkout.order.completed", merchantOrderId);
+      const res = await webhook("checkout.order.completed", merchantOrderId, null);
       assert.equal(res.status, 401);
       assert.equal(res.body.error, "Authorization header missing");
     });

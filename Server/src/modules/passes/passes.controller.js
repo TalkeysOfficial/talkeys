@@ -774,27 +774,30 @@ const handlePaymentWebhook = async (req, res) => {
       ? JSON.parse(req.body.toString("utf8"))
       : req.body;
 
-    // Validate webhook signature if configured
+    // Fail closed: without credentials anyone could confirm a payment.
     if (
-      process.env.PHONEPE_WEBHOOK_USERNAME &&
-      process.env.PHONEPE_WEBHOOK_PASSWORD
+      !process.env.PHONEPE_WEBHOOK_USERNAME ||
+      !process.env.PHONEPE_WEBHOOK_PASSWORD
     ) {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ error: "Authorization header missing" });
-      }
+      console.error("PhonePe webhook credentials are not configured");
+      return res.status(503).json({ error: "Webhook not configured" });
+    }
 
-      const signature = authHeader.replace("SHA256 ", "");
-      const isValid = validateWebhookSignature(
-        process.env.PHONEPE_WEBHOOK_USERNAME,
-        process.env.PHONEPE_WEBHOOK_PASSWORD,
-        signature,
-      );
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "Authorization header missing" });
+    }
 
-      if (!isValid) {
-        console.log("Invalid webhook signature");
-        return res.status(401).json({ error: "Invalid signature" });
-      }
+    const signature = authHeader.replace("SHA256 ", "");
+    const isValid = validateWebhookSignature(
+      process.env.PHONEPE_WEBHOOK_USERNAME,
+      process.env.PHONEPE_WEBHOOK_PASSWORD,
+      signature,
+    );
+
+    if (!isValid) {
+      console.log("Invalid webhook signature");
+      return res.status(401).json({ error: "Invalid signature" });
     }
 
     const { event, payload } = webhookBody || {};
@@ -803,6 +806,12 @@ const handlePaymentWebhook = async (req, res) => {
     }
 
     if (event === "checkout.order.completed") {
+      // PhonePe amounts are in paise; reject a confirmation that does not match the booking.
+      const pass = await Pass.findOne({ merchantOrderId: payload.merchantOrderId }).select("amount");
+      if (pass && Number(payload.amount) !== Math.round((pass.amount || 0) * 100)) {
+        console.error("Webhook amount mismatch for", payload.merchantOrderId);
+        return res.status(400).json({ error: "Amount mismatch" });
+      }
       await processPaymentConfirmation(
         payload.merchantOrderId,
         payload,
