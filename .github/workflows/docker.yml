@@ -1,4 +1,3 @@
-# Simplified for testing
 name: Deploy to Web Server
 
 on:
@@ -6,27 +5,41 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
 
     steps:
       - name: Setup SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.TALKEYS_KEYS }}" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H DEPLOY_HOST >> ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Deploy to server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
-          ssh -i ~/.ssh/id_ed25519 DEPLOY_USER@DEPLOY_HOST '
-            cd /home/DEPLOY_USER/talkeys/Server &&
-            git pull https://DEPLOY_USER:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys &&
-            docker compose up --build -d &&
-            sleep 10 &&
-            echo y | docker system prune
-          '
+          ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" "
+            cd '$DEPLOY_PATH' &&
+            git fetch origin main &&
+            git reset --hard origin/main &&
+            docker compose up --build -d server &&
+            docker image prune -f
+          "
 
       - name: Check API Status
         run: |
@@ -42,92 +55,3 @@ jobs:
           done
           echo "API failed to start after multiple attempts"
           exit 1
-
-# name: Deploy to Web Server
-
-# on:
-#   push:
-#     branches:
-#       - main  # Trigger on push to the main branch
-
-# jobs:
-#   deploy-backend:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v2
-#         with:
-#           repository: TalkeysOfficial/talkeys
-
-#       - name: Install SSH client
-#         run: |
-#           sudo apt-get update
-#           sudo apt-get install openssh-client -y
-
-#       - name: Create SSH directory
-#         run: mkdir -p ~/.ssh
-
-#       - name: Write SSH key to file
-#         run: echo "${{ secrets.TALKEYS_KEYS }}" > ~/.ssh/id_ed25519
-#         shell: bash
-
-#       - name: Set permissions for the SSH key
-#         run: chmod 600 ~/.ssh/id_ed25519
-#         shell: bash
-
-#       - name: Add SSH key to ssh-agent
-#         run: |
-#           eval "$(ssh-agent -s)"
-#           ssh-add ~/.ssh/id_ed25519
-#         shell: bash
-
-#       - name: SSH into server and deploy backend
-#         run: |
-#           ssh -o StrictHostKeyChecking=no DEPLOY_USER@DEPLOY_HOST 'cd /home/DEPLOY_USER/talkeys/Server && sudo git pull https://DEPLOY_USER:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys && sudo docker compose up --build -d'
-#           echo "Allowing Go Fiber Program to start properly"
-#           sleep 10
-
-#       - name: Check and free port 4890
-#         run: |
-#           if lsof -Pi :4890 -sTCP:LISTEN -t >/dev/null ; then
-#             echo "Port 4890 is in use. Stopping the service."
-#             fuser -k 4890/tcp
-#           fi
-
-#       - name: Check API Status with Retry
-#         run: |
-#           for i in {1..3}; do
-#             RESPONSE=$(curl --write-out "%{http_code}" --silent --output /dev/null https://api.talkeys.xyz/getEvents)
-#             if [ "$RESPONSE" -eq 200 ]; then
-#               echo "API is up and running!"
-#               exit 0
-#             else
-#               echo "API returned status code $RESPONSE, retrying in 10 seconds..."
-#               sleep 10
-#             fi
-#           done
-#           echo "API failed to start after multiple attempts"
-#           exit 1
-
-#       - name: Clean Up Docker
-#         run: |
-#           echo y | docker system prune
-
-# deploy-frontend:
-#   runs-on: ubuntu-latest
-#   needs: deploy-backend  # Waits for backend job to succeed
-
-#   steps:
-#     - name: Clone the repository to a temp directory
-#       run: |
-#         git clone https://DEPLOY_USER:${{ secrets.GIT_SSH }}@github.com/TalkeysOfficial/talkeys.git temp_repo
-#         cd temp_repo
-#         rm -rf .github/workflows  # Remove workflow files
-#         git config --global user.email "redacted@example.com"
-#         git config --global user.name "himanishpuri"
-#         git remote add backup https://himanishpuri:${{ secrets.HIMAISH_REPO }}@github.com/himanishpuri/talkeyz.git
-#         git branch -M himanish
-#         git add .
-#         git commit -m "Overriding with latest changes from talkeys repo"
-#         git push --force backup himanish
