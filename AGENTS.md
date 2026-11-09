@@ -33,7 +33,7 @@ bun run test      # node --test
 Env vars: copy `Server/.env.example` to `Server/.env` and fill it in.
 
 ### Docker
-`Server/Dockerfile` + `Server/docker-compose.yml` build/run the API (maps host `4890` → container `8000`). `.github/workflows/docker.yml` runs the image build in CI.
+`Server/Dockerfile` (Bun installs deps, Node 24 runs) and `Client/Dockerfile` (standalone Next build) are used by root `compose.yaml` (prod-shaped: `server` only, host `4890` → container `8000`, env from `Server/.env`) and `compose.local.yaml` (adds `mongo` and `client`). Local stack: `docker compose -f compose.yaml -f compose.local.yaml up --build`. Never name a file `compose.override.yaml`: the VM would auto-load it. `.github/workflows/docker.yml` deploys over SSH on push to `main` using the `DEPLOY_*` secrets.
 
 ## Backend architecture (`Server/src`)
 

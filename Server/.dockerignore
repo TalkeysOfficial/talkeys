@@ -1,0 +1,9 @@
+.env*
+node_modules
+log
+uploads
+.next
+test
+*.log
+Dockerfile
+.dockerignore
