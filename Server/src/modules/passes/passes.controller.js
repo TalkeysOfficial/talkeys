@@ -3,106 +3,31 @@ const Pass = require("./passes.model.js");
 const Team = require("../teams/teams.model.js");
 const User = require("../auth/users.model.js");
 const mongoose = require("mongoose");
-const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const axios = require("axios");
-const qs = require("qs");
-
-const CONFIG = {
-  production: {
-    AUTH_URL: "https://api.phonepe.com/apis/identity-manager/v1/oauth/token",
-    BASE_URL: "https://api.phonepe.com/apis/pg",
-    CHECKOUT_SCRIPT: "https://mercury.phonepe.com/web/bundle/checkout.js",
-  },
-  sandbox: {
-    AUTH_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token",
-    BASE_URL: "https://api-preprod.phonepe.com/apis/pg-sandbox",
-    CHECKOUT_SCRIPT: "https://mercury-uat.phonepe.com/web/bundle/checkout.js",
-  },
-  CLIENT_VERSION: "1",
-};
-
-const cleanEnvValue = (value) =>
-  String(value || "")
-    .trim()
-    .replace(/^["']|["']$/g, "");
-
-const getPhonePeConfig = () => {
-  const configuredEnv = cleanEnvValue(process.env.PHONEPE_ENV).toLowerCase();
-
-  if (["production", "prod", "live"].includes(configuredEnv)) {
-    return {
-      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.production.AUTH_URL,
-      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.production.BASE_URL,
-      CHECKOUT_SCRIPT:
-        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) ||
-        CONFIG.production.CHECKOUT_SCRIPT,
-    };
-  }
-
-  if (["sandbox", "staging", "test", "preprod", "uat", "development"].includes(configuredEnv)) {
-    return {
-      AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || CONFIG.sandbox.AUTH_URL,
-      BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || CONFIG.sandbox.BASE_URL,
-      CHECKOUT_SCRIPT:
-        cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || CONFIG.sandbox.CHECKOUT_SCRIPT,
-    };
-  }
-
-  const defaultConfig = cleanEnvValue(process.env.PHONEPE_CLIENT_ID).startsWith("TEST-")
-    ? CONFIG.sandbox
-    : CONFIG.production;
-
-  return {
-    AUTH_URL: cleanEnvValue(process.env.PHONEPE_AUTH_URL) || defaultConfig.AUTH_URL,
-    BASE_URL: cleanEnvValue(process.env.PHONEPE_BASE_URL) || defaultConfig.BASE_URL,
-    CHECKOUT_SCRIPT:
-      cleanEnvValue(process.env.PHONEPE_CHECKOUT_SCRIPT) || defaultConfig.CHECKOUT_SCRIPT,
-  };
-};
-
-const getPhonePeCredentials = () => {
-  const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
-  const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
-  const secretEncoding = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET_ENCODING).toLowerCase();
-  const rawClientSecret = cleanEnvValue(process.env.PHONEPE_CLIENT_SECRET);
-  const clientSecret =
-    secretEncoding === "base64"
-      ? Buffer.from(rawClientSecret, "base64").toString("utf8").trim()
-      : rawClientSecret;
-
-  const missing = [];
-  if (!clientId) missing.push("PHONEPE_CLIENT_ID");
-  if (!clientSecret) missing.push("PHONEPE_CLIENT_SECRET");
-  if (!clientVersion) missing.push("PHONEPE_CLIENT_VERSION");
-
-  if (missing.length) {
-    throw new Error(`Missing PhonePe configuration: ${missing.join(", ")}`);
-  }
-
-  return {
-    clientId,
-    clientSecret,
-    clientVersion,
-  };
-};
+const {
+  cleanEnvValue,
+  getPhonePeConfig,
+  getPhonePeCredentials,
+  normalizePhonePeStatus,
+  getPhonePeAccessToken,
+  createPhonePeOrder,
+  validateWebhookSignature,
+} = require("./phonepe.service.js");
+const {
+  toObjectIdOrUndefined,
+  resolvePassType,
+  expandPassSelections,
+  reserveSeats,
+  reserveBookingInventory,
+  releaseReservedSeats,
+} = require("./inventory.service.js");
 
 const basicPassRequiredEventIds = () =>
   String(process.env.BASIC_PASS_REQUIRED_EVENT_IDS || "")
     .split(",")
     .map((eventId) => eventId.trim())
     .filter(Boolean);
-
-const normalizePhonePeStatus = (paymentStatus = {}) => {
-  const data = paymentStatus.data || paymentStatus;
-  return {
-    state: paymentStatus.state || data.state,
-    orderId: paymentStatus.orderId || data.orderId,
-    amount: paymentStatus.amount || data.amount,
-    paymentDetails: paymentStatus.paymentDetails || data.paymentDetails || [],
-    reason: paymentStatus.reason || data.reason,
-  };
-};
 
 const sanitizeFriends = (friends = []) => {
   if (!Array.isArray(friends)) {
@@ -156,107 +81,6 @@ const teamMembersToFriends = (team, userId) =>
       email: member.email,
       phone: member.phoneNumber,
     }));
-
-const toObjectIdOrUndefined = (value) =>
-  value && mongoose.Types.ObjectId.isValid(value)
-    ? new mongoose.Types.ObjectId(value)
-    : undefined;
-
-const normalizeEventPassTypes = (event) => {
-  const eventObject = event.toObject ? event.toObject() : event;
-  const passTypes = Array.isArray(eventObject.passTypes)
-    ? eventObject.passTypes.filter(Boolean)
-    : [];
-
-  if (!passTypes.length) {
-    return [
-      {
-        id: "general",
-        name: "General Pass",
-        price: Number(eventObject.ticketPrice || 0),
-        description: "",
-        totalQuantity: Number(eventObject.totalSeats || 0),
-        maxAvailable: Number(eventObject.totalSeats || 0),
-        soldQuantity: Number(eventObject.registrationCount || 0),
-        bookedQuantity: Number(eventObject.registrationCount || 0),
-        isActive: true,
-        isLegacy: true,
-      },
-    ];
-  }
-
-  return passTypes.map((passType) => ({
-    id: passType._id?.toString() || passType.id || "general",
-    name: passType.name || "General Pass",
-    price: Number(passType.price ?? eventObject.ticketPrice ?? 0),
-    description: passType.description || "",
-    totalQuantity: Number(passType.totalQuantity ?? passType.maxAvailable ?? 0),
-    maxAvailable: Number(passType.maxAvailable ?? passType.totalQuantity ?? 0),
-    soldQuantity: Number(passType.soldQuantity ?? passType.bookedQuantity ?? 0),
-    bookedQuantity: Number(passType.bookedQuantity ?? passType.soldQuantity ?? 0),
-    isActive: passType.isActive !== false,
-    isLegacy: false,
-  }));
-};
-
-const resolvePassType = (event, requestedPassType) => {
-  const activePassTypes = normalizeEventPassTypes(event).filter(
-    (passType) => passType.isActive,
-  );
-
-  if (!activePassTypes.length) {
-    throw Object.assign(new Error("No active pass types are available"), {
-      statusCode: 400,
-    });
-  }
-
-  if (!requestedPassType) {
-    return activePassTypes[0];
-  }
-
-  const requested = String(requestedPassType).trim().toLowerCase();
-  const matchedPassType = activePassTypes.find((passType) => {
-    const id = String(passType.id || "").toLowerCase();
-    const name = String(passType.name || "").toLowerCase();
-
-    return (
-      id === requested ||
-      name === requested ||
-      (requested === "general" && name.includes("general"))
-    );
-  });
-
-  if (!matchedPassType) {
-    throw Object.assign(new Error("Selected pass type is not available"), {
-      statusCode: 400,
-    });
-  }
-
-  return matchedPassType;
-};
-
-const expandPassSelections = (event, passSelections = []) => {
-  if (!Array.isArray(passSelections)) {
-    return [];
-  }
-
-  const expandedPassTypes = [];
-  passSelections.forEach((selection) => {
-    const quantity = Math.max(parseInt(selection?.quantity, 10) || 0, 0);
-    if (!quantity) return;
-
-    const passType = resolvePassType(
-      event,
-      selection?.passTypeId || selection?.passType || selection?.passTypeName,
-    );
-
-    for (let index = 0; index < quantity; index += 1) {
-      expandedPassTypes.push(passType);
-    }
-  });
-
-  return expandedPassTypes.slice(0, 10);
-};
 
 const sanitizeAttendees = (user, baseFriends = [], body = {}) => {
   const requestedAttendees = Array.isArray(body.attendees)
@@ -408,146 +232,6 @@ const buildQRStrings = (user, friends = [], attendeeDetails = []) => {
   }));
 };
 
-const reserveSeats = async (eventId, ticketCount) => {
-  return Event.findOneAndUpdate(
-    {
-      _id: eventId,
-      $expr: {
-        $lte: [
-          { $add: [{ $ifNull: ["$registrationCount", 0] }, ticketCount] },
-          "$totalSeats",
-        ],
-      },
-    },
-    { $inc: { registrationCount: ticketCount } },
-    { new: true },
-  );
-};
-
-const reservePassTypeSelections = async (eventId, passSelections = []) => {
-  for (const selection of passSelections) {
-    if (!selection.passTypeId || !selection.quantity) continue;
-
-    const passTypeId = toObjectIdOrUndefined(selection.passTypeId);
-    if (!passTypeId) continue;
-
-    const reservedEvent = await Event.findOneAndUpdate(
-      {
-        _id: eventId,
-        passTypes: {
-          $elemMatch: {
-            _id: passTypeId,
-            isActive: true,
-          },
-        },
-        $expr: {
-          $let: {
-            vars: {
-              passType: {
-                $arrayElemAt: [
-                  {
-                    $filter: {
-                      input: "$passTypes",
-                      as: "passType",
-                      cond: { $eq: ["$$passType._id", passTypeId] },
-                    },
-                  },
-                  0,
-                ],
-              },
-            },
-            in: {
-              $or: [
-                { $lte: [{ $ifNull: ["$$passType.totalQuantity", 0] }, 0] },
-                {
-                  $lte: [
-                    {
-                      $add: [
-                        { $ifNull: ["$$passType.soldQuantity", 0] },
-                        selection.quantity,
-                      ],
-                    },
-                    { $ifNull: ["$$passType.totalQuantity", 0] },
-                  ],
-                },
-              ],
-            },
-          },
-        },
-      },
-      {
-        $inc: {
-          "passTypes.$.soldQuantity": selection.quantity,
-          "passTypes.$.bookedQuantity": selection.quantity,
-        },
-      },
-      { new: true },
-    );
-
-    if (!reservedEvent) {
-      throw Object.assign(
-        new Error(`${selection.passTypeName || "Selected pass"} is sold out`),
-        { statusCode: 400 },
-      );
-    }
-  }
-};
-
-const releasePassTypeSelections = async (eventId, passSelections = []) => {
-  for (const selection of passSelections) {
-    if (!selection.passTypeId || !selection.quantity) continue;
-
-    const passTypeId = toObjectIdOrUndefined(selection.passTypeId);
-    if (!passTypeId) continue;
-
-    await Event.updateOne(
-      {
-        _id: eventId,
-        "passTypes._id": passTypeId,
-      },
-      {
-        $inc: {
-          "passTypes.$.soldQuantity": -selection.quantity,
-          "passTypes.$.bookedQuantity": -selection.quantity,
-        },
-      },
-    );
-  }
-};
-
-const reserveBookingInventory = async (event, ticketCount, passSelections) => {
-  const reservedEvent = await reserveSeats(event._id, ticketCount);
-  if (!reservedEvent) {
-    throw Object.assign(new Error("Insufficient tickets available"), {
-      statusCode: 400,
-    });
-  }
-
-  try {
-    await reservePassTypeSelections(event._id, passSelections);
-  } catch (error) {
-    await Event.findByIdAndUpdate(event._id, {
-      $inc: { registrationCount: -ticketCount },
-    });
-    throw error;
-  }
-
-  return reservedEvent;
-};
-
-const releaseReservedSeats = async (pass) => {
-  if (!pass?.seatsReserved) {
-    return;
-  }
-
-  const ticketCount = pass.ticketCount || 1 + (pass.friends?.length || 0);
-  await Event.findByIdAndUpdate(pass.eventId, {
-    $inc: { registrationCount: -ticketCount },
-  });
-  await releasePassTypeSelections(pass.eventId, pass.passSelections || []);
-  pass.seatsReserved = false;
-};
-
 const findQRString = (pass, qrId) => {
   return pass?.qrStrings?.find(
     (qr) => qr.id === qrId || qr._id?.toString() === qrId,
@@ -614,118 +298,6 @@ const serializeScannerPass = (pass, qrString) => {
     isScanned: Boolean(qrString?.qrScanned),
     timeScanned: qrString?.scannedAt || null,
   };
-};
-
-const getPhonePeAccessToken = async () => {
-  try {
-    const config = getPhonePeConfig();
-    const { clientId, clientSecret, clientVersion } = getPhonePeCredentials();
-
-    const response = await axios.post(
-      config.AUTH_URL,
-      qs.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: "client_credentials",
-        client_version: clientVersion,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-        },
-        timeout: 15000,
-      },
-    );
-
-    const accessToken = response.data?.access_token || response.data?.data?.access_token;
-    if (!accessToken) {
-      throw new Error("PhonePe auth response did not include an access token");
-    }
-
-    return accessToken;
-  } catch (error) {
-    if (error.response?.status === 401) {
-      const config = getPhonePeConfig();
-      const clientId = cleanEnvValue(process.env.PHONEPE_CLIENT_ID);
-      const clientVersion = cleanEnvValue(process.env.PHONEPE_CLIENT_VERSION) || CONFIG.CLIENT_VERSION;
-      throw new Error(
-        [
-          "PhonePe authentication failed with 401.",
-          "Check PHONEPE_CLIENT_ID, PHONEPE_CLIENT_SECRET, PHONEPE_CLIENT_VERSION, and PHONEPE_ENV.",
-          `Using ${config.AUTH_URL} with client id prefix ${clientId.slice(0, 8)} and client version ${clientVersion}.`,
-        ].join(" "),
-      );
-    }
-
-    console.error(
-      "[PhonePe] Auth Error:",
-      error.response?.data || error.message,
-    );
-    throw new Error(
-      `Authentication failed: ${error.response?.data?.message || error.message}`,
-    );
-  }
-};
-
-// Create Payment Order
-const createPhonePeOrder = async (orderData) => {
-  try {
-    const config = getPhonePeConfig();
-    console.log("Creating PhonePe order:", {
-      merchantOrderId: orderData.merchantOrderId,
-      amount: orderData.amount,
-    });
-    const accessToken = await getPhonePeAccessToken();
-
-    const payload = {
-      merchantOrderId: orderData.merchantOrderId,
-      amount: orderData.amount,
-      expireAfter: 1200,
-      metaInfo: {
-        udf1: orderData.userId,
-        udf2: orderData.eventId,
-        udf3: orderData.passType || "General",
-        udf4: JSON.stringify(orderData.friends || []),
-      },
-      paymentFlow: {
-        type: "PG_CHECKOUT",
-        message: "Talkeys Ticket Booking",
-        merchantUrls: {
-          redirectUrl: `${process.env.BASE_URL}/api/payment/callback/${orderData.merchantOrderId}`,
-        },
-      },
-    };
-
-    const response = await axios.post(
-      `${config.BASE_URL}/checkout/v2/pay`,
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `O-Bearer ${accessToken}`,
-        },
-        timeout: 15000,
-      },
-    );
-
-    const paymentOrder = response.data;
-    const paymentUrl = paymentOrder?.data?.redirectUrl || paymentOrder?.redirectUrl;
-    if (!paymentUrl) {
-      throw new Error("PhonePe order response did not include a payment URL");
-    }
-
-    return paymentOrder;
-  } catch (error) {
-    console.error("PhonePe order creation error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
-    throw new Error(
-      `Order creation failed: ${error.response?.data?.message || error.message}`,
-    );
-  }
 };
 
 const bookTicket = async (req, res) => {
@@ -1129,28 +701,6 @@ const processPaymentFailure = async (
   } catch (error) {
     console.error(`[${source}] Error processing payment failure:`, error);
     throw error;
-  }
-};
-
-// Validate Webhook Signature
-const validateWebhookSignature = (username, password, receivedSignature) => {
-  try {
-    const credentials = `${username}:${password}`;
-    const expectedSignature = crypto
-      .createHash("sha256")
-      .update(credentials)
-      .digest("hex");
-    if (!receivedSignature || receivedSignature.length !== expectedSignature.length) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedSignature),
-      Buffer.from(receivedSignature),
-    );
-  } catch (error) {
-    console.error("Error validating webhook signature:", error);
-    return false;
   }
 };
 

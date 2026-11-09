@@ -46,7 +46,7 @@ Layered Express app, single router file, no framework-level DI:
   3. `router.use(checkRole(["admin"]))` — everything after this additionally requires `req.user.role === "admin"` (`shared/middleware/role.middleware.js`).
   - When adding a route, its position relative to these two `router.use()` calls determines its auth level — there's no per-route decorator.
   - `modules/dashboard/dashboard.routes.js` is mounted separately at `/dashboard` and has its own auth requirements.
-- `modules/<domain>/` — one folder per domain, each with its controller, Mongoose model(s) and validation: `auth` (Google login, users), `events` (events, event schema, request-an-event, influencer registration), `passes` (booking, PhonePe payment, scanning), `teams`, `dashboard` (organizer routes and router), `admin`.
+- `modules/<domain>/` — one folder per domain, each with its controller, Mongoose model(s) and validation: `auth` (Google login, users), `events` (events, event schema, request-an-event, influencer registration), `passes` (booking, payment and scanning in the controller; `phonepe.service.js` is the PhonePe client, `inventory.service.js` reserves seats and pass types), `teams`, `dashboard` (organizer routes and router), `admin`.
 - `shared/` — cross-domain code: `middleware/` (`oauth`, `role.middleware`), `cloudinary.js` (image upload), `logger.js`.
 - `routes/router.js` registers every route except `/dashboard`. Controllers are imported here only.
 - Payments go through PhonePe: `/api/payment/callback/:merchantOrderId` (public, explicitly bypassed in `verifyToken`), `/payment/webhook` (raw body parsing via `express.raw`), and ticket/pass booking routes (`/api/book-ticket`, `/bookPass`, `/api/getTix`, `/api/passbyuuid/:passUUID`).
