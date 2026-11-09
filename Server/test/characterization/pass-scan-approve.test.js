@@ -151,18 +151,20 @@ test.describe("organizer approveParticipant", () => {
     assert.equal(res.status, 403);
     assert.equal(res.body.message, "Access denied");
   });
-  test("characterization: approval of an unpaid pass sets status=active but leaves payment pending, and issues a QR", async () => {
+  test("approval of an unpaid pass is refused and leaves it untouched", async () => {
     const { pass } = await confirmedPass({ status: "pending", passStatus: "inactive", paymentStatus: "pending" });
+    const organizer = await h.makeUser({ role: "organizer", email: "organizer@test.dev" });
+    const res = await approve(organizer, pass._id);
+    assert.equal(res.status, 409);
+    const saved = await h.Pass.findById(pass._id);
+    assert.deepEqual([saved.status, saved.passStatus, saved.paymentStatus], ["pending", "inactive", "pending"]);
+  });
+  test("approval of a paid pass sets status=active", async () => {
+    const { pass } = await confirmedPass({ status: "pending", paymentStatus: "completed" });
     const organizer = await h.makeUser({ role: "organizer", email: "organizer@test.dev" });
     const res = await approve(organizer, pass._id);
     assert.equal(res.status, 200);
     assert.equal(res.body.message, "Participant approved");
-    const saved = await h.Pass.findById(pass._id);
-    assert.deepEqual([saved.status, saved.passStatus, saved.paymentStatus], ["active", "inactive", "pending"]);
-    assert.ok(saved.passUUID);
-    assert.equal(saved.qrStrings.length, 1);
-    // ...and Accept still refuses it because payment is not completed
-    const scan = await accept(organizer, { uuid: saved.passUUID, qrId: saved.qrStrings[0].id });
-    assert.equal(scan.status, 400);
+    assert.equal((await h.Pass.findById(pass._id)).status, "active");
   });
 });

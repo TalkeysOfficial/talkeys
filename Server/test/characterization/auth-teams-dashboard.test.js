@@ -91,13 +91,14 @@ test.describe("dashboard profile", () => {
     assert.equal(res.body.accessToken, undefined);
     assert.equal(res.body.refreshToken, undefined);
   });
-  test("characterization: PATCH response includes the user's stored tokens", async () => {
+  test("PATCH response strips the user's stored tokens", async () => {
     const user = await h.makeUser({ accessToken: "stored-access", refreshToken: "stored-refresh" });
     const res = await request(h.app).patch("/dashboard/profile").set(as(user)).send({ about: "hi" });
     assert.equal(res.status, 200);
     assert.equal(res.body.status, "success");
-    assert.equal(res.body.user.accessToken, "stored-access");
-    assert.equal(res.body.user.refreshToken, "stored-refresh");
+    assert.equal(res.body.user.about, "hi");
+    assert.equal(res.body.user.accessToken, undefined);
+    assert.equal(res.body.user.refreshToken, undefined);
   });
 });
 

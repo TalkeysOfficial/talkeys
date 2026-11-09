@@ -16,7 +16,8 @@ exports.updateProfile = async (req, res) => {
     if (req.body[k] !== undefined) req.user[k] = req.body[k];
   });
   await req.user.save();
-  res.json({ status: "success", user: req.user });
+  const { accessToken, refreshToken, __v, ...safeUser } = req.user.toObject();
+  res.json({ status: "success", user: safeUser });
 };
 
 exports.userEvents = async (req, res) => {
@@ -194,6 +195,10 @@ exports.approveParticipant = async (req, res) => {
 
     if (pass.eventId.organizerEmail !== req.user.email) {
       return res.status(403).json({ message: "Access denied" });
+    }
+
+    if (pass.paymentStatus !== "completed") {
+      return res.status(409).json({ message: "Payment not completed" });
     }
 
     pass.status = "active";
