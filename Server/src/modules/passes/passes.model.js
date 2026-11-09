@@ -218,7 +218,7 @@ const passSchema = new mongoose.Schema({
 	},
 });
 
-passSchema.pre('save', function(next) {
+passSchema.pre('save', function() {
 	const isConfirmed = this.paymentStatus === 'completed' || this.status === 'active' || this.passStatus === 'active';
 
 	if (!this.passUUID && isConfirmed) {
@@ -258,8 +258,6 @@ passSchema.pre('save', function(next) {
 			scannedAt: null
 		}));
 	}
-	
-	next();
 });
 
 passSchema.methods.getQRData = function() {

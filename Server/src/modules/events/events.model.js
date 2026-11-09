@@ -136,7 +136,7 @@ const eventSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-eventSchema.pre("validate", function (next) {
+eventSchema.pre("validate", function () {
 	if (!this.passTypes || this.passTypes.length === 0) {
 		const quantity = Number(this.totalSeats || 0);
 		const booked = Number(this.registrationCount || 0);
@@ -161,8 +161,6 @@ eventSchema.pre("validate", function (next) {
 			passType.totalQuantity = passType.maxAvailable;
 		}
 	});
-
-	next();
 });
 
 eventSchema.methods.getStatus = function () {

@@ -115,7 +115,7 @@ const reserveSeats = async (eventId, ticketCount) => {
       },
     },
     { $inc: { registrationCount: ticketCount } },
-    { new: true },
+    { returnDocument: "after" },
   );
 };
 
@@ -176,7 +176,7 @@ const reservePassTypeSelections = async (eventId, passSelections = []) => {
           "passTypes.$.bookedQuantity": selection.quantity,
         },
       },
-      { new: true },
+      { returnDocument: "after" },
     );
 
     if (!reservedEvent) {
