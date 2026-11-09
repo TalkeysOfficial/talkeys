@@ -54,10 +54,32 @@ test.describe("public reads", () => {
     assert.equal(res.body.data.events[0].availableSeats, 7);
   });
 
-  test("characterization: drafts and private events are listed without any filter", async () => {
-    await h.makeEvent({ status: "draft", visibility: "private" });
-    const res = await request(h.app).get("/getEvents");
-    assert.equal(res.body.data.events.length, 1);
+  test("drafts and private events are not listed, even when visibility=private is requested", async () => {
+    await h.makeEvent({ status: "draft", visibility: "public" });
+    await h.makeEvent({ status: "published", visibility: "private" });
+    const visible = await h.makeEvent({ status: "published", visibility: "public" });
+    for (const query of [{}, { visibility: "private" }]) {
+      const res = await request(h.app).get("/getEvents").query(query);
+      assert.deepEqual(res.body.data.events.map((e) => e._id), [String(visible._id)]);
+    }
+  });
+
+  test("getEvents: operator objects in filters are ignored, search is a literal, sortBy is whitelisted", async () => {
+    await h.makeEvent({ name: "Alpha", mode: "online" });
+    await h.makeEvent({ name: "Beta (x)", mode: "offline" });
+    const ops = await request(h.app).get("/getEvents?mode[$ne]=online");
+    assert.equal(ops.body.data.events.length, 2);
+    const regex = await request(h.app).get("/getEvents").query({ search: ".*" });
+    assert.equal(regex.body.data.events.length, 0);
+    const literal = await request(h.app).get("/getEvents").query({ search: "(x)" });
+    assert.equal(literal.body.data.events.length, 1);
+    const sorted = await request(h.app).get("/getEvents").query({ sortBy: "$where" });
+    assert.equal(sorted.status, 200);
+  });
+
+  test("getEventById: a draft is a 404", async () => {
+    const draft = await h.makeEvent({ status: "draft" });
+    assert.equal((await request(h.app).get(`/getEventById/${draft._id}`)).status, 404);
   });
 
   test("getEventById: unknown id -> 404 shape", async () => {

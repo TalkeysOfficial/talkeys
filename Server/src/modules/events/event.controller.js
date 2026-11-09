@@ -195,16 +195,17 @@ const getEvents = asyncHandler(async (req, res) => {
 			order = "asc",
 			mode,
 			category,
-			visibility,
 			search = "",
 			minPrice,
 			maxPrice,
 		} = req.query;
 
-		const query = {};
-		if (mode) query.mode = mode;
-		if (category) query.category = category;
-		if (visibility) query.visibility = visibility;
+		// Query values must be plain strings: `?mode[$ne]=x` would otherwise reach Mongo as an operator.
+		const text = (value) => (typeof value === "string" ? value : undefined);
+		// Public listing never shows drafts or private events, whatever `visibility` asks for.
+		const query = { status: { $ne: "draft" }, visibility: "public" };
+		if (text(mode)) query.mode = text(mode);
+		if (text(category)) query.category = text(category);
 
 		if (minPrice || maxPrice) {
 			const priceRange = {};
@@ -219,19 +220,21 @@ const getEvents = asyncHandler(async (req, res) => {
 			});
 		}
 
-		if (search) {
+		const safeSearch = text(search)?.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		if (safeSearch) {
 			query.$and = query.$and || [];
 			query.$and.push({
 				$or: [
-					{ name: { $regex: search, $options: "i" } },
-					{ eventDescription: { $regex: search, $options: "i" } },
-					{ category: { $regex: search, $options: "i" } },
+					{ name: { $regex: safeSearch, $options: "i" } },
+					{ eventDescription: { $regex: safeSearch, $options: "i" } },
+					{ category: { $regex: safeSearch, $options: "i" } },
 				],
 			});
 		}
 
-		const sortOptions = { [sortBy]: order === "desc" ? -1 : 1 };
-		const parsedLimit = limit !== undefined ? parseInt(limit, 10) : null;
+		const sortField = ["startDate", "name", "createdAt", "ticketPrice", "registrationCount"].includes(sortBy) ? sortBy : "startDate";
+		const sortOptions = { [sortField]: order === "desc" ? -1 : 1 };
+		const parsedLimit = limit !== undefined ? Math.min(parseInt(limit, 10), 100) : null;
 		const shouldPaginate = Number.isFinite(parsedLimit) && parsedLimit > 0;
 		const skip = shouldPaginate ? (parseInt(page, 10) - 1) * parsedLimit : 0;
 
@@ -363,7 +366,7 @@ const getEventById = async (req, res) => {
 		const { id } = req.params;
 		const event = await Event.findById(id).select("-__v");
 
-		if (!event) {
+		if (!event || event.status === "draft") {
 			return res.status(404).json({
 				status: "error",
 				message: "Event not found",
