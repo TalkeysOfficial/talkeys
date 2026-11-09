@@ -15,21 +15,22 @@ Each has its own `package.json`, `.env`, and `node_modules`. Run commands from i
 
 ### Client (`Client/`)
 ```bash
-npm run dev       # start dev server (localhost:3000)
-npm run build     # production build
-npm run start     # serve production build
-npm run lint      # next lint
-npm run analyze   # build with bundle analyzer (ANALYZE=true)
+bun run dev       # start dev server (localhost:3000)
+bun run build     # production build
+bun run start     # serve production build
+bun run lint      # next lint
+bun run typecheck # tsc --noEmit
+bun run analyze   # build with bundle analyzer (ANALYZE=true)
 ```
 No test suite is configured.
 
 ### Server (`Server/`)
 ```bash
-npm run dev       # nodemon src/server.js (auto-reload)
-npm start         # node src/server.js
-npm run seed      # node src/seed.js
+bun run dev       # nodemon src/server.js (auto-reload)
+bun run start     # node src/server.js
+bun run test      # node --test
 ```
-No test suite is configured. Required env vars (`Server/.env`): `DB_URL`, `PORT`, `SECRET`, `CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`, `EMAIL_USER`, `EMAIL_PASSWORD`, `PHONEPE_CLIENT_ID`, `PHONEPE_CLIENT_SECRET`, `PHONEPE_CLIENT_VERSION`, `PHONEPE_WEBHOOK_USERNAME`, `PHONEPE_WEBHOOK_PASSWORD`, `BASE_URL`, `FRONTEND_URL`, `NODE_ENV`.
+Env vars: copy `Server/.env.example` to `Server/.env` and fill it in.
 
 ### Docker
 `Server/Dockerfile` + `Server/docker-compose.yml` build/run the API (maps host `4890` → container `8000`). `.github/workflows/docker.yml` runs the image build in CI.

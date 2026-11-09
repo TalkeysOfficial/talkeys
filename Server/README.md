@@ -8,7 +8,7 @@
 
 2. Install Dependencies
 
-> npm run setup
+> bun install
 
 3. Create .env with following content
 
@@ -23,7 +23,7 @@ SECRET=AAA
 
 1. Start Server
 
-> npm start
+> bun run start
 
 2. Open in url or using an Endpoint tester (postman)
 
