@@ -87,7 +87,8 @@ const expandPassSelections = (event, passSelections = []) => {
 
   const expandedPassTypes = [];
   passSelections.forEach((selection) => {
-    const quantity = Math.max(parseInt(selection?.quantity, 10) || 0, 0);
+    // Cap per selection: the loop below allocates one array entry per ticket.
+    const quantity = Math.min(Math.max(parseInt(selection?.quantity, 10) || 0, 0), 10);
     if (!quantity) return;
 
     const passType = resolvePassType(

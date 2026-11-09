@@ -332,6 +332,26 @@ const bookTicket = async (req, res) => {
         error: "Event not found",
       });
     }
+    if (event.status !== "published" || event.isRegistrationOpen === false) {
+      return res.status(400).json({
+        success: false,
+        error: "Registration is not open for this event",
+      });
+    }
+    const existing = await Pass.exists({
+      userId: req.user._id,
+      eventId: event._id,
+      $or: [
+        { status: "active" },
+        { status: "pending", expiresAt: { $gt: new Date() } },
+      ],
+    });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        error: "You already have a pass for this event",
+      });
+    }
     if (basicPassRequiredEventIds().includes(req.body.eventId)) {
       const basicPass = await Pass.findOne({
         userId: req.user._id,

@@ -110,19 +110,38 @@ test.describe("bookTicket transitions", () => {
     assert.equal((await h.Event.findById(event._id)).registrationCount, 0);
   });
 
-  test("characterization: same user can book the same event repeatedly (no duplicate guard)", async () => {
+  test("the same user cannot book the same event twice (409), another user can", async () => {
     const user = await h.makeUser();
     const event = await h.makeEvent();
-    await book(user, { eventId: String(event._id) });
+    assert.equal((await book(user, { eventId: String(event._id) })).status, 200);
     const second = await book(user, { eventId: String(event._id) });
-    assert.equal(second.status, 200);
-    assert.equal(await h.Pass.countDocuments({ userId: user._id }), 2);
+    assert.equal(second.status, 409);
+    assert.equal(await h.Pass.countDocuments({ userId: user._id }), 1);
+    assert.equal((await book(await h.makeUser(), { eventId: String(event._id) })).status, 200);
   });
 
-  test("characterization: closed registration does not block booking", async () => {
+  test("closed registration blocks booking", async () => {
     const event = await h.makeEvent({ isRegistrationOpen: false, isLive: false });
     const res = await book(await h.makeUser(), { eventId: String(event._id) });
+    assert.equal(res.status, 400);
+    assert.equal(await h.Pass.countDocuments(), 0);
+  });
+
+  test("draft and cancelled events cannot be booked", async () => {
+    for (const status of ["draft", "cancelled"]) {
+      const event = await h.makeEvent({ status });
+      assert.equal((await book(await h.makeUser(), { eventId: String(event._id) })).status, 400);
+    }
+  });
+
+  test("a huge passSelections quantity is capped instead of exhausting memory", async () => {
+    const event = await h.makeEvent({ totalSeats: 50 });
+    const res = await book(await h.makeUser(), {
+      eventId: String(event._id),
+      passSelections: [{ passTypeName: "General Pass", quantity: 2000000000 }],
+    });
     assert.equal(res.status, 200);
+    assert.ok((await h.Pass.findOne()).ticketCount <= 10);
   });
 });
 
@@ -356,11 +375,10 @@ test.describe("cleanupExpiredPasses", () => {
   });
 });
 
-test("characterization: a second unpaid booking fails while another unpaid pass exists (unique qrStrings.id index is not sparse)", async () => {
+test("two users can hold unpaid passes at once (qrStrings.id index ignores passes without QR ids)", async () => {
   const first = await bookPaid();
   const user = await h.makeUser();
   const res = await book(user, { eventId: String(first.event._id) });
-  assert.equal(res.status, 500);
-  assert.match(res.body.message, /E11000 duplicate key/);
-  assert.equal(await h.Pass.countDocuments(), 1);
+  assert.equal(res.status, 200);
+  assert.equal(await h.Pass.countDocuments(), 2);
 });

@@ -136,7 +136,6 @@ const passSchema = new mongoose.Schema({
 	qrStrings: [{
 		id: {
 			type: String,
-			unique: true,
 		},
 		personType: {
 			type: String,
@@ -217,6 +216,10 @@ const passSchema = new mongoose.Schema({
 		min: 0,
 	},
 });
+
+// Partial: pending passes have no QR ids yet, and a plain unique index treats every empty array as the same null key.
+// Existing DBs must drop the old `qrStrings.id_1` index once, or Mongo refuses the changed options.
+passSchema.index({ "qrStrings.id": 1 }, { unique: true, partialFilterExpression: { "qrStrings.id": { $type: "string" } } });
 
 passSchema.pre('save', function() {
 	const isConfirmed = this.paymentStatus === 'completed' || this.status === 'active' || this.passStatus === 'active';
