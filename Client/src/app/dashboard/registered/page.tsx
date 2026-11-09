@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import EventCarousel from "@/components/EventCarousel";
+import EventCarousel from "@/features/events/components/EventCarousel";
 import type { Event } from "@/types/types";
 
 export default function RegisteredEvents() {

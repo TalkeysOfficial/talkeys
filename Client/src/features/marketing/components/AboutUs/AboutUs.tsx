@@ -12,7 +12,7 @@ import {
 } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { sections } from "@/components/AboutUs/data";
+import { sections } from "@/features/marketing/components/AboutUs/data";
 
 function AboutUsPage() {
 	const [scrollPosition, setScrollPosition] = useState(0);

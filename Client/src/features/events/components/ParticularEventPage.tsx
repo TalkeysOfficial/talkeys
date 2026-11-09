@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import EventJsonLd from "@/components/EventJsonLd";
+import EventJsonLd from "@/features/events/components/EventJsonLd";
 import EventHeader from "./EventHeader";
 import EventDescription from "./EventDescription";
 import QRCodeDisplay from "./QRCodeDisplay";
@@ -22,17 +22,17 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { useAuth } from "@/lib/authContext";
-import { usePassManagement } from "@/lib/hooks/usePassManagement";
-import { useEventLike } from "@/lib/hooks/useEventLike";
-import { bookTicket } from "@/lib/services/eventApi";
+import { useAuth } from "@/features/auth/authContext";
+import { usePassManagement } from "@/features/events/hooks/usePassManagement";
+import { useEventLike } from "@/features/events/hooks/useEventLike";
+import { bookTicket } from "@/features/events/eventApi";
 import {
 	clearStoredAuth,
 	getStoredAccessToken,
 	isAuthFailure,
-} from "@/lib/utils/authToken";
-import { getEventPassTypes } from "@/lib/utils/eventUtils";
-import { formatTime } from "@/components/EventCarousel";
+} from "@/features/auth/authToken";
+import { getEventPassTypes } from "@/features/events/eventUtils";
+import { formatTime } from "@/features/events/components/EventCarousel";
 import type { EventPageProps, EventPassType } from "@/types/types";
 
 type AttendeeForm = {

@@ -1,4 +1,4 @@
-import AboutUsPage from "@/components/AboutUs/AboutUs";
+import AboutUsPage from "@/features/marketing/components/AboutUs/AboutUs";
 
 function page() {
 	return <AboutUsPage />;

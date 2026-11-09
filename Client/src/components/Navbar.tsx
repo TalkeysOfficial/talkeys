@@ -23,7 +23,7 @@ import {
 	ChevronDown,
 	LayoutDashboard,
 } from "lucide-react";
-import { useAuth } from "@/lib/authContext";
+import { useAuth } from "@/features/auth/authContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 

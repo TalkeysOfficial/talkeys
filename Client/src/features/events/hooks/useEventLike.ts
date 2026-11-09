@@ -1,12 +1,12 @@
 // hooks/useEventLike.ts
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { likeEvent, unlikeEvent } from "@/lib/services/eventApi";
+import { likeEvent, unlikeEvent } from "@/features/events/eventApi";
 import {
 	clearStoredAuth,
 	getStoredAccessToken,
 	isAuthFailure,
-} from "@/lib/utils/authToken";
+} from "@/features/auth/authToken";
 
 export function useEventLike(
 	eventId: string,

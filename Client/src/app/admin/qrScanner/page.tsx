@@ -1,4 +1,4 @@
-import AdminQRScanner from "@/components/QRScanner";
+import AdminQRScanner from "@/features/admin/components/QRScanner";
 
 export default function AdminPage() {
 	return (

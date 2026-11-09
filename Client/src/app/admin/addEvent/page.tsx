@@ -1,4 +1,4 @@
-import AddEventPage from "@/components/admin/AddEventPage";
+import AddEventPage from "@/features/admin/components/AddEventPage";
 
 export default function AddEventPageWrapper() {
 	return (

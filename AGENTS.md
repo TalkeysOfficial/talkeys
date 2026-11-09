@@ -54,11 +54,12 @@ Layered Express app, single router file, no framework-level DI:
 ## Frontend architecture (`Client/src`)
 
 - `app/` — Next.js App Router pages. Notable routes: `dashboard/` (organizer dashboard: bookmarks, hosted, registered, profile, recent-activity), `admin/` (admin-only tools: event creation, QR scanner), `event/[id]/` and `eventPage/` (with an intercepting route `eventPage/(..)event/[id]/` for modal-style event previews), ticket status pages (`ticket/success|pending|failure`).
-- `lib/authContext.tsx` — global sign-in state via React Context, backed by `accessToken` in `localStorage` (not cookies/session). `useAuth()` hook throws outside the provider.
-- `lib/services/eventApi.ts` — typed fetch wrappers for backend calls; reads `BACKEND_URL` from env and attaches the bearer token from `localStorage` via `authHeaders()`. Follow this pattern (typed function, `authHeaders()`, throw parsed error body on `!res.ok`) when adding new API calls rather than calling `fetch` ad hoc in components.
-- `lib/hooks/` — data-fetching/domain hooks (`useEvents`, `useEventDetails`, `useEventLike`, `usePassManagement`, `useUser`, `useActivity`).
-- `components/ui/` — shadcn/ui primitives (`components.json` present — use the shadcn CLI conventions for new primitives, Tailwind + `class-variance-authority` + `tailwind-merge`).
-- `components/ProtectedRoute.tsx` — client-side route guarding based on `authContext`.
+- `features/<domain>/` — domain code, each with `components/`, `hooks/` and helpers: `auth`, `events`, `dashboard`, `admin`, `marketing`. Pages in `app/` import from here.
+  - `features/auth/authContext.tsx` — global sign-in state via React Context, backed by `accessToken` in `localStorage` (not cookies/session). `useAuth()` hook throws outside the provider.
+  - `features/events/eventApi.ts` — typed fetch wrappers for backend calls; reads `BACKEND_URL` from env and attaches the bearer token from `localStorage` via `authHeaders()`. Follow this pattern (typed function, `authHeaders()`, throw parsed error body on `!res.ok`) when adding new API calls rather than calling `fetch` ad hoc in components.
+  - `auth/`: `useUser`, `authToken.ts`, `components/ProtectedRoute.tsx` (client-side route guard using `authContext`). `events/hooks`: `useEvents`, `useEventDetails`, `useEventLike`, `usePassManagement`. `dashboard/hooks`: `useActivity`.
+- `components/` — shared only: `ui/` (shadcn/ui primitives; `components.json` present, use shadcn CLI conventions, Tailwind + `class-variance-authority` + `tailwind-merge`), `Navbar`, `Footer`, `fonts`, `magicui`.
+- `lib/utils.ts` — `cn()` and image-host helpers. `types/types.ts` — shared types.
 - Backend base URL is injected via `next.config.mjs`'s `env.BACKEND_URL` (from `Client/.env`), not `NEXT_PUBLIC_*`, except `NEXT_PUBLIC_BASE_URL` which is exposed to the browser directly.
 - Google OAuth uses `@react-oauth/google`; images are allowed from `res.cloudinary.com` and `api.dicebear.com` (configured in `next.config.mjs`).
 

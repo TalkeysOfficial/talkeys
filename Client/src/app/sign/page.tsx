@@ -10,8 +10,8 @@ import {
 	googleLogout,
 } from "@react-oauth/google";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/authContext";
-import { clearStoredAuth, getStoredAccessToken } from "@/lib/utils/authToken";
+import { useAuth } from "@/features/auth/authContext";
+import { clearStoredAuth, getStoredAccessToken } from "@/features/auth/authToken";
 
 import { useRouter } from "next/navigation";
 

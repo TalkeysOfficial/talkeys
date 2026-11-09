@@ -1,4 +1,4 @@
-import PrivacyPolicyPage from "@/components/PrivacyPolicy/PrivacyPolicy";
+import PrivacyPolicyPage from "@/features/marketing/components/PrivacyPolicy/PrivacyPolicy";
 import React from "react";
 
 function page() {

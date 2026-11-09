@@ -4,10 +4,10 @@
 "use client";
 
 import { useState } from "react";
-import RangePills from "@/components/dashboard/RangePills";
-import { useActivity } from "@/lib/hooks/useActivity";
-import EventCarousel from "@/components/EventCarousel";
-import CommunityRow from "@/components/dashboard/CommunityRow";
+import RangePills from "@/features/dashboard/components/RangePills";
+import { useActivity } from "@/features/dashboard/hooks/useActivity";
+import EventCarousel from "@/features/events/components/EventCarousel";
+import CommunityRow from "@/features/dashboard/components/CommunityRow";
 
 export default function RecentActivity() {
 	const [range, setRange] = useState<"1m" | "6m" | "1y">("1m");

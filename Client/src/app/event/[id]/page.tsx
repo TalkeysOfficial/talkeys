@@ -5,12 +5,12 @@ import { ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { useEventDetails } from "@/lib/hooks/useEventDetails";
-import { EventLoadingView } from "@/components/Events/EventLoadingView";
-import { EventErrorView } from "@/components/Events/EventErrorView";
-import { EventNotFoundView } from "@/components/Events/EventNotFoundView";
+import { useEventDetails } from "@/features/events/hooks/useEventDetails";
+import { EventLoadingView } from "@/features/events/components/EventLoadingView";
+import { EventErrorView } from "@/features/events/components/EventErrorView";
+import { EventNotFoundView } from "@/features/events/components/EventNotFoundView";
 import { Button } from "@/components/ui/button";
-import ParticularEventPage from "@/components/Events/ParticularEventPage";
+import ParticularEventPage from "@/features/events/components/ParticularEventPage";
 
 export default function EventPage() {
 	const params = useParams();

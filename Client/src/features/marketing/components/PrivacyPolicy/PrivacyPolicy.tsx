@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { sections } from "@/components/PrivacyPolicy/data";
-import AnimatedBackgroundElements from "@/components/AnimatedBackgroundElements";
+import { sections } from "@/features/marketing/components/PrivacyPolicy/data";
+import AnimatedBackgroundElements from "@/features/marketing/components/AnimatedBackgroundElements";
 
 export default function PrivacyPolicyPage() {
 	const [activeSection, setActiveSection] = useState<string | null>(null);

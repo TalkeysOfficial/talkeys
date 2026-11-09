@@ -1,14 +1,13 @@
 "use client";
 
-import EventCarousel from "@/components/EventCarousel";
-import Hero from "@/components/Hero";
-import CommunityCarousel from "@/components/CommunityCarousal";
-import InfluencerCarousal from "@/components/InfluencerCarousal";
-// import HostEventSection from "@/components/HostEventSection";
+import EventCarousel from "@/features/events/components/EventCarousel";
+import Hero from "@/features/marketing/components/Hero";
+import CommunityCarousel from "@/features/marketing/components/CommunityCarousal";
+import InfluencerCarousal from "@/features/marketing/components/InfluencerCarousal";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
-import PreviusCollabs from "@/components/PreviousCollabs";
+import PreviusCollabs from "@/features/marketing/components/PreviousCollabs";
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
@@ -61,7 +60,6 @@ export default function Home() {
       <PreviusCollabs />
       <CommunityCarousel />
       <InfluencerCarousal />
-      {/*<HostEventSection />*/}
     </GoogleOAuthProvider>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getStoredAccessToken } from "@/lib/utils/authToken";
+import { getStoredAccessToken } from "@/features/auth/authToken";
 
 interface AuthContextType {
 	isSignedIn: boolean;

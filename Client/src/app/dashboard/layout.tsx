@@ -2,7 +2,7 @@
 
 import React from "react";
 import Sidebar from "./Sidebar";
-import { useAuth } from "@/lib/authContext";
+import { useAuth } from "@/features/auth/authContext";
 import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({

@@ -9,7 +9,7 @@ import { ScrollProgress } from "@/components/magicui/scroll-progress";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import { Toaster } from "@/components/ui/sonner";
 
-import { AuthProvider } from "@/lib/authContext";
+import { AuthProvider } from "@/features/auth/authContext";
 
 const geistSans = localFont({
 	src: "./../components/fonts/GeistVF.woff",

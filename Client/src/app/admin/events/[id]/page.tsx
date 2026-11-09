@@ -1,4 +1,4 @@
-import EventStatsPage from "@/components/admin/EventStatsPage";
+import EventStatsPage from "@/features/admin/components/EventStatsPage";
 
 export default function AdminEventStatsRoute({
 	params,

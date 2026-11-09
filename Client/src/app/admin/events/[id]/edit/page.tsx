@@ -1,4 +1,4 @@
-import EditEventPage from "@/components/admin/EditEventPage";
+import EditEventPage from "@/features/admin/components/EditEventPage";
 
 export default function AdminEditEventRoute({
 	params,

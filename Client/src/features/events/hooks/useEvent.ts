@@ -1,7 +1,7 @@
 // hooks/useEvents.ts
 import { useEffect, useState } from "react";
 import type { Event } from "@/types/types";
-import { getStoredAccessToken } from "@/lib/utils/authToken";
+import { getStoredAccessToken } from "@/features/auth/authToken";
 
 export function useEvents() {
 	const [allEvents, setAllEvents] = useState<Event[]>([]);

@@ -1,5 +1,5 @@
 // services/eventApi.ts
-import { getStoredAccessToken } from "@/lib/utils/authToken";
+import { getStoredAccessToken } from "@/features/auth/authToken";
 
 export type ApiError = { message?: string; error?: string; status?: number };
 const BASE = process.env.BACKEND_URL;

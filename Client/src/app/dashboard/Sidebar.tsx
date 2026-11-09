@@ -11,7 +11,7 @@ import {
 import {
   Avatar, AvatarImage, AvatarFallback,
 } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/authContext";
+import { useAuth } from "@/features/auth/authContext";
 
 const NAV = {
   general: [

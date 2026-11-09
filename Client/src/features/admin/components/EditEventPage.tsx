@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import AdminEventForm from "@/components/admin/AdminEventForm";
+import AdminEventForm from "@/features/admin/components/AdminEventForm";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Event } from "@/types/types";
 

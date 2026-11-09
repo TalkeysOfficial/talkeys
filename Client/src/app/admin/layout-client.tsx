@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import MobileNav from "@/components/admin/layout-mobile-nav";
+import MobileNav from "@/features/admin/components/layout-mobile-nav";
 
 export default function AdminLayoutClient() {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -8,7 +8,7 @@ import type { Event } from "@/types/types";
 import { useMediaQuery } from "react-responsive";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import { cn, getSafeImageSrc } from "@/lib/utils";
-import { getEventDisplayPrice } from "@/lib/utils/eventUtils";
+import { getEventDisplayPrice } from "@/features/events/eventUtils";
 import Link from "next/link";
 import locationSvg from "@/public/images/location_on.svg";
 import calendarSvg from "@/public/images/calendar_month.svg";

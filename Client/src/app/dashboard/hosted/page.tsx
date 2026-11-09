@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import RangePills      from "@/components/dashboard/RangePills";
-import EventCarousel   from "@/components/EventCarousel";
-import { useEvents }   from "@/lib/hooks/useEvents";
+import RangePills      from "@/features/dashboard/components/RangePills";
+import EventCarousel   from "@/features/events/components/EventCarousel";
+import { useEvents }   from "@/features/events/hooks/useEvents";
 
 export default function HostedPage() {
   const [period, setPeriod] = useState<"1m" | "6m" | "1y">("1m");

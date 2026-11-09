@@ -2,7 +2,7 @@ import type React from "react";
 import Link from "next/link";
 import { QrCode, PlusCircle, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
 import AdminLayoutClient from "./layout-client";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {

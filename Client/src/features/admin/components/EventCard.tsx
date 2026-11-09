@@ -9,7 +9,7 @@ import { BarChart3, Pencil } from "lucide-react";
 import { CardContainer, CardBody, CardItem } from "@/components/ui/3d-card";
 import type { Event } from "@/types/types";
 import { cn, getSafeImageSrc } from "@/lib/utils";
-import { getEventDisplayPrice } from "@/lib/utils/eventUtils";
+import { getEventDisplayPrice } from "@/features/events/eventUtils";
 
 interface EventCardProps {
 	event: Event;

@@ -3,7 +3,7 @@
 import type React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Event } from "@/types/types";
-import EventCard from "@/components/admin/EventCard";
+import EventCard from "@/features/admin/components/EventCard";
 import { cn } from "@/lib/utils";
 
 interface EventsGridProps {

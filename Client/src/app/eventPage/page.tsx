@@ -2,12 +2,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useEvents } from "@/lib/hooks/useEvent";
-import { groupEventsByCategory } from "@/lib/utils/eventUtils";
+import { useEvents } from "@/features/events/hooks/useEvent";
+import { groupEventsByCategory } from "@/features/events/eventUtils";
 import PageHeader from "@/components/ui/shared/PageHeader";
-import EventCarousel from "@/components/EventCarousel";
-import { EventToggleButton } from "@/components/Events/EventToggleButton";
-import { CategoryTabs } from "@/components/Events/CategoryTabs";
+import EventCarousel from "@/features/events/components/EventCarousel";
+import { EventToggleButton } from "@/features/events/components/EventToggleButton";
+import { CategoryTabs } from "@/features/events/components/CategoryTabs";
 
 export default function EventPage() {
 	const { allEvents, isLoading } = useEvents();

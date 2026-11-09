@@ -1,5 +1,5 @@
 import { Event } from "@/types/types"; // adjust path if needed
-import { getEventDisplayPrice, getEventPassTypes } from "@/lib/utils/eventUtils";
+import { getEventDisplayPrice, getEventPassTypes } from "@/features/events/eventUtils";
 
 export default function EventJsonLd({ event }: { event: Event }) {
 	const datePart = new Date(event.startDate).toISOString().split("T")[0]; // "2025-08-07"
