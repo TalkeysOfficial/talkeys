@@ -39,7 +39,7 @@
     "react-hook-form": "^7.91.0",
     "react-qr-code": "^2.2.0",
     "react-responsive": "^10.0.1",
-    "sharp": "^0.33.5",
+    "sharp": "0.35.5",
     "sonner": "^2.0.8",
     "swiper": "12.2.0",
     "swr": "^2.5.1",
