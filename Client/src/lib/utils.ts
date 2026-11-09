@@ -5,11 +5,6 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-// utils.ts
-export function isTimePassed(dateString: string) {
-	return new Date(dateString).getTime() <= Date.now();
-}
-
 const ALLOWED_REMOTE_IMAGE_HOSTS = new Set([
 	"res.cloudinary.com",
 	"api.dicebear.com",

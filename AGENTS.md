@@ -58,7 +58,7 @@ Layered Express app, single router file, no framework-level DI:
 - `app/` — Next.js App Router pages. Notable routes: `dashboard/` (organizer dashboard: bookmarks, hosted, registered, profile, recent-activity), `admin/` (admin-only tools: event creation, QR scanner), `event/[id]/` and `eventPage/` (with an intercepting route `eventPage/(..)event/[id]/` for modal-style event previews), ticket status pages (`ticket/success|pending|failure`).
 - `lib/authContext.tsx` — global sign-in state via React Context, backed by `accessToken` in `localStorage` (not cookies/session). `useAuth()` hook throws outside the provider.
 - `lib/services/eventApi.ts` — typed fetch wrappers for backend calls; reads `BACKEND_URL` from env and attaches the bearer token from `localStorage` via `authHeaders()`. Follow this pattern (typed function, `authHeaders()`, throw parsed error body on `!res.ok`) when adding new API calls rather than calling `fetch` ad hoc in components.
-- `lib/hooks/` — data-fetching/domain hooks (`useEvents`, `useEventDetails`, `useEventLike`, `usePassManagement`, `useTeamRegistration`, `useFriendManager`, `useUser`, `useActivity`).
+- `lib/hooks/` — data-fetching/domain hooks (`useEvents`, `useEventDetails`, `useEventLike`, `usePassManagement`, `useUser`, `useActivity`).
 - `components/ui/` — shadcn/ui primitives (`components.json` present — use the shadcn CLI conventions for new primitives, Tailwind + `class-variance-authority` + `tailwind-merge`).
 - `components/ProtectedRoute.tsx` — client-side route guarding based on `authContext`.
 - Backend base URL is injected via `next.config.mjs`'s `env.BACKEND_URL` (from `Client/.env`), not `NEXT_PUBLIC_*`, except `NEXT_PUBLIC_BASE_URL` which is exposed to the browser directly.

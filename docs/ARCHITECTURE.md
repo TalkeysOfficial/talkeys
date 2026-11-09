@@ -138,6 +138,7 @@ stateDiagram-v2
 
 - `createTeam` (`team.controller.js`) requires an `isTeamEvent` event and a user not already in a team for that event. It retries code generation 5 times.
 - `joinTeam` is idempotent for existing members (200). It rejects members of another team for the same event and full teams. The capacity check is read-then-write, not atomic.
+- The Client has no team UI or team API call (unused ones were removed in Phase 4a). The Server endpoints stay and are covered by tests.
 - Booking a team event requires `teamCode` and membership (`getTeamBooking`). Other members become `friends` on the pass.
 
 ## 5. Identity and roles
@@ -156,6 +157,5 @@ stateDiagram-v2
 
 ## Other stored state without transitions
 
-- `ContactUs.status` (`pending | responded | spam`): no route writes contact messages.
 - `reqEvent`: created by `POST /reqEvent`; never approved or read by any route.
 - `InfluencerRegistration`: created by `POST /register`.

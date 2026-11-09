@@ -42,36 +42,6 @@ export async function getPass(eventId: string) {
 	return data;
 }
 
-export async function joinTeam(teamCode: string, phoneNumber: string) {
-	const res = await fetch(apiUrl("/joinTeam"), {
-		method: "POST",
-		headers: authHeaders(),
-		body: JSON.stringify({ teamCode, phoneNumber }),
-	});
-	const data = await parseJson(res);
-	if (!res.ok) throwApiError(res, data as ApiError);
-	return data as { teamName: string };
-}
-
-export async function createTeamApi(opts: {
-	phoneNumber: string;
-	teamName: string;
-	eventId: string;
-}) {
-	const res = await fetch(apiUrl("/createTeam"), {
-		method: "POST",
-		headers: authHeaders(),
-		body: JSON.stringify({
-			newPhoneNumber: opts.phoneNumber,
-			teamName: opts.teamName,
-			eventId: opts.eventId,
-		}),
-	});
-	const data = await parseJson(res);
-	if (!res.ok) throwApiError(res, data as ApiError);
-	return data as { team: { teamCode: string; teamName: string } };
-}
-
 export async function likeEvent(eventId: string) {
 	const res = await fetch(apiUrl(`/likeEvent/${eventId}`), {
 		method: "GET",
