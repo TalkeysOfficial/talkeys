@@ -8,7 +8,7 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "test": "node --test",
+        "test": "node --test test/*.test.js test/characterization/*.test.js",
         "migrate:pass-types": "node src/scripts/migrateEventPassTypes.js"
     },
     "keywords": [
@@ -44,6 +44,8 @@
         "zod": "^3.25.76"
     },
     "devDependencies": {
-        "nodemon": "^3.1.14"
+        "mongodb-memory-server": "^11.3.0",
+        "nodemon": "^3.1.14",
+        "supertest": "^7.3.2"
     }
 }
