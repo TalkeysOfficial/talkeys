@@ -10,12 +10,12 @@
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
-        "express": "5.3.0",
+        "express": "^5.3.0",
         "express-async-handler": "^1.2.0",
         "express-custom-error": "^1.9.4",
         "express-validator": "^7.3.2",
         "google-auth-library": "^10.9.1",
-        "joi": "^17.13.9",
+        "joi": "^18.3.2",
         "json2csv": "^6.0.0-alpha.2",
         "jsonwebtoken": "^9.0.3",
         "mongoose": "^8.24.8",
@@ -34,9 +34,17 @@
     },
   },
   "packages": {
-    "@hapi/hoek": ["@hapi/hoek@9.3.0", "", {}, "sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ=="],
+    "@hapi/address": ["@hapi/address@5.1.1", "", { "dependencies": { "@hapi/hoek": "^11.0.2" } }, "sha512-A+po2d/dVoY7cYajycYI43ZbYMXukuopIsqCjh5QzsBCipDtdofHntljDlpccMjIfTy6UOkg+5KPriwYch2bXA=="],
 
-    "@hapi/topo": ["@hapi/topo@5.1.0", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg=="],
+    "@hapi/formula": ["@hapi/formula@3.0.2", "", {}, "sha512-hY5YPNXzw1He7s0iqkRQi+uMGh383CGdyyIGYtB+W5N3KHPXoqychklvHhKCC9M3Xtv0OCs/IHw+r4dcHtBYWw=="],
+
+    "@hapi/hoek": ["@hapi/hoek@11.0.7", "", {}, "sha512-HV5undWkKzcB4RZUusqOpcgxOaq6VOAH7zhhIr2g3G8NF/MlFO75SjOr2NfuSx0Mh40+1FqCkagKLJRykUWoFQ=="],
+
+    "@hapi/pinpoint": ["@hapi/pinpoint@2.0.1", "", {}, "sha512-EKQmr16tM8s16vTT3cA5L0kZZcTMU5DUOZTuvpnY738m+jyP3JIUj+Mm1xc1rsLkGBQ/gVnfKYPwOmPg1tUR4Q=="],
+
+    "@hapi/tlds": ["@hapi/tlds@1.1.7", "", {}, "sha512-MgNjRwy9Ti92yVAixLmDc8dd1bJIKwO9qlWCfFQRwRmUEDPQHYn4G6hwPFvFGUTzAa0FsS+inMjLin7GnyBRhA=="],
+
+    "@hapi/topo": ["@hapi/topo@6.0.2", "", { "dependencies": { "@hapi/hoek": "^11.0.2" } }, "sha512-KR3rD5inZbGMrHmgPxsJ9dbi6zEK+C3ZwUwTa+eMwWLz7oijWUTWD2pMSNNYJAU6Qq+65NkxXjqHr/7LM2Xkqg=="],
 
     "@mongodb-js/saslprep": ["@mongodb-js/saslprep@1.6.3", "", { "dependencies": { "sparse-bitfield": "^3.0.3" } }, "sha512-aHGFvT95c82CoQ7hb6qXpz8Hcc5PJb3ZtQ+P01QDBbyQday0mjcrJPeNJOHCgWe0pGX0zKmKP+1mWi/I/BCX9Q=="],
 
@@ -44,11 +52,7 @@
 
     "@paralleldrive/cuid2": ["@paralleldrive/cuid2@2.3.1", "", { "dependencies": { "@noble/hashes": "^1.1.5" } }, "sha512-XO7cAxhnTZl0Yggq6jOgjiOHhbgcO4NqFqwSmQpjK3b6TEE6Uj/jfSk6wzYyemh3+I0sHirKSetjQwn5cZktFw=="],
 
-    "@sideway/address": ["@sideway/address@4.1.5", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q=="],
-
-    "@sideway/formula": ["@sideway/formula@3.0.1", "", {}, "sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg=="],
-
-    "@sideway/pinpoint": ["@sideway/pinpoint@2.0.0", "", {}, "sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ=="],
+    "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "@streamparser/json": ["@streamparser/json@0.0.6", "", {}, "sha512-vL9EVn/v+OhZ+Wcs6O4iKE9EUpwHUqHmCtNUMWjqp+6dr85+XPOSGTEsqYNq1Vn04uk9SWlOVmx9J48ggJVT2Q=="],
 
@@ -262,7 +266,7 @@
 
     "is-promise": ["is-promise@4.0.0", "", {}, "sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ=="],
 
-    "joi": ["joi@17.13.9", "", { "dependencies": { "@hapi/hoek": "^9.3.0", "@hapi/topo": "^5.1.0", "@sideway/address": "^4.1.5", "@sideway/formula": "^3.0.1", "@sideway/pinpoint": "^2.0.0" } }, "sha512-llFCT2rVtfwgBCaIqxtjim+iHqrgss4ONiGSYiiGH9jnjWq90ppSRffqmqKvwpa8W+YfILyQV6XyGcegXX2T4g=="],
+    "joi": ["joi@18.3.2", "", { "dependencies": { "@hapi/address": "^5.1.1", "@hapi/formula": "^3.0.2", "@hapi/hoek": "^11.0.7", "@hapi/pinpoint": "^2.0.1", "@hapi/tlds": "^1.1.1", "@hapi/topo": "^6.0.2", "@standard-schema/spec": "^1.1.0" } }, "sha512-iUivApKYw5GpZmq2Sy6El99j7noo8QSUFZlyQtr3HCkosC/b5wKF6/Y3teiHIlaM8WI38sAT3P+51rB0lhAhJA=="],
 
     "json-bigint": ["json-bigint@1.0.0", "", { "dependencies": { "bignumber.js": "^9.0.0" } }, "sha512-SiPv/8VpZuWbvLSMtTDU8hEfrZWg/mH/nV/b4o0CYbSxu1UIQPLdwKOCIyLQX+VIPO5vrLX3i8qtqFyhdPSUSQ=="],
 
