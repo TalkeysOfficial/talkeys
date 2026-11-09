@@ -27,7 +27,7 @@
         "express-async-handler": "^1.2.0",
         "express-custom-error": "^1.9.4",
         "express-validator": "^7.3.2",
-        "google-auth-library": "^10.9.1",
+        "google-auth-library": "^11.3.4",
         "joi": "^18.3.2",
         "json2csv": "^6.0.0-alpha.2",
         "jsonwebtoken": "^9.0.3",
