@@ -18,7 +18,7 @@ Browser ── Client/ (Next.js 14, Vercel) ──HTTP + Bearer JWT──▶ Ser
 - Auth is stateless: `POST /verify` exchanges a Google ID token for a JWT signed with `SECRET`
   (`Server/src/controllers/authentication.js` `login`). `verifyToken`
   (`Server/src/middleware/oauth.js`) re-reads the user by the token's `email` on every request.
-- Server bootstrap: `Server/src/server.js` builds the Express app, connects Mongo, then listens.
+- Server bootstrap: `Server/src/app.js` builds the Express app; `Server/src/server.js` connects Mongo and listens.
   Global middleware order: `express.json` → `urlencoded` → static `/uploads` → morgan (stdout and
   `Server/log/access.log`) → `cookieParser` → `cors()` (any origin) → force JSON content type →
   router → `express-custom-error` handler → 404 JSON.
@@ -87,7 +87,7 @@ stateDiagram-v2
 | none | Pending `pending/inactive/pending` | `bookTicket`, paid event and amount > 0 | JWT, valid event, team membership, basic-pass rule, inventory | reserves seats, creates PhonePe order, `expiresAt = now + 20 min` | `passes.controller.js` `bookTicket` |
 | none | Active `active/active/completed` | `bookTicket`, free or amount 0 | same | reserves seats, `qrStrings` built, `passUUID` set by pre-save | `bookTicket` |
 | Pending | PaymentFailed `payment_failed/inactive/failed` | PhonePe order creation throws | none | releases seats; HTTP 500 | `bookTicket` inner catch |
-| Pending, PaymentFailed, Expired | Active `active/active/completed` | webhook `checkout.order.completed`; status check `COMPLETED` (callback, `getTicketStatus`) | pass found by `merchantOrderId`; re-reserves seats if released | `passUUID`, `qrStrings`, `confirmedAt`, `user.activePasses += 1` | `processPaymentConfirmation` |
+| Pending, PaymentFailed, Expired | Active `active/active/completed` | webhook `checkout.order.completed`; status check `COMPLETED` (callback, `getTicketStatus`) | pass found by `merchantOrderId`; re-reserves seats if released | `passUUID`, `qrStrings`, `confirmedAt`, `$inc activePasses` on the user (field is not in the User schema, so it is silently dropped) | `processPaymentConfirmation` |
 | Active | Active | repeat confirmation | `paymentStatus === completed` | repairs missing UUID or QR, no double count | `processPaymentConfirmation` |
 | any non-completed | PaymentFailed | webhook `checkout.order.failed`; status check `FAILED` | `paymentStatus !== completed` | releases seats | `processPaymentFailure` |
 | Pending past `expiresAt` | Expired `expired/expired/failed` | `cleanupExpiredPasses` | none | releases seats | not called anywhere |
@@ -105,6 +105,8 @@ Invariants and defects (pinned by tests, fixed in later phases):
 - **No duplicate-booking guard.** One user can hold many passes for the same event, and any team member can book the whole team again.
 - **Bookings ignore registration state.** `bookTicket` checks neither `isRegistrationOpen`, `isLive`, `status` nor dates. Only pass-type `isActive` is checked (`resolvePassType`).
 - **`getTicketStatus` is public** and returns the owner's name, email and phone for any pass id.
+- **Only one unpaid pass can exist at a time.** `qrStrings.id` has a unique index that is not sparse (`passes.model.js`), so every unpaid pass (empty `qrStrings`) indexes as `null` and a second one fails with E11000 (HTTP 500). Applies wherever the index is built.
+- **Plain-text and HTML responses are labelled `application/json`.** The global content-type middleware sets it for every non-multipart response, including the payment error redirect page and `/logout`.
 
 ## 2. Event inventory
 
@@ -125,7 +127,7 @@ The `Event` pre-validate hook (`events.model.js`) synthesises a single "General 
 - `status` enum `draft | published | cancelled`, default `published`. No code writes `draft` or `cancelled`.
 - `isRegistrationOpen`, `isLive` and `startRegistrationDate` are set by admins and organizers through create and edit.
 - `getStatus()` (`events.model.js`) derives a display state: not `isRegistrationOpen` → `registration_closed`; before `startRegistrationDate` → `coming_soon`; `isLive` → `live`; else `ended`.
-- `getEvents` returns every event regardless of `status` or `visibility` unless a `visibility` query is passed. `search` goes unescaped into `$regex`.
+- `getEvents` returns every event regardless of `status` or `visibility` unless a `visibility` query is passed. `search` goes unescaped into `$regex`. The response `status` field is the derived `getStatus()` value, which overwrites the stored `draft | published | cancelled`.
 
 ## 4. Team membership
 
@@ -145,7 +147,7 @@ stateDiagram-v2
 
 - `User.role` enum `user | admin | organizer`, default `user` (`users.model.js`). No route changes a role; it is set directly in the database.
 - `verifyToken` responses: no token 403, bad token 401, unknown email 404.
-- `checkRole` rejects other roles with 403. `canScan` and `admnDetails` re-check `admin` inside the handler.
+- `checkRole` rejects other roles with 403. `canScan` and `admnDetails` re-check `admin` inside the handler. Because `checkRole(["admin"])` guards everything after it, an unknown path returns 403 to non-admins; only admins reach the JSON 404.
 - `PATCH /dashboard/profile` only writes `displayName`, `about`, `pronouns` and `avatarUrl`, but its response includes the user's `accessToken` and `refreshToken`.
 
 ## 6. Client payment flow
