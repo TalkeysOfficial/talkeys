@@ -828,7 +828,8 @@ const handlePaymentWebhook = async (req, res) => {
     if (event === "checkout.order.completed") {
       // PhonePe amounts are in paise; reject a confirmation that does not match the booking.
       const pass = await Pass.findOne({ merchantOrderId: payload.merchantOrderId }).select("amount");
-      if (pass && Number(payload.amount) !== Math.round((pass.amount || 0) * 100)) {
+      // Only a definite mismatch is rejected: a payload without a top-level amount must not fail a real payment.
+      if (pass && payload.amount != null && Number(payload.amount) !== Math.round((pass.amount || 0) * 100)) {
         console.error("Webhook amount mismatch for", payload.merchantOrderId);
         return res.status(400).json({ error: "Amount mismatch" });
       }

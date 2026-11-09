@@ -245,6 +245,16 @@ test.describe("webhook", () => {
     assert.equal((await h.Pass.findById(passId)).paymentStatus, "pending");
   });
 
+  test("a signed confirmation without a top-level amount is still accepted", async () => {
+    const { merchantOrderId, passId } = await bookPaid();
+    const res = await request(h.app)
+      .post("/api/payment/webhook")
+      .set({ "Content-Type": "application/json", ...HOOK_AUTH })
+      .send(JSON.stringify({ event: "checkout.order.completed", payload: { merchantOrderId } }));
+    assert.equal(res.status, 200);
+    assert.equal((await h.Pass.findById(passId)).paymentStatus, "completed");
+  });
+
   test.describe("with credentials configured", () => {
     test.beforeEach(() => {
       process.env.PHONEPE_WEBHOOK_USERNAME = "hook-user";
