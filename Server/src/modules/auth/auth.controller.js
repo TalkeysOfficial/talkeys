@@ -31,6 +31,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid Google token" });
     }
 
+    if (!payload?.email || payload.email_verified !== true) {
+      return res.status(401).json({ message: "Google email is not verified" });
+    }
+
     var user = await User.findOne({ email: payload.email });
 
     if (!user) {

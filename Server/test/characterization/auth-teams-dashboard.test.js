@@ -32,6 +32,11 @@ test.describe("POST /verify (Google login)", () => {
     assert.equal(res.status, 401);
     assert.equal(res.body.message, "Invalid Google token");
   });
+  test("Google account with an unverified email -> 401 and no user is created", async () => {
+    const res = await login("Bearer google:ghost@test.dev:Ghost:unverified");
+    assert.equal(res.status, 401);
+    assert.equal(await h.User.countDocuments({ email: "ghost@test.dev" }), 0);
+  });
   test("first login creates a role=user account and returns a JWT that verifyToken accepts", async () => {
     const res = await login("Bearer google:new@test.dev:Newbie");
     assert.equal(res.status, 200);

@@ -53,9 +53,10 @@ mock.method(axios, "get", async (url) => {
 
 // Fake Google ID-token verification: token "google:<email>:<name>" is valid.
 mock.method(OAuth2Client.prototype, "verifyIdToken", async ({ idToken }) => {
-  const [prefix, email, name] = String(idToken).split(":");
+  const [prefix, email, name, flag] = String(idToken).split(":");
   if (prefix !== "google") throw new Error("Invalid token");
-  return { getPayload: () => ({ sub: `sub-${email}`, email, name: name || "Test" }) };
+  // A fourth segment "unverified" simulates a Google account whose email is not verified.
+  return { getPayload: () => ({ sub: `sub-${email}`, email, name: name || "Test", email_verified: flag !== "unverified" }) };
 });
 
 let mongod;
