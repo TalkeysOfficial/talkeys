@@ -35,17 +35,30 @@ const nextConfig = {
 				protocol: "https",
 				hostname: "encrypted-tbn0.gstatic.com",
 			},
-			{
-				protocol: "http",
-				hostname: "localhost",
-			},
-			{
-				protocol: "http",
-				hostname: "127.0.0.1",
-			},
+			// Local Server uploads are only needed in development.
+			...(process.env.NODE_ENV === "production"
+				? []
+				: [
+						{ protocol: "http", hostname: "localhost" },
+						{ protocol: "http", hostname: "127.0.0.1" },
+					]),
 		],
 		dangerouslyAllowSVG: true,
-		contentSecurityPolicy: "default-src 'self'; img-src * data:blob:;",
+		// SVGs (dicebear avatars) are served sandboxed with scripts disabled.
+		contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+	},
+	async headers() {
+		return [
+			{
+				source: "/:path*",
+				headers: [
+					{ key: "X-Content-Type-Options", value: "nosniff" },
+					{ key: "X-Frame-Options", value: "DENY" },
+					{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+					{ key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+				],
+			},
+		];
 	},
 };
 
