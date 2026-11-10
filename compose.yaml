@@ -6,7 +6,8 @@ services:
     image: talkeys/backend
     env_file: Server/.env
     ports:
-      - "4890:8000"
+      # Loopback only: nginx on the VM fronts api.talkeys.xyz.
+      - "127.0.0.1:4890:8000"
     volumes:
       - server-log:/app/log
     restart: unless-stopped

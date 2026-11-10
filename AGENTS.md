@@ -33,7 +33,7 @@ bun run test      # node --test test/*.test.js test/characterization/*.test.js (
 Env vars: copy `Server/.env.example` to `Server/.env` and `Client/.env.example` to `Client/.env`, and fill them in. Never print or commit real values (`*.env` is git-ignored).
 
 ### Docker
-`Server/Dockerfile` (Bun installs deps, Node 24 runs) and `Client/Dockerfile` (standalone Next build) are used by root `compose.yaml` (prod-shaped: `server` only, host `4890` → container `8000`, env from `Server/.env`) and `compose.local.yaml` (adds `mongo` and `client`). Local stack: `docker compose -f compose.yaml -f compose.local.yaml up --build`. Never name a file `compose.override.yaml`: the VM would auto-load it. `.github/workflows/docker.yml` deploys over SSH on push to `main` using the `DEPLOY_*` secrets.
+`Server/Dockerfile` (Bun installs deps, Node 24 runs) and `Client/Dockerfile` (standalone Next build) are used by root `compose.yaml` (prod-shaped: `server` only, host `127.0.0.1:4890` → container `8000`, fronted by nginx on the VM, env from `Server/.env`) and `compose.local.yaml` (adds `mongo` and `client`). Local stack: `docker compose -f compose.yaml -f compose.local.yaml up --build`. Never name a file `compose.override.yaml`: the VM would auto-load it. `.github/workflows/docker.yml` deploys over SSH on push to `main` using the `DEPLOY_*` secrets.
 
 ## Conventions
 
@@ -42,6 +42,7 @@ Env vars: copy `Server/.env.example` to `Server/.env` and `Client/.env.example` 
 - Server tests live in `Server/test/` (`characterization/` pins current behavior, including known quirks). Do not edit a test to make it pass; change it only when the behavior change is intended.
 - Before pushing: `bun run test` in `Server/`, and `bun run typecheck && bun run lint && bun run build` in `Client/`. Every push to `main` deploys the Client to Vercel production and the Server to the VM.
 - Stage files by explicit path. Commit messages are imperative sentence case (`Remove stray root files`).
+- `Server/src/app.js` allows CORS only from talkeys.xyz, www.talkeys.xyz, `FRONTEND_URL` and `CORS_ORIGINS`, and rate-limits per client IP (600/min overall; 60/min on `/verify` and booking). It trusts `X-Forwarded-For` only from private hops.
 - State machines and the full route table: `docs/ARCHITECTURE.md`. Project overview and setup: `README.md`. Keep this file the only agent doc (no `CLAUDE.md`).
 
 ## Backend architecture (`Server/src`)
