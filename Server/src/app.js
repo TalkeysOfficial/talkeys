@@ -17,8 +17,8 @@ const app = express();
 app.set("trust proxy", "loopback, linklocal, uniquelocal");
 
 // Configure Express App Instance
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 // Express 5 leaves req.body undefined when no body was parsed; handlers rely on the Express 4 default of {}.
 app.use((req, res, next) => {
 	req.body ??= {};

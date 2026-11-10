@@ -27,3 +27,13 @@ test("login is limited to 60 requests per minute per client IP", async () => {
   const other = await request(app).post("/verify").set("X-Forwarded-For", "203.0.113.8");
   assert.notEqual(other.status, 429);
 });
+
+test("JSON bodies over 1 MB are rejected before any handler runs", async () => {
+  const res = await request(app)
+    .post("/verify")
+    .set("X-Forwarded-For", "203.0.113.50")
+    .set("Content-Type", "application/json")
+    .send(JSON.stringify({ pad: "x".repeat(1024 * 1024 + 10) }));
+  assert.equal(res.status, 400);
+  assert.equal(res.body.status, false);
+});
