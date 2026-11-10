@@ -168,6 +168,7 @@ compose.local.yaml      Adds mongo and client for local use
 
 - **Client:** Vercel builds every push to `main` and deploys it to production.
 - **Server:** `.github/workflows/docker.yml` SSHes to the VM on every push to `main`, resets the checkout to `origin/main` and runs `docker compose up --build -d server`. It needs the repository secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`, `DEPLOY_SSH_KEY` and `DEPLOY_KNOWN_HOSTS`.
+- The API listens only on the VM's loopback (`127.0.0.1:4890`); nginx on the VM fronts `api.talkeys.xyz`. nginx must forward the client IP (`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`), or every user shares one rate-limit bucket.
 - A MongoDB change that is not automatic: the `qrStrings.id` index on `passes` is now partial. Existing databases must drop the old one once: `db.passes.dropIndex("qrStrings.id_1")`.
 
 ## Contributing
