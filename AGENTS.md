@@ -28,12 +28,21 @@ No test suite is configured.
 ```bash
 bun run dev       # nodemon src/server.js (auto-reload)
 bun run start     # node src/server.js
-bun run test      # node --test
+bun run test      # node --test test/*.test.js test/characterization/*.test.js (in-memory MongoDB, no network)
 ```
-Env vars: copy `Server/.env.example` to `Server/.env` and fill it in.
+Env vars: copy `Server/.env.example` to `Server/.env` and `Client/.env.example` to `Client/.env`, and fill them in. Never print or commit real values (`*.env` is git-ignored).
 
 ### Docker
 `Server/Dockerfile` (Bun installs deps, Node 24 runs) and `Client/Dockerfile` (standalone Next build) are used by root `compose.yaml` (prod-shaped: `server` only, host `4890` → container `8000`, env from `Server/.env`) and `compose.local.yaml` (adds `mongo` and `client`). Local stack: `docker compose -f compose.yaml -f compose.local.yaml up --build`. Never name a file `compose.override.yaml`: the VM would auto-load it. `.github/workflows/docker.yml` deploys over SSH on push to `main` using the `DEPLOY_*` secrets.
+
+## Conventions
+
+- Bun installs and runs scripts; the runtime is Node 24. Lockfiles are `bun.lock` only, never `package-lock.json`.
+- Never run the Server against a real database: use `mongodb://localhost:27017/talkeys_dev` or the in-memory test DB.
+- Server tests live in `Server/test/` (`characterization/` pins current behavior, including known quirks). Do not edit a test to make it pass; change it only when the behavior change is intended.
+- Before pushing: `bun run test` in `Server/`, and `bun run typecheck && bun run lint && bun run build` in `Client/`. Every push to `main` deploys the Client to Vercel production and the Server to the VM.
+- Stage files by explicit path. Commit messages are imperative sentence case (`Remove stray root files`).
+- State machines and the full route table: `docs/ARCHITECTURE.md`. Project overview and setup: `README.md`. Keep this file the only agent doc (no `CLAUDE.md`).
 
 ## Backend architecture (`Server/src`)
 
