@@ -5,6 +5,9 @@
     "main": "src/server.js",
     "type": "commonjs",
     "packageManager": "bun@1.4.4",
+    "engines": {
+        "node": "24.x"
+    },
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
