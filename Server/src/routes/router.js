@@ -62,8 +62,8 @@ router.post("/joinTeam", Teams.joinTeam);
 router.post("/api/book-ticket", Passes.bookTicket);
 router.get("/api/passbyuuid/:passUUID", Passes.getPassByUUID);
 // Event Interaction Routes
-router.get("/likeEvent/:id", Events.likeEvent);
-router.get("/unlikeEvent/:id", Events.unlikeEvent);
+router.post("/likeEvent/:id", Events.likeEvent);
+router.post("/unlikeEvent/:id", Events.unlikeEvent);
 router.get("/getAllLikedEvents", Events.getAllLikedEvents);
 
 router.post("/bookPass", Passes.bookTicket); // Consider consolidating with /api/book-ticket

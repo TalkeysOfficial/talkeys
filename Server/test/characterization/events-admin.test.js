@@ -92,11 +92,19 @@ test.describe("likes", () => {
   test("like then unlike toggles membership on the user", async () => {
     const user = await h.makeUser();
     const event = await h.makeEvent();
-    const like = await request(h.app).get(`/likeEvent/${event._id}`).set(as(user));
+    const like = await request(h.app).post(`/likeEvent/${event._id}`).set(as(user));
     assert.equal(like.status, 200);
     assert.equal((await h.User.findById(user._id)).likedEvents.map(String).includes(String(event._id)), true);
-    const unlike = await request(h.app).get(`/unlikeEvent/${event._id}`).set(as(user));
+    const unlike = await request(h.app).post(`/unlikeEvent/${event._id}`).set(as(user));
     assert.equal(unlike.status, 200);
+    assert.equal((await h.User.findById(user._id)).likedEvents.length, 0);
+  });
+
+  test("GET no longer changes likes", async () => {
+    const user = await h.makeUser();
+    const event = await h.makeEvent();
+    const res = await request(h.app).get(`/likeEvent/${event._id}`).set(as(user));
+    assert.notEqual(res.status, 200);
     assert.equal((await h.User.findById(user._id)).likedEvents.length, 0);
   });
 });

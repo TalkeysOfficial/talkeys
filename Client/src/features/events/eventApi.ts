@@ -44,7 +44,7 @@ export async function getPass(eventId: string) {
 
 export async function likeEvent(eventId: string) {
 	const res = await fetch(apiUrl(`/likeEvent/${eventId}`), {
-		method: "GET",
+		method: "POST",
 		headers: authHeaders(),
 	});
 	const data = await parseJson(res);
@@ -53,7 +53,7 @@ export async function likeEvent(eventId: string) {
 }
 export async function unlikeEvent(eventId: string) {
 	const res = await fetch(apiUrl(`/unlikeEvent/${eventId}`), {
-		method: "GET",
+		method: "POST",
 		headers: authHeaders(),
 	});
 	const data = await parseJson(res);
