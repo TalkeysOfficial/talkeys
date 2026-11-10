@@ -15,8 +15,7 @@ const storage = multer.diskStorage({
 		cb(null, uploadsDir);
 	},
 	filename: (req, file, cb) => {
-		const extension = path.extname(file.originalname).toLowerCase();
-		cb(null, `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${extension}`);
+		cb(null, `${Date.now()}-${crypto.randomBytes(8).toString("hex")}`);
 	},
 });
 
@@ -52,6 +51,24 @@ const hasCloudinaryConfig = () =>
 const getBaseUrl = (req) =>
 	process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
 
+// The client-sent mimetype is not trusted: the stored extension comes from the file's magic bytes.
+const detectImageExtension = (filePath) => {
+	try {
+		const fd = fs.openSync(filePath, "r");
+		const bytes = Buffer.alloc(12);
+		fs.readSync(fd, bytes, 0, 12, 0);
+		fs.closeSync(fd);
+		if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return ".jpg";
+		if (bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return ".png";
+		const head = bytes.toString("latin1", 0, 6);
+		if (head === "GIF87a" || head === "GIF89a") return ".gif";
+		if (bytes.toString("latin1", 0, 4) === "RIFF" && bytes.toString("latin1", 8, 12) === "WEBP") return ".webp";
+		return null;
+	} catch {
+		return null;
+	}
+};
+
 function uploadEventImage(req, res) {
 	upload.single("image")(req, res, async (err) => {
 		if (err) {
@@ -67,6 +84,19 @@ function uploadEventImage(req, res) {
 				message: "No file provided",
 			});
 		}
+
+		const ext = detectImageExtension(req.file.path);
+		if (!ext) {
+			fs.unlinkSync(req.file.path);
+			return res.status(400).json({
+				status: "error",
+				message: "Unsupported image type",
+			});
+		}
+		const finalPath = req.file.path + ext;
+		fs.renameSync(req.file.path, finalPath);
+		req.file.path = finalPath;
+		req.file.filename += ext;
 
 		try {
 			if (hasCloudinaryConfig()) {
