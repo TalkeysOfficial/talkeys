@@ -3,6 +3,7 @@ const { errorHandler } = require("express-custom-error");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const { rateLimit } = require("express-rate-limit");
 const logger = require("./shared/logger");
 const path = require("path");
 // const PORT = 300;
@@ -10,6 +11,10 @@ const path = require("path");
 
 // Instantiate an Express Application
 const app = express();
+
+// The API sits behind nginx on the same host (Docker bridge): trust X-Forwarded-For only from private hops,
+// so req.ip is the real client and a direct client cannot spoof it.
+app.set("trust proxy", "loopback, linklocal, uniquelocal");
 
 // Configure Express App Instance
 app.use(express.json({ limit: "50mb" }));
@@ -28,10 +33,33 @@ app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 app.use(logger.dev, logger.combined);
 
 app.use(cookieParser());
-app.use(cors());
+
+// Browsers call the API directly, so only the site's own origins may read responses.
+// CORS_ORIGINS (comma-separated) adds more, e.g. a Vercel preview URL.
+const corsOptions = {
+	origin: [
+		"https://talkeys.xyz",
+		"https://www.talkeys.xyz",
+		process.env.FRONTEND_URL,
+		...(process.env.CORS_ORIGINS ?? "").split(","),
+	]
+		.map((origin) => origin?.trim())
+		.filter(Boolean),
+};
+app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.options(/.*/, cors());
+app.options(/.*/, cors(corsOptions));
+
+// Anti-flood limits per client IP. Generous on purpose: a whole campus can share one NAT address.
+const limitOptions = {
+	windowMs: 60 * 1000,
+	standardHeaders: "draft-8",
+	legacyHeaders: false,
+	message: { status: false, message: "Too many requests, try again in a minute." },
+};
+app.use(rateLimit({ ...limitOptions, limit: 600 }));
+app.use(["/verify", "/api/book-ticket", "/bookPass"], rateLimit({ ...limitOptions, limit: 60 }));
 
 // This middleware adds the json header to every response
 app.use((req, res, next) => {
