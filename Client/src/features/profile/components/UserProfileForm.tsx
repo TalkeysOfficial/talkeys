@@ -3,6 +3,7 @@
    import { useState, useRef } from "react";
    import { Button } from "@/components/ui/button";
    import clsx from "clsx";
+   import { updateProfile } from "@/features/profile/api";
    
    interface Props {
      user: { displayName?: string; about?: string };
@@ -23,14 +24,7 @@
        setStatus("err");
        return;
      }
-     const res = await fetch(`${API}/dashboard/profile`, {
-         method: "PATCH",
-         headers: {
-           "Content-Type": "application/json",
-           Authorization: `Bearer ${localStorage.getItem("accessToken") ?? ""}`,
-         },
-         body: JSON.stringify({ displayName, about }),
-       });
+    const res = await updateProfile({ displayName, about });
    
        if (res.ok) {
          localStorage.setItem("name", displayName);

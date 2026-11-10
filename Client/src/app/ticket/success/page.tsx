@@ -7,6 +7,7 @@ import QRCode from "react-qr-code";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense, useEffect, useState } from "react";
+import { getPassByUuid } from "@/features/tickets/api";
 
 const config = {
 	icon: CheckCircle,
@@ -64,18 +65,7 @@ function PaymentStatusContent() {
 			if (!uuid) return;
 
 			try {
-				const response = await fetch(
-					`${process.env.BACKEND_URL}/api/passbyuuid/${uuid}`,
-					{
-						method: "GET",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer ${localStorage.getItem(
-								"accessToken",
-							)}`,
-						},
-					},
-				);
+				const response = await getPassByUuid(uuid);
 				if (!response.ok) throw new Error("Failed to fetch pass details");
 
 				const data = await response.json();

@@ -7,12 +7,12 @@
    import { useRouter } from "next/navigation";
    
    import Sidebar    from "@/app/dashboard/Sidebar";
-   import Greeting   from "@/features/dashboard/components/Greeting";
-   import UserProfileForm from "@/features/dashboard/components/UserProfileForm";
+   import Greeting   from "@/features/profile/components/Greeting";
+   import UserProfileForm from "@/features/profile/components/UserProfileForm";
    
    import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
    import { Button } from "@/components/ui/button";
-   import { useUser } from "@/features/auth/hooks/useUser";
+   import { useUser } from "@/features/profile/hooks/useUser";
    import { RefreshCcw } from "lucide-react";
    
    const AVATAR_STYLES = [

@@ -1,6 +1,6 @@
 // hooks/usePassManagement.ts
 import { useCallback, useEffect, useState } from "react";
-import { bookPass, getPass } from "@/features/events/eventApi";
+import { bookPass, getPass } from "@/features/tickets/api";
 
 export function usePassManagement(eventId: string) {
   const [codes, setCodes] = useState<string[]>([]);
