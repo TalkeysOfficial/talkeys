@@ -21,11 +21,52 @@ Talkeys lets people browse events, book free or paid passes, get a QR ticket, an
 
 ## How it works
 
+```mermaid
+flowchart LR
+    U([Browser]) -->|pages| C["Client/<br/>Next.js 15 on Vercel"]
+    U -->|"REST + Bearer JWT"| N["nginx (VM)"]
+    N --> S["Server/<br/>Express 5 in Docker"]
+    S --> M[(MongoDB)]
+    S --> P[PhonePe Checkout v2]
+    S --> G[Google OAuth]
+    S --> CL[Cloudinary]
+    P -.->|"webhook + redirect callback"| S
 ```
-Browser ── Client/ (Next.js 15, Vercel) ──HTTP + Bearer JWT──▶ Server/ (Express 5, Docker) ──▶ MongoDB
-                                                                  ├──▶ PhonePe Checkout v2 (payments, webhook)
-                                                                  ├──▶ Google OAuth (ID token check at login)
-                                                                  └──▶ Cloudinary (event images)
+
+Booking a paid pass:
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant C as Client
+    participant S as Server
+    participant P as PhonePe
+    User->>C: Book on the event page
+    C->>S: POST /api/book-ticket
+    S->>S: Reserve seats, create pending pass
+    S->>P: Create order
+    P-->>S: paymentUrl
+    S-->>C: paymentUrl
+    C->>P: Redirect to checkout
+    P-->>S: Webhook (order completed / failed)
+    P->>S: GET /api/payment/callback/:merchantOrderId
+    S->>P: Check order status
+    S-->>User: 302 to /ticket/success (or failure, pending)
+    C->>S: Fetch pass with QR codes
+```
+
+Pass lifecycle (details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)):
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: paid booking
+    [*] --> Active: free booking
+    Pending --> Active: payment completed
+    Pending --> PaymentFailed: payment failed
+    Pending --> Expired: unpaid after 20 min
+    PaymentFailed --> Active: late payment confirmation
+    Expired --> Active: late payment confirmation
+    Active --> CheckedIn: admin scans every QR
 ```
 
 - `Client/`: Next.js App Router, TypeScript, Tailwind, shadcn/ui. Sign-in with Google.
@@ -74,7 +115,8 @@ Copy the `.env.example` files and fill in the values. Never commit real values: 
 | `PORT` | HTTP port (default 8000) |
 | `NODE_ENV` | `development` or `production` |
 | `DB_URL` | MongoDB connection string |
-| `FRONTEND_URL` | Client origin, used for payment redirects |
+| `FRONTEND_URL` | Client origin, used for payment redirects; also allowed by CORS |
+| `CORS_ORIGINS` | Extra comma-separated origins allowed by CORS (talkeys.xyz and www.talkeys.xyz are always allowed) |
 | `BASE_URL` | Public URL of this API, used for payment redirects and upload URLs |
 | `SECRET` | JWT signing secret |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID used to verify login tokens |

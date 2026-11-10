@@ -49,7 +49,7 @@ Middleware is positional in `Server/src/routes/router.js`: every route after
 
 The dashboard router is mounted before the global `verifyToken`, but applies its own.
 
-Exported but not routed: `cleanupExpiredPasses` (`modules/passes/passes.controller.js`).
+Not routed: `cleanupExpiredPasses` (`modules/passes/passes.controller.js`) runs every 5 minutes from `server.js`.
 Dead code (contact, registration, websocket, team verification, email service and templates, four unrouted pass handlers, the unused `Registration` model) was removed in Phase 4a; see git history before that commit.
 
 ## 1. Pass lifecycle (core)
@@ -71,7 +71,7 @@ stateDiagram-v2
     Pending --> PaymentFailed: PhonePe order creation fails
     Pending --> Active: webhook completed / status check COMPLETED
     Pending --> PaymentFailed: webhook failed / status check FAILED
-    Pending --> Expired: cleanupExpiredPasses (never scheduled)
+    Pending --> Expired: cleanupExpiredPasses (every 5 min)
     PaymentFailed --> Active: late COMPLETED confirmation
     Expired --> Active: late COMPLETED confirmation
     Pending --> Approved: organizer approveParticipant
@@ -87,13 +87,13 @@ stateDiagram-v2
 | Pending, PaymentFailed, Expired | Active `active/active/completed` | webhook `checkout.order.completed`; status check `COMPLETED` (callback, `getTicketStatus`) | pass found by `merchantOrderId`; re-reserves seats if released | `passUUID`, `qrStrings`, `confirmedAt`, `$inc activePasses` on the user (field is not in the User schema, so it is silently dropped) | `processPaymentConfirmation` |
 | Active | Active | repeat confirmation | `paymentStatus === completed` | repairs missing UUID or QR, no double count | `processPaymentConfirmation` |
 | any non-completed | PaymentFailed | webhook `checkout.order.failed`; status check `FAILED` | `paymentStatus !== completed` | releases seats | `processPaymentFailure` |
-| Pending past `expiresAt` | Expired `expired/expired/failed` | `cleanupExpiredPasses` | none | releases seats | not called anywhere |
+| Pending past `expiresAt` | Expired `expired/expired/failed` | `cleanupExpiredPasses` | none | releases seats | `server.js` timer, every 5 min |
 | Pending | `active/inactive/pending` | organizer `PUT /dashboard/approve-participant/:id` | event `organizerEmail` matches | pre-save generates `passUUID` and `qrStrings` without payment | `dashboard.controller.js` `approveParticipant` |
 | Active | Active / checked in | `POST /accept` with `uuid`, `qrId` | `paymentStatus === completed`; QR exists; not already scanned (409) | `qrStrings[i].qrScanned`, `scannedAt`; `isScanned` and `timeScanned` once all QRs are scanned | `Accept` |
 
 Invariants and defects (pinned by tests, fixed in later phases):
 
-- **Pending passes never expire.** `cleanupExpiredPasses` has no scheduler, so abandoned paid bookings hold seats until a webhook, callback or `getTicketStatus` resolves them.
+- **Pending passes expire.** Fixed: `server.js` runs `cleanupExpiredPasses` every 5 minutes, so abandoned paid bookings release their seats.
 - **Unauthenticated payment confirmation.** If `PHONEPE_WEBHOOK_USERNAME` or `PHONEPE_WEBHOOK_PASSWORD` is unset, the webhook accepts any body, so anyone can mark any `merchantOrderId` paid. When set, the check compares `SHA256(username:password)`, a static shared secret.
 - **No amount check.** Confirmation never compares the PhonePe amount with `pass.amount`.
 - **Any logged-in user can check people in.** `/accept` sits before `checkRole(["admin"])`. Scanning also re-activates a `revoked` pass whose payment is completed.
