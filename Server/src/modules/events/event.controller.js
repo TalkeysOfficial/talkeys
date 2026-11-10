@@ -2,10 +2,17 @@ const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
 const Event = require("./events.model.js");
 const reqEvent = require("./reqEvent.model.js");
-const User = require("../auth/users.model.js");
 const { validateEvent } = require("./event.schema.js");
 const { validationResult } = require("express-validator");
 const InfluencerRegistration = require("./InfluencerRegistration.model.js");
+const {
+	listPublicEvents,
+	listAdminEvents,
+	getPublicEventById,
+	getEventPassTypes,
+	getLikeCountForEvent,
+	applyTicketPriceCompatibility,
+} = require("./events.service.js");
 
 
 const createEvent = asyncHandler(async (req, res) => {
@@ -59,227 +66,9 @@ const createEvent = asyncHandler(async (req, res) => {
 	}
 });
 
-function mergeDateTime(date, timeStr) {
-	if (!date) return null;
-	if (!timeStr) return new Date(date); // fallback if no time given
-
-	const [hours, minutes] = timeStr.split(":").map(Number);
-	const merged = new Date(date);
-	merged.setUTCHours(hours, minutes, 0, 0);
-	return merged;
-}
-
-const serializePassType = (passType, event) => {
-	const totalQuantity = Number(
-		passType.totalQuantity ?? passType.maxAvailable ?? event.totalSeats ?? 0,
-	);
-	const soldQuantity = Number(
-		passType.soldQuantity ?? passType.bookedQuantity ?? 0,
-	);
-	const availableQuantity =
-		totalQuantity > 0
-			? Math.max(totalQuantity - soldQuantity, 0)
-			: Math.max(
-					Number(event.totalSeats || 0) - Number(event.registrationCount || 0),
-					0,
-			  );
-
-	return {
-		id: passType._id?.toString() || passType.id || "general",
-		_id: passType._id?.toString() || passType.id || "general",
-		name: passType.name || "General Pass",
-		price: Number(passType.price ?? event.ticketPrice ?? 0),
-		description: passType.description || "",
-		totalQuantity,
-		maxAvailable: Number(passType.maxAvailable ?? totalQuantity),
-		soldQuantity,
-		bookedQuantity: Number(passType.bookedQuantity ?? soldQuantity),
-		isActive: passType.isActive !== false,
-		availableQuantity,
-	};
-};
-
-const getEventPassTypes = (event) => {
-	const eventObject = event.toObject ? event.toObject() : event;
-	const passTypes = Array.isArray(eventObject.passTypes)
-		? eventObject.passTypes.filter(Boolean)
-		: [];
-
-	if (passTypes.length > 0) {
-		return passTypes.map((passType) => serializePassType(passType, eventObject));
-	}
-
-	const totalQuantity = Number(eventObject.totalSeats || 0);
-	const soldQuantity = Number(eventObject.registrationCount || 0);
-
-	return [
-		{
-			id: "general",
-			_id: "general",
-			name: "General Pass",
-			price: Number(eventObject.ticketPrice || 0),
-			description: "",
-			totalQuantity,
-			maxAvailable: totalQuantity,
-			soldQuantity,
-			bookedQuantity: soldQuantity,
-			isActive: true,
-			availableQuantity: Math.max(totalQuantity - soldQuantity, 0),
-		},
-	];
-};
-
-const getMinTicketPrice = (passTypes) => {
-	const activePrices = passTypes
-		.filter((passType) => passType.isActive)
-		.map((passType) => passType.price);
-
-	return activePrices.length ? Math.min(...activePrices) : 0;
-};
-
-const getLikeCountsByEventId = async (eventIds = []) => {
-	const objectIds = eventIds
-		.map((eventId) => eventId?.toString())
-		.filter((eventId) => mongoose.Types.ObjectId.isValid(eventId))
-		.map((eventId) => new mongoose.Types.ObjectId(eventId));
-
-	if (!objectIds.length) {
-		return new Map();
-	}
-
-	const counts = await User.aggregate([
-		{ $match: { likedEvents: { $in: objectIds } } },
-		{ $unwind: "$likedEvents" },
-		{ $match: { likedEvents: { $in: objectIds } } },
-		{ $group: { _id: { userId: "$_id", eventId: "$likedEvents" } } },
-		{ $group: { _id: "$_id.eventId", likes: { $sum: 1 } } },
-	]);
-
-	return new Map(
-		counts.map((item) => [item._id.toString(), Number(item.likes || 0)]),
-	);
-};
-
-const getLikeCountForEvent = async (eventId) => {
-	if (!mongoose.Types.ObjectId.isValid(eventId)) {
-		return 0;
-	}
-
-	return User.countDocuments({
-		likedEvents: new mongoose.Types.ObjectId(eventId),
-	});
-};
-
-const applyTicketPriceCompatibility = (eventData) => {
-	const nextData = { ...eventData };
-
-	if (Array.isArray(nextData.passTypes) && nextData.passTypes.length > 0) {
-		const activePrices = nextData.passTypes
-			.filter((passType) => passType.isActive !== false)
-			.map((passType) => Number(passType.price || 0));
-
-		nextData.ticketPrice = activePrices.length
-			? Math.min(...activePrices)
-			: Number(nextData.ticketPrice || 0);
-	}
-
-	return nextData;
-};
-
 const getEvents = asyncHandler(async (req, res) => {
 	try {
-		const {
-			page = 1,
-			limit,
-			sortBy = "startDate",
-			order = "asc",
-			mode,
-			category,
-			search = "",
-			minPrice,
-			maxPrice,
-		} = req.query;
-
-		// Query values must be plain strings: `?mode[$ne]=x` would otherwise reach Mongo as an operator.
-		const text = (value) => (typeof value === "string" ? value : undefined);
-		// Public listing never shows drafts or private events, whatever `visibility` asks for.
-		const query = { status: { $ne: "draft" }, visibility: "public" };
-		if (text(mode)) query.mode = text(mode);
-		if (text(category)) query.category = text(category);
-
-		if (minPrice || maxPrice) {
-			const priceRange = {};
-			if (minPrice) priceRange.$gte = Number(minPrice);
-			if (maxPrice) priceRange.$lte = Number(maxPrice);
-			query.$and = query.$and || [];
-			query.$and.push({
-				$or: [
-					{ ticketPrice: priceRange },
-					{ "passTypes.price": priceRange },
-				],
-			});
-		}
-
-		const safeSearch = text(search)?.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-		if (safeSearch) {
-			query.$and = query.$and || [];
-			query.$and.push({
-				$or: [
-					{ name: { $regex: safeSearch, $options: "i" } },
-					{ eventDescription: { $regex: safeSearch, $options: "i" } },
-					{ category: { $regex: safeSearch, $options: "i" } },
-				],
-			});
-		}
-
-		const sortField = ["startDate", "name", "createdAt", "ticketPrice", "registrationCount"].includes(sortBy) ? sortBy : "startDate";
-		const sortOptions = { [sortField]: order === "desc" ? -1 : 1 };
-		const parsedLimit = limit !== undefined ? Math.min(parseInt(limit, 10), 100) : null;
-		const shouldPaginate = Number.isFinite(parsedLimit) && parsedLimit > 0;
-		const skip = shouldPaginate ? (parseInt(page, 10) - 1) * parsedLimit : 0;
-
-		let events = await Event.find(query)
-			.select("-__v")
-			.sort(sortOptions)
-			.skip(skip)
-			.limit(shouldPaginate ? parsedLimit : 0);
-		const likeCounts = await getLikeCountsByEventId(events.map((event) => event._id));
-
-		// Attach computed fields
-		events = events.map(event => {
-			const eventObject = event.toObject();
-			const startDateTime = mergeDateTime(event.startDate, event.startTime);
-			const startRegistrationDate = event.startRegistrationDate;
-			const availableSeats = event.totalSeats - (event.registrationCount || 0);
-			const passTypes = getEventPassTypes(eventObject);
-			const eventId = event._id.toString();
-
-			return {
-				...eventObject,
-				startDateTime,
-				startRegistrationDate,
-				availableSeats,
-				likes: likeCounts.get(eventId) || 0,
-				passTypes,
-				minTicketPrice: getMinTicketPrice(passTypes),
-				status: event.getStatus(),
-			};
-		});
-
-		const total = await Event.countDocuments(query);
-
-		res.status(200).json({
-			status: "success",
-			data: {
-				events,
-				pagination: {
-					total,
-					page: parseInt(page),
-					pages: shouldPaginate ? Math.ceil(total / parsedLimit) : 1,
-					limit: shouldPaginate ? parsedLimit : total,
-				},
-			},
-		});
+		res.status(200).json({ status: "success", data: await listPublicEvents(req.query) });
 	} catch (error) {
 		console.error("Error in getEvents:", error);
 		res.status(500).json({
@@ -292,65 +81,7 @@ const getEvents = asyncHandler(async (req, res) => {
 
 const getAdminEvents = asyncHandler(async (req, res) => {
 	try {
-		const {
-			page = 1,
-			limit = 200,
-			sortBy = "createdAt",
-			order = "desc",
-			search = "",
-		} = req.query;
-
-		const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
-		const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 200, 1), 500);
-		const allowedSortFields = new Set(["createdAt", "updatedAt", "startDate", "name"]);
-		const safeSortBy = allowedSortFields.has(sortBy) ? sortBy : "createdAt";
-
-		const query = {};
-		if (search) {
-			query.$or = [
-				{ name: { $regex: search, $options: "i" } },
-				{ eventDescription: { $regex: search, $options: "i" } },
-				{ category: { $regex: search, $options: "i" } },
-			];
-		}
-
-		const skip = (parsedPage - 1) * parsedLimit;
-		const sortOptions = { [safeSortBy]: order === "asc" ? 1 : -1 };
-		const [events, total] = await Promise.all([
-			Event.find(query)
-				.select("-__v")
-				.sort(sortOptions)
-				.skip(skip)
-				.limit(parsedLimit),
-			Event.countDocuments(query),
-		]);
-		const likeCounts = await getLikeCountsByEventId(events.map((event) => event._id));
-
-		res.status(200).json({
-			status: "success",
-			data: {
-				events: events.map((event) => {
-					const eventObject = event.toObject();
-					const passTypes = getEventPassTypes(eventObject);
-					const eventId = event._id.toString();
-
-					return {
-						...eventObject,
-						availableSeats: event.totalSeats - (event.registrationCount || 0),
-						likes: likeCounts.get(eventId) || 0,
-						passTypes,
-						minTicketPrice: getMinTicketPrice(passTypes),
-						status: event.getStatus(),
-					};
-				}),
-				pagination: {
-					total,
-					page: parsedPage,
-					pages: Math.ceil(total / parsedLimit),
-					limit: parsedLimit,
-				},
-			},
-		});
+		res.status(200).json({ status: "success", data: await listAdminEvents(req.query) });
 	} catch (error) {
 		console.error("Error in getAdminEvents:", error);
 		res.status(500).json({
@@ -363,35 +94,14 @@ const getAdminEvents = asyncHandler(async (req, res) => {
 
 const getEventById = async (req, res) => {
 	try {
-		const { id } = req.params;
-		const event = await Event.findById(id).select("-__v");
-
-		if (!event || event.status === "draft") {
+		const data = await getPublicEventById(req.params.id);
+		if (!data) {
 			return res.status(404).json({
 				status: "error",
 				message: "Event not found",
 			});
 		}
-
-		const startDateTime = event.startDateTime || mergeDateTime(event.startDate, event.startTime);
-		const startRegistrationDate = event.startRegistrationDate;
-		const availableSeats = event.totalSeats - (event.registrationCount || 0);
-		const passTypes = getEventPassTypes(event);
-		const likes = await getLikeCountForEvent(event._id);
-
-		res.status(200).json({
-			status: "success",
-			data: {
-				...event.toObject(),
-				startDateTime,
-				startRegistrationDate,
-				availableSeats,
-				likes,
-				passTypes,
-				minTicketPrice: getMinTicketPrice(passTypes),
-				status: event.getStatus(),
-			},
-		});
+		res.status(200).json({ status: "success", data });
 	} catch (error) {
 		console.error("Error in getEventById:", error);
 		res.status(500).json({
